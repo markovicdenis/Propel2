@@ -99,8 +99,6 @@ ALTER TABLE "foo" RENAME COLUMN "bar" TO "bar1";
 
 ALTER TABLE "foo"
 
-  ALTER COLUMN "baz" SET DEFAULT 'pdf;jpg;png;doc;docx;xls;xlsx;txt',
-
   ALTER COLUMN "baz" DROP NOT NULL,
 
   ADD "baz3" TEXT;

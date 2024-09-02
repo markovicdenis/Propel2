@@ -132,12 +132,7 @@ class Propel
         include $configFile;
     }
 
-    /**
-     * Get the service container instance.
-     *
-     * @return \Propel\Runtime\ServiceContainer\ServiceContainerInterface
-     */
-    public static function getServiceContainer(): ServiceContainerInterface
+    public static function getServiceContainer(): StandardServiceContainer
     {
         if (self::$serviceContainer === null) {
             self::$serviceContainer = new StandardServiceContainer();

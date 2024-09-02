@@ -990,4 +990,13 @@ class TableMap
 
         return $pk;
     }
+
+    /**
+     * @param string $columnName
+     * @return string
+     */
+    public function getPhpTypeForColumn($columnName)
+    {
+        return null;
+    }
 }

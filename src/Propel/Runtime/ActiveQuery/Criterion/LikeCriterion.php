@@ -85,7 +85,12 @@ class LikeCriterion extends AbstractCriterion
             }
         }
 
-        $params[] = ['table' => $this->realtable, 'column' => $this->column, 'value' => $this->value];
+        if (str_contains($this->value, '%')) {
+            $params[] = ['column' => $this->column, 'value' => $this->value];
+        } else {
+            $params[] = ['table' => $this->realtable, 'column' => $this->column, 'value' => $this->value];
+        }
+
 
         $sb .= $field . $this->comparison;
 
