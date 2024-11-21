@@ -573,7 +573,7 @@ abstract class PdoAdapter
 
                 continue;
             }
-            $tableName = $param['table'];
+            $tableName = $param['table'] ?? null;
             if ($tableName === null) {
                 $type = $param['type'] ?? PDO::PARAM_STR;
                 $stmt->bindValue($parameter, $value, $type);
