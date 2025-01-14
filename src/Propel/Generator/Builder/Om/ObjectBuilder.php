@@ -4133,6 +4133,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
 
+        $funcParams = $orNull ? "?$className \$v = null" : "$className \$v";
+
         $script .= "
     /**
      * Declares an association between this object and a $className object.
@@ -4141,7 +4143,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @return \$this The current object (for fluent API support)
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function set" . $this->getFKPhpNameAffix($fk, false) . "($className \$v = null)
+    public function set" . $this->getFKPhpNameAffix($fk, false) . "($funcParams)
     {";
 
         foreach ($fk->getMapping() as $map) {
@@ -4958,16 +4960,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Sets a single $className object as related to this object by a one-to-one relationship.
      *
-     * @param $className \$v $className
      * @return \$this The current object (for fluent API support)
      * @throws \Propel\Runtime\Exception\PropelException
      */
-    public function set" . $this->getRefFKPhpNameAffix($refFK, false) . "($className \$v = null)
+    public function set" . $this->getRefFKPhpNameAffix($refFK, false) . "(?$className \$v = null)
     {
         \$this->$varName = \$v;
 
         // Make sure that that the passed-in $className isn't already associated with this object
-        if (\$v !== null && \$v->get" . $this->getFKPhpNameAffix($refFK, false) . "(null, false) === null) {
+        if (\$v !== null && \$v->get" . $this->getFKPhpNameAffix($refFK, false) . "(null) === null) {
             \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
         }
 

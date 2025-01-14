@@ -1672,7 +1672,7 @@ class QueryBuilder extends AbstractOMBuilder
      */
     public function with{$relationName}Query(
         callable \$callable,
-        string \$relationAlias = null,
+        ?string \$relationAlias = null,
         ?string \$joinType = {$joinType}
     ) {
         \$relatedQuery = \$this->use{$relationName}Query(
