@@ -1,0 +1,3 @@
+{
+    "phpstan.binPath": "vendor/bin/phpstan"
+}
