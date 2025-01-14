@@ -11,6 +11,6 @@ namespace Propel\Generator\Exception;
 /**
  * @author William Durand <william.durand1@gmail.com>
  */
-interface ExceptionInterface
+interface ExceptionInterface extends \Throwable
 {
 }

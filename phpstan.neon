@@ -6,6 +6,7 @@ parameters:
     paths:
         - '%rootDir%/../../../src/'
     ignoreErrors:
+        - identifier: trait.unused
         - identifier: missingType.iterableValue
         - '#Call to an undefined method .+Collection::.+Array\(\)#'
         - '#Call to an undefined method object::.+\(\)#'

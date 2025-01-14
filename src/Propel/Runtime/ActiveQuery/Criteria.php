@@ -1747,14 +1747,10 @@ class Criteria
             return null;
         }
 
-        /** @var \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|null $removed */
         $removed = $this->map[$key];
         unset($this->map[$key]);
-        if ($removed instanceof AbstractCriterion) {
-            return $removed->getValue();
-        }
-
-        return $removed;
+            
+        return $removed->getValue();
     }
 
     /**

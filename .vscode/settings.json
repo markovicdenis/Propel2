@@ -1,3 +1,4 @@
 {
-    "phpstan.binPath": "vendor/bin/phpstan"
+    "phpstan.binPath": "vendor/bin/phpstan",
+    "php.stubs": ["all"]
 }

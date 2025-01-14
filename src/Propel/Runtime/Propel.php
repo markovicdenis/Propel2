@@ -132,7 +132,7 @@ class Propel
         include $configFile;
     }
 
-    public static function getServiceContainer(): StandardServiceContainer
+    public static function getServiceContainer(): ServiceContainerInterface|StandardServiceContainer
     {
         if (self::$serviceContainer === null) {
             self::$serviceContainer = new StandardServiceContainer();

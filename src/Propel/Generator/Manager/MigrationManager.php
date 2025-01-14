@@ -334,7 +334,7 @@ class MigrationManager extends AbstractManager
     }
 
     /**
-     * @return array<int>
+     * @return list<int>
      */
     public function getValidMigrationTimestamps(): array
     {

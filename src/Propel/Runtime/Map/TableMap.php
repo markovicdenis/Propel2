@@ -997,6 +997,6 @@ class TableMap
      */
     public function getPhpTypeForColumn($columnName)
     {
-        return null;
+        return "";
     }
 }

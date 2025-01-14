@@ -21,7 +21,7 @@ use Propel\Runtime\Map\TableMap;
 class PDODataFetcher extends AbstractDataFetcher
 {
     /**
-     * @var array|null
+     * @var array|boolean|null
      */
     private $current;
 
