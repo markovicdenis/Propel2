@@ -2670,6 +2670,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {";
     }
 
+    protected function addHydrateColumn(string &$script, Column $col, string $name): bool
+    {
+        return false;
+    }
+
     /**
      * Adds the function body for the hydrate method
      *
@@ -2697,6 +2702,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             \$col = \$row[$indexName];";
                 $clo = $col->getLowercasedName();
+                $clo = $col->getLowercasedName();
+                if ($this->addHydrateColumn($script, $col, $clo)) {
+                    $n++;
+                    continue;
+                }
                 if ($col->getType() === PropelTypes::CLOB_EMU && $this->getPlatform() instanceof OraclePlatform) {
                     // PDO_OCI returns a stream for CLOB objects, while other PDO adapters return a string...
                     $script .= "
@@ -2999,6 +3009,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
     }
 
+    protected function addToArrayMutations(string &$script): void
+    {
+    }
+
     /**
      * Adds the toArray method
      *
@@ -3062,6 +3076,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         ";
             }
         }
+
+        $this->addToArrayMutations($script);
+
         $script .= "
         \$virtualColumns = \$this->virtualColumns;
         foreach (\$virtualColumns as \$key => \$virtualColumn) {
