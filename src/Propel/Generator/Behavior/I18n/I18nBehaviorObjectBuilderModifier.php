@@ -299,10 +299,7 @@ class I18nBehaviorObjectBuilderModifier
             \$this->currentTranslations[\$locale] = \$l;
         }";
         $replacement = "\$0$addition";
-        $scriptNew = preg_replace($pattern, $replacement, $script);
-        if ($scriptNew !== null) {
-            $script = $scriptNew;
-        }
+        $script = preg_replace($pattern, $replacement, $script);
     }
 
     /**
