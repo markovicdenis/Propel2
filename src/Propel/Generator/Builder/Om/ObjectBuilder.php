@@ -1137,7 +1137,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      ";
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return object|array{$orNull}
@@ -1160,7 +1160,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     " . $visibility . " function get$cfc(\$asArray = true";
         if ($column->isLazyLoad()) {
-            $script .= ', ConnectionInterface $con = null';
+            $script .= ', ?ConnectionInterface $con = null';
         }
 
         $script .= ")
@@ -1341,7 +1341,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return string|null
@@ -1410,7 +1410,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return array|null
@@ -1476,7 +1476,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return bool
@@ -1534,7 +1534,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return " . ($column->getTypeHint() ?: ($column->getPhpType() ?: 'mixed')) . $orNull . "
@@ -1557,7 +1557,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     " . $visibility . " function get$cfc(";
         if ($column->isLazyLoad()) {
-            $script .= 'ConnectionInterface $con = null';
+            $script .= '?ConnectionInterface $con = null';
         }
 
         $script .= ")
@@ -2199,7 +2199,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $col->getDescription();
         if ($col->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return \$this The current object (for fluent API support)
@@ -2247,7 +2247,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $col->getDescription();
         if ($col->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return \$this The current object (for fluent API support)

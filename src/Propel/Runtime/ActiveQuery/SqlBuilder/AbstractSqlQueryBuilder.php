@@ -127,11 +127,11 @@ abstract class AbstractSqlQueryBuilder
      * Build sql statement from a criteria and add it to the given statement collector.
      *
      * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion $criterion
-     * @param array<mixed>|null $params
+     * @param array<mixed> $params
      *
      * @return string
      */
-    protected function buildStatementFromCriterion(AbstractCriterion $criterion, ?array &$params): string
+    protected function buildStatementFromCriterion(AbstractCriterion $criterion, array &$params): string
     {
         $criterionSql = '';
         $criterion->appendPsTo($criterionSql, $params);
