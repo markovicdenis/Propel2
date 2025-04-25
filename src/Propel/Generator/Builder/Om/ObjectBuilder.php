@@ -1633,7 +1633,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * the [$clo] column, since it is not populated by
      * the hydrate() method.
      *
-     * @param \$con ConnectionInterface (optional) The ConnectionInterface connection to use.
+     * @param \$con ConnectionInterface|null (optional) The ConnectionInterface connection to use.
      * @return void
      * @throws \Propel\Runtime\Exception\PropelException - any underlying error will be wrapped and re-thrown.
      */";
