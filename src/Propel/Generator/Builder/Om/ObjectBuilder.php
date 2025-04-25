@@ -1278,7 +1278,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     " . $visibility . " function $name(";
         if ($column->isLazyLoad()) {
-            $script .= 'ConnectionInterface $con = null';
+            $script .= '?ConnectionInterface $con = null';
         }
 
         $script .= ")
@@ -1483,7 +1483,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     $visibility function has$singularPhpName(\$value";
         if ($column->isLazyLoad()) {
-            $script .= ', ConnectionInterface $con = null';
+            $script .= ', ?ConnectionInterface $con = null';
         }
 
         $script .= "): bool
@@ -2206,7 +2206,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     $visibility function add$singularPhpName(\$value";
         if ($col->isLazyLoad()) {
-            $script .= ', ConnectionInterface $con = null';
+            $script .= ', ?ConnectionInterface $con = null';
         }
 
         $script .= ")
@@ -2254,7 +2254,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     $visibility function remove$singularPhpName(\$value";
         if ($col->isLazyLoad()) {
-            $script .= ', ConnectionInterface $con = null';
+            $script .= ', ?ConnectionInterface $con = null';
         }
         // we want to reindex the array, so array_ functions are not the best choice
         $script .= ")
