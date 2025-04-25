@@ -1341,7 +1341,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return string|null
@@ -1410,7 +1410,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return array|null
