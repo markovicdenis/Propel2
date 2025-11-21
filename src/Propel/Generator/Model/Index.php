@@ -103,7 +103,7 @@ class Index extends MappingModel
     /**
      * @return void
      */
-    protected function doNaming(): void
+    protected function doNamingOld(): void
     {
         if ($this->name && !$this->autoNaming) {
             return;
@@ -118,6 +118,36 @@ class Index extends MappingModel
             $newName .= substr(md5(strtolower(implode(':', $hash))), 0, 6);
         } else {
             $newName .= 'no_columns';
+        }
+
+        if ($this->table) {
+            $newName = $this->table->getCommonName() . '_' . $newName;
+        }
+
+        $this->name = $newName;
+        $this->autoNaming = true;
+    }
+
+    /**
+     * @return void
+     */
+    protected function doNaming(): void
+    {
+        if ($this->name && !$this->autoNaming) {
+            return;
+        }
+        $newName = '';
+
+        if ($this->columns) {
+            $newName .= implode('_', (array)$this->columns);
+        } else {
+            $newName .= 'no_columns';
+        }
+
+        if ($this instanceof Unique) {
+            $newName .= '_uniq';
+        } else {
+            $newName .= '_idx';
         }
 
         if ($this->table) {
