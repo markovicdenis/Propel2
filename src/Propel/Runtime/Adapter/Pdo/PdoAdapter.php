@@ -35,6 +35,7 @@ use function preg_replace;
 use function rewind;
 use function sprintf;
 use function str_replace;
+use function strlen;
 use function strpos;
 use function strrpos;
 use function strtolower;
@@ -245,6 +246,14 @@ abstract class PdoAdapter
     public function quoteIdentifier(string $text): string
     {
         return '"' . $text . '"';
+    }
+
+    public function quoteIdentifierSafe(string $text): string
+    {
+        if (strpos($text, '"') === 0 && strrpos($text, '"') === strlen($text) - 1) {
+            return $text;
+        }
+        return $this->quoteIdentifier($text);
     }
 
     /**

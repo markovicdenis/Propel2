@@ -355,4 +355,6 @@ interface PlatformInterface
      * @return string Quoted identifier.
      */
     public function quoteIdentifier(string $text): string;
+
+    public function fixSqlType(?string $sqlType): ?string;
 }

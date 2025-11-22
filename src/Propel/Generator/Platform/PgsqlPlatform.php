@@ -487,6 +487,23 @@ DROP TABLE IF EXISTS %s CASCADE;
         return $tableName . '_pkey';
     }
 
+    // HACK: PostgreSQL does not support 'unsigned' types.
+    private function convertSqlTypeToPgsql(string $sqlType): string
+    {
+        $type = strtolower($sqlType);
+        $type = str_ireplace(' unsigned', '', $type);
+        return match ($type) {
+            'int', 'integer' => 'INTEGER',
+            'int2' => 'SMALLINT',
+            'int4' => 'INTEGER',
+            'int8' => 'BIGINT',
+            'tinyint' => 'SMALLINT',
+            'smallint' => 'SMALLINT',
+            'bigint' => 'BIGINT',
+            default => $sqlType,
+        };
+    }
+
     /**
      * @param \Propel\Generator\Model\Column $col
      *
@@ -497,7 +514,8 @@ DROP TABLE IF EXISTS %s CASCADE;
         $domain = $col->getDomain();
 
         $ddl = [$this->quoteIdentifier($col->getName())];
-        $sqlType = $domain->getSqlType();
+        // $sqlType = $domain->getSqlType();
+        $sqlType = $this->convertSqlTypeToPgsql($domain->getSqlType());
         $table = $col->getTable();
         if ($col->isAutoIncrement() && $table && $table->getIdMethodParameters() == null) {
             $sqlType = $col->getType() === PropelTypes::BIGINT ? 'bigserial' : 'serial';

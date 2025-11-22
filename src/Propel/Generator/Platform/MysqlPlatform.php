@@ -23,6 +23,8 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\Util\MysqlUuidMigrationBuilder;
 
+use function stripos;
+
 /**
  * MySql PlatformInterface implementation.
  *
@@ -1126,6 +1128,6 @@ ALTER TABLE %s ADD %s %s;
     {
         $serverVersion = $this->getServerVersion() ?? '';
 
-        return (stripos($serverVersion, 'mariadb') !== false);
+        return stripos($serverVersion, 'mariadb') !== false;
     }
 }

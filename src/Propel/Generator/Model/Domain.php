@@ -395,7 +395,8 @@ class Domain extends MappingModel
      */
     public function setSqlType(?string $sqlType): void
     {
-        $this->sqlType = $sqlType;
+        $fixedType = $this->database?->getPlatform()->fixSqlType($sqlType) ?? $sqlType;
+        $this->sqlType = $fixedType;
     }
 
     /**
@@ -408,7 +409,7 @@ class Domain extends MappingModel
     public function replaceSqlType(?string $sqlType): void
     {
         if ($sqlType !== null) {
-            $this->sqlType = $sqlType;
+            $this->setSqlType($sqlType);
         }
     }
 

@@ -1591,4 +1591,10 @@ if (is_resource($columnValueAccessor)) {
             }
         }
     }
+
+    // HACK: some platforms need to adjust the SQL type string for comparison
+    public function fixSqlType(?string $sqlType): ?string
+    {
+        return $sqlType;
+    }
 }
