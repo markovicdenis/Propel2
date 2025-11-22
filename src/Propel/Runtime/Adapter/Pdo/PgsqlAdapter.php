@@ -17,6 +17,16 @@ use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Propel;
 use RuntimeException;
 
+use function array_map;
+use function array_search;
+use function array_unique;
+use function implode;
+use function in_array;
+use function sprintf;
+use function strrpos;
+use function strtr;
+use function substr;
+
 /**
  * This is used to connect to PostgreSQL databases.
  *
@@ -290,5 +300,70 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
         if ($lock->isNoWait()) {
             $sql .= ' NOWAIT';
         }
+    }
+
+    /**
+     * Builds the SELECT part of a SQL statement based on a Criteria
+     * taking into account select columns and 'as' columns (i.e. columns aliases)
+     *
+     * @param \Propel\Runtime\ActiveQuery\Criteria $criteria
+     * @param array $fromClause
+     * @param bool $aliasAll
+     *
+     * @return string
+     */
+    public function createSelectSqlPart(Criteria $criteria, array &$fromClause, bool $aliasAll = false): string
+    {
+        $selectClause = [];
+
+        if ($aliasAll) {
+            $this->turnSelectColumnsToAliases($criteria);
+            // no select columns after that, they are all aliases
+        } else {
+            foreach ($criteria->getSelectColumns() as $columnName) {
+                // expect every column to be of "table.column" formation
+                // it could be a function:  e.g. MAX(books.price)
+                $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
+
+                $parenPos = strrpos($columnName, '(');
+                $dotPos = strrpos($columnName, '.', ($parenPos !== false ? $parenPos : 0));
+
+                if ($dotPos === false) {
+                    continue;
+                }
+
+                if ($parenPos === false) { // table.column
+                    $tableName = substr($columnName, 0, $dotPos);
+                } else { // FUNC(table.column)
+                    // functions may contain qualifiers so only take the last
+                    // word as the table name.
+                    // COUNT(DISTINCT books.price)
+                    $tableName = substr($columnName, $parenPos + 1, $dotPos - ($parenPos + 1));
+                    $lastSpace = strrpos($tableName, ' ');
+                    if ($lastSpace !== false) { // COUNT(DISTINCT books.price)
+                        $tableName = substr($tableName, $lastSpace + 1);
+                    }
+                }
+                // resolve table alias
+                $sourceTableName = $criteria->getTableForAlias($tableName);
+                $fromClause[] = ($sourceTableName) ? $sourceTableName . ' ' . $tableName : $tableName;
+            }
+        }
+
+        // set the aliases
+        foreach ($criteria->getAsColumns() as $alias => $col) {
+            $selectClause[] = $col . ' AS ' . $this->quoteIdentifier($alias);
+        }
+
+        $selectModifiers = $criteria->getSelectModifiers();
+        $queryComment = $criteria->getComment();
+
+        // Build the SQL from the arrays we compiled
+        $sql = 'SELECT '
+            . ($queryComment ? '/* ' . $queryComment . ' */ ' : '')
+            . ($selectModifiers ? (implode(' ', $selectModifiers) . ' ') : '')
+            . implode(', ', $selectClause);
+
+        return $sql;
     }
 }
