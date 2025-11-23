@@ -9,6 +9,7 @@
 namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Column;
+use Propel\Generator\Model\Database;
 use Propel\Generator\Model\ForeignKey;
 
 /**
@@ -28,7 +29,7 @@ class ForeignKeyComparator
      *
      * @return bool false if the two fks are similar, true if they have differences
      */
-    public static function computeDiff(ForeignKey $fromFk, ForeignKey $toFk, bool $caseInsensitive = false): bool
+    public static function computeDiff(ForeignKey $fromFk, ForeignKey $toFk, bool $caseInsensitive = false, Database $database): bool
     {
         // Check for differences in local and remote table
         $fromDifferentTable = $caseInsensitive ?
@@ -51,8 +52,8 @@ class ForeignKeyComparator
         if (
             !static::stringArrayEqualsCaseInsensitive($fromFk->getLocalColumns(), $toFk->getLocalColumns())
             || !static::stringArrayEqualsCaseInsensitive($fromFk->getForeignColumns(), $toFk->getForeignColumns())
-            || !static::columnTypesEquals($fromFk->getLocalColumnObjects(), $toFk->getLocalColumnObjects())
-            || !static::columnTypesEquals($fromFk->getForeignColumnObjects(), $toFk->getForeignColumnObjects())
+            || !static::columnTypesEquals($fromFk->getLocalColumnObjects(), $toFk->getLocalColumnObjects(), $database)
+            || !static::columnTypesEquals($fromFk->getForeignColumnObjects(), $toFk->getForeignColumnObjects(), $database)
         ) {
             return true;
         }
@@ -93,13 +94,18 @@ class ForeignKeyComparator
      *
      * @return bool
      */
-    protected static function columnTypesEquals(array $columns1, array $columns2): bool
+    protected static function columnTypesEquals(array $columns1, array $columns2, Database $database): bool
     {
         $byNameSorter = fn (Column $column1, Column $column2) => strcmp($column1->getName(), $column2->getName());
         usort($columns1, $byNameSorter);
         usort($columns2, $byNameSorter);
 
-        $toSqlTypeNameMapper = fn (Column $column) => $column->getSqlType();
+        // $toSqlTypeNameMapper = fn (Column $column) => $column->getSqlType();
+        $toSqlTypeNameMapper = function (Column $column) use ($database) {
+            $platform = $database->getPlatform();
+            $sqlType = $column->getSqlType();
+            return $platform->fixSqlType($sqlType);
+        };
         $columnTypes1 = array_map($toSqlTypeNameMapper, $columns1);
         $columnTypes2 = array_map($toSqlTypeNameMapper, $columns2);
 
