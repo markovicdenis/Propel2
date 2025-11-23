@@ -42,11 +42,36 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\Util\PropelModelPager;
 
+use function array_key_exists;
+use function array_map;
+use function array_merge;
 use function array_pad;
+use function array_shift;
+use function array_values;
+use function count;
+use function current;
+use function end;
 use function explode;
+use function implode;
+use function in_array;
 use function is_array;
+use function is_object;
 use function join;
+use function key;
+use function lcfirst;
+use function method_exists;
+use function serialize;
+use function sprintf;
 use function str_contains;
+use function str_ireplace;
+use function str_replace;
+use function stripos;
+use function strlen;
+use function strpos;
+use function strrpos;
+use function substr;
+use function substr_count;
+use function trim;
 
 /**
  * This class extends the Criteria by adding runtime introspection abilities
@@ -165,7 +190,6 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
-     * HACK: Added support for casts in filterBy() calls
      * Adds a condition on a column based on a column phpName and a value
      * Uses introspection to translate the column phpName into a fully qualified name
      * Warning: recognizes only the phpNames of the main Model (not joined tables)
@@ -183,16 +207,12 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function filterBy(string $column, $value, ?string $comparison = null)
     {
-        if (str_contains($column, '::')) {
-            [$columnProp, $cast] = array_pad(explode('::', $column, 2), 2, null);
-        }
-        $columnName = $this->getRealColumnName($columnProp ?? $column);
-        // $buildColumnName =  "$columnName::$cast" ?? $columnName;
-        $this->map[$columnName] = CriterionFactory::build($this, join('::', [$columnName, $cast ?? null]), $comparison, $value);
+        $columnMap = $this->getRealColumn($column);
+        $columnName = $this->getRealColumnName($column, $columnMap);
+        $this->map[$columnName] = CriterionFactory::build($this, $columnName, $comparison, $value, $columnMap);
 
         return $this;
     }
-
 
     /**
      * Adds a list of conditions on the columns of the current model
@@ -1957,25 +1977,25 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Code to execute before every UPDATE statement
      *
-     * @param array $values The associative array of columns and values for the update
+     * @param array|Criteria $values The associative array of columns and values for the update
      * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
      *
      * @return int|null
      */
-    protected function basePreUpdate(array &$values, ConnectionInterface $con, bool $forceIndividualSaves = false): ?int
+    protected function basePreUpdate(array|Criteria &$values, ConnectionInterface $con, bool $forceIndividualSaves = false): ?int
     {
         return $this->preUpdate($values, $con, $forceIndividualSaves);
     }
 
     /**
-     * @param array $values
+     * @param array|Criteria $values
      * @param \Propel\Runtime\Connection\ConnectionInterface $con
      * @param bool $forceIndividualSaves
      *
      * @return int|null
      */
-    protected function preUpdate(array &$values, ConnectionInterface $con, bool $forceIndividualSaves = false): ?int
+    protected function preUpdate(array|Criteria &$values, ConnectionInterface $con, bool $forceIndividualSaves = false): ?int
     {
         return null;
     }
@@ -2450,16 +2470,27 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @return string the fully qualified column name
      */
-    protected function getRealColumnName(string $columnName): string
+    protected function getRealColumnName(string $columnName, ColumnMap $column): string
+    {
+        // $tableMap = $this->getTableMapOrFail();
+        // if (!$tableMap->hasColumnByPhpName($columnName)) {
+        //     throw new UnknownColumnException('Unknown column ' . $columnName . ' in model ' . $this->modelName);
+        // }
+        $tableName = $this->getTableNameInQuery();
+        // $columnName = $tableMap->getColumnByPhpName($columnName)->getName();
+        $columnName = $column->getName();
+
+        return "$tableName.$columnName";
+    }
+
+    protected function getRealColumn(string $columnName): ColumnMap
     {
         $tableMap = $this->getTableMapOrFail();
         if (!$tableMap->hasColumnByPhpName($columnName)) {
             throw new UnknownColumnException('Unknown column ' . $columnName . ' in model ' . $this->modelName);
         }
         $tableName = $this->getTableNameInQuery();
-        $columnName = $tableMap->getColumnByPhpName($columnName)->getName();
-
-        return "$tableName.$columnName";
+        return $tableMap->getColumnByPhpName($columnName);
     }
 
     /**

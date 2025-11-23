@@ -96,7 +96,7 @@ class ForeignKey extends MappingModel
     private $onDelete = '';
 
     /**
-     * @var \Propel\Generator\Model\Table
+     * @var \Propel\Generator\Model\Table|null
      */
     private $parentTable;
 
@@ -193,8 +193,8 @@ class ForeignKey extends MappingModel
         if ($this->parentTable) {
             $parts[] = $this->parentTable->getCommonName();
         }
-        $parts = [...$parts, ...$this->localColumns ?? []];
-        $parts = [...$parts, ...$this->foreignColumns ?? []];
+        $parts = [...$parts, ...$this->localColumns ];
+        $parts = [...$parts, ...$this->foreignColumns ];
         $parts[] = 'fkey';
         return implode('_', $parts);
     }

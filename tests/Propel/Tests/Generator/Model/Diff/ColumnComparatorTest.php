@@ -19,6 +19,8 @@ use Propel\Tests\TestCase;
  */
 class ColumnComparatorTest extends TestCase
 {
+    private MysqlPlatform $platform;
+
     /**
      * @return void
      */

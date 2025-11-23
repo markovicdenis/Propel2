@@ -103,9 +103,9 @@ abstract class FileLoader extends BaseFileLoader
     protected function getPath(string $file): string
     {
         $path = $this->locator->locate($file);
-        if (!is_string($path)) {
-            throw new InputOutputException("$file must return a single path.");
-        }
+        // if (!is_string($path)) {
+        //     throw new InputOutputException("$file must return a single path.");
+        // }
 
         if (!is_readable($path)) {
             throw new InputOutputException("You don't have permissions to access configuration file $file.");
@@ -142,9 +142,9 @@ abstract class FileLoader extends BaseFileLoader
             return ($ext === $extension);
         }
 
-        if (!is_array($ext)) {
-            throw new InvalidArgumentException('$ext must be string or string[]');
-        }
+        // if (!is_array($ext)) {
+        //     throw new InvalidArgumentException('$ext must be string or string[]');
+        // }
 
         return in_array($extension, $ext, true);
     }

@@ -398,6 +398,8 @@ class I18nBehavior extends Behavior
             }
         }
 
-        return $columnNames;
+        // FIX: return array_values($columnNames);
+        // return $columnNames;
+        return array_values($columnNames);
     }
 }

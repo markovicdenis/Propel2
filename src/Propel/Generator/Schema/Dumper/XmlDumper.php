@@ -362,6 +362,7 @@ class XmlDumper implements DumperInterface
 
         foreach ($behavior->getParameters() as $name => $value) {
             $parameterNode = $behaviorNode->appendChild($this->document->createElement('parameter'));
+            assert($parameterNode instanceof \DOMElement);
             $parameterNode->setAttribute('name', $name);
             $parameterNode->setAttribute('value', $value);
         }
@@ -516,6 +517,7 @@ class XmlDumper implements DumperInterface
 
         for ($i = 0, $size = count($foreignKey->getLocalColumns()); $i < $size; $i++) {
             $refNode = $foreignKeyNode->appendChild($this->document->createElement('reference'));
+            assert($refNode instanceof \DOMElement);
             $refNode->setAttribute('local', $foreignKey->getLocalColumnName($i));
             $refNode->setAttribute('foreign', $foreignKey->getForeignColumnName($i));
         }
@@ -587,11 +589,12 @@ class XmlDumper implements DumperInterface
 
         foreach ($index->getColumns() as $columnName) {
             $indexColumnNode = $indexNode->appendChild($this->document->createElement($nodeType . '-column'));
+            assert($indexColumnNode instanceof \DOMElement);
             $indexColumnNode->setAttribute('name', $columnName);
 
             $size = $index->getColumnSize($columnName);
             if ($size) {
-                $indexColumnNode->setAttribute('size', $size);
+                $indexColumnNode->setAttribute('size', (string) $size);
             }
         }
 

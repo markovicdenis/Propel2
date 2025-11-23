@@ -9,6 +9,7 @@
 namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\Map\ColumnMap;
 
 /**
  * Creates Criterion objects, extracted from Criteria class
@@ -23,8 +24,13 @@ class CriterionFactory
      *
      * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion
      */
-    public static function build(Criteria $criteria, string $column, $comparison = null, $value = null): AbstractCriterion
-    {
+    public static function build(
+        Criteria $criteria,
+        string $column,
+        $comparison = null,
+        $value = null,
+        ?ColumnMap $columnMap = null
+    ): AbstractCriterion {
         if ($value instanceof Criteria) {
             return static::buildCriterionWithCriteria($criteria, $column, $comparison, $value);
         } elseif ($comparison === null) {
@@ -53,7 +59,7 @@ class CriterionFactory
             case Criteria::NOT_ILIKE:
                 // table.column LIKE ? or table.column NOT LIKE ?  (or ILIKE for Postgres)
                 // something like $c->add(BookTableMap::TITLE, 'foo%', Criteria::LIKE);
-                return new LikeCriterion($criteria, $column, $value, $comparison);
+                return new LikeCriterion($criteria, $columnMap ?? $column, $value, $comparison);
             case Criteria::BINARY_NONE:
             case Criteria::BINARY_ALL:
                 // table.column & ? = 0 (Similar to  "NOT IN")
