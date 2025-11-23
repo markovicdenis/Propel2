@@ -85,7 +85,7 @@ interface SqlAdapterInterface extends AdapterInterface
      * taking into account select columns and 'as' columns (i.e. columns aliases)
      *
      * @param \Propel\Runtime\ActiveQuery\Criteria $criteria
-     * @param array $fromClause
+     * @param array<string> $fromClause
      * @param bool $aliasAll
      *
      * @return string

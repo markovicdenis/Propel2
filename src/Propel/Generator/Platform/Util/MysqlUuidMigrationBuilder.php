@@ -96,6 +96,8 @@ class MysqlUuidMigrationBuilder
 
             foreach ($oldFks as $oldFk) {
                 foreach ($newFks as $newFk) {
+                    // FIX: not referenced anywhere, fixed using assertion
+                    assert(method_exists($oldFk, 'equals'));
                     if ($oldFk->equals($newFk)) {
                         continue;
                     }

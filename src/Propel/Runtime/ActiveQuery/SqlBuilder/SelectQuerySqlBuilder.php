@@ -93,6 +93,7 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
 
     /**
      * @param array<string> $sourceTableNamesCollector
+     * @param-out array<string> $sourceTableNamesCollector
      *
      * @return string
      */
@@ -177,6 +178,7 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
      *
      * @param array|null $params
      * @param array<string> $sourceTableNamesCollector
+     * @param-out array<string> $sourceTableNamesCollector
      *
      * @return array<string>
      */
@@ -186,7 +188,10 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
 
         foreach ($this->criteria->getJoins() as $join) {
             if (!$sourceTableNamesCollector) {
-                $sourceTableNamesCollector[] = $join->getLeftTableWithAlias();
+                $leftTableWithAlias = $join->getLeftTableWithAlias();
+                if ($leftTableWithAlias) {
+                    $sourceTableNamesCollector[] = $leftTableWithAlias;
+                }
             }
             $join->setAdapter($this->adapter);
             $joinClauseString = $join->getClause($params);
@@ -235,7 +240,10 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
                 if (!$rawTableName) {
                     continue;
                 }
-                [$realTableName, $sourceTableNamesCollector[]] = $this->getTableNameWithAlias($rawTableName);
+                [$realTableName, $tableAlias] = $this->getTableNameWithAlias($rawTableName);
+                if ($tableAlias) {
+                    $sourceTableNamesCollector[] = $tableAlias;
+                }
                 $this->setCriterionsIgnoreCase($attachedCriterion, $realTableName);
             }
             $criterion->setAdapter($this->adapter);

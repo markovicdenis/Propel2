@@ -148,6 +148,7 @@ class DatabaseMap
     {
         /**
          * @psalm-var \Closure( class-string<\Propel\Runtime\Map\TableMap>|\Propel\Runtime\Map\TableMap ): class-string<\Propel\Runtime\Map\TableMap>
+         * @phpstan-ignore varTag.nativeType
          */
         $toClassString = fn ($tableMap) => is_string($tableMap) ? $tableMap : get_class($tableMap);
 
