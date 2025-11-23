@@ -10,6 +10,8 @@ namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Table;
 
+use function in_array;
+
 /**
  * Service class for comparing Table objects
  * Heavily inspired by Doctrine2's Migrations
@@ -298,9 +300,14 @@ class TableComparator
         $fkDifferences = 0;
         $fromTableFks = $this->getFromTable()->getForeignKeys();
         $toTableFks = $this->getToTable()->getForeignKeys();
+        $ignored = [];
 
         foreach ($fromTableFks as $fromTableFkPos => $fromTableFk) {
             foreach ($toTableFks as $toTableFkPos => $toTableFk) {
+                if ($toTableFk->getAttribute('ignoreSql') ?? false) {
+                    $ignored[] = $toTableFk->getNormalizedName();
+                    continue;
+                }
                 $sameName = $caseInsensitive ?
                     strtolower($fromTableFk->getName()) == strtolower($toTableFk->getName()) :
                     $fromTableFk->getName() == $toTableFk->getName();
@@ -313,12 +320,14 @@ class TableComparator
                     $this->tableDiff->addModifiedFk($fromTableFk->getName(), $fromTableFk, $toTableFk);
                     $fkDifferences++;
                 }
-                unset($fromTableFks[$fromTableFkPos]);
-                unset($toTableFks[$toTableFkPos]);
+                unset($fromTableFks[$fromTableFkPos], $toTableFks[$toTableFkPos]);
             }
         }
 
         foreach ($fromTableFks as $fromTableFk) {
+            if (in_array($fromTableFk->getNormalizedName(), $ignored)) {
+                continue;
+            }
             if (!$fromTableFk->isSkipSql() && !$fromTableFk->isPolymorphic() && !in_array($fromTableFk, $toTableFks)) {
                 $this->tableDiff->addRemovedFk($fromTableFk->getName(), $fromTableFk);
                 $fkDifferences++;
@@ -326,6 +335,9 @@ class TableComparator
         }
 
         foreach ($toTableFks as $toTableFk) {
+            if (in_array($toTableFk->getNormalizedName(), $ignored)) {
+                continue;
+            }
             if (!$toTableFk->isSkipSql() && !$toTableFk->isPolymorphic() && !in_array($toTableFk, $fromTableFks)) {
                 $this->tableDiff->addAddedFk($toTableFk->getName(), $toTableFk);
                 $fkDifferences++;

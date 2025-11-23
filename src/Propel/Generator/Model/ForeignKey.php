@@ -187,6 +187,18 @@ class ForeignKey extends MappingModel
         }
     }
 
+    public function getNormalizedName(): string
+    {
+        $parts = [];
+        if ($this->parentTable) {
+            $parts[] = $this->parentTable->getCommonName();
+        }
+        $parts = [...$parts, ...$this->localColumns ?? []];
+        $parts = [...$parts, ...$this->foreignColumns ?? []];
+        $parts[] = 'fkey';
+        return implode('_', $parts);
+    }
+
     /**
      * Returns the normalized input of onDelete and onUpdate behaviors.
      *
