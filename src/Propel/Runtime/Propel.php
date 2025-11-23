@@ -139,8 +139,8 @@ class Propel
         }
 
         // HACK: Force return type to StandardServiceContainer
-        // return self::$serviceContainer;
-        throw new PropelException('Instance was configured to not use StandardServiceContainer. Use Propel::getStandardServiceContainer()');
+        assert(self::$serviceContainer instanceof StandardServiceContainer);
+        return self::$serviceContainer;
     }
 
     /**
