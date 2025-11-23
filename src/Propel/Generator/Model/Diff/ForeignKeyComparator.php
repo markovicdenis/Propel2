@@ -29,7 +29,7 @@ class ForeignKeyComparator
      *
      * @return bool false if the two fks are similar, true if they have differences
      */
-    public static function computeDiff(ForeignKey $fromFk, ForeignKey $toFk, bool $caseInsensitive = false, Database $database): bool
+    public static function computeDiff(ForeignKey $fromFk, ForeignKey $toFk, bool $caseInsensitive = false, ?Database $database = null): bool
     {
         // Check for differences in local and remote table
         $fromDifferentTable = $caseInsensitive ?
@@ -94,18 +94,14 @@ class ForeignKeyComparator
      *
      * @return bool
      */
-    protected static function columnTypesEquals(array $columns1, array $columns2, Database $database): bool
+    protected static function columnTypesEquals(array $columns1, array $columns2, ?Database $database): bool
     {
         $byNameSorter = fn (Column $column1, Column $column2) => strcmp($column1->getName(), $column2->getName());
         usort($columns1, $byNameSorter);
         usort($columns2, $byNameSorter);
 
         // $toSqlTypeNameMapper = fn (Column $column) => $column->getSqlType();
-        $toSqlTypeNameMapper = function (Column $column) use ($database) {
-            $platform = $database->getPlatform();
-            $sqlType = $column->getSqlType();
-            return $platform->fixSqlType($sqlType);
-        };
+        $toSqlTypeNameMapper = fn (Column $column) => $database?->getPlatform()->fixSqlType($column->getSqlType()) ?? $column->getSqlType();
         $columnTypes1 = array_map($toSqlTypeNameMapper, $columns1);
         $columnTypes2 = array_map($toSqlTypeNameMapper, $columns2);
 

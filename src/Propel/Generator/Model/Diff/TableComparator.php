@@ -198,8 +198,8 @@ class TableComparator
                 !$this->getFromTable()->hasColumn($column->getName(), $caseInsensitive) ||
                 !$this->getFromTable()->getColumn($column->getName(), $caseInsensitive)->isPrimaryKey()
             ) {
-                    $this->tableDiff->addAddedPkColumn($column->getName(), $column);
-                    $pkDifferences++;
+                $this->tableDiff->addAddedPkColumn($column->getName(), $column);
+                $pkDifferences++;
             }
         }
 
@@ -209,8 +209,8 @@ class TableComparator
                 !$this->getToTable()->hasColumn($column->getName(), $caseInsensitive) ||
                 !$this->getToTable()->getColumn($column->getName(), $caseInsensitive)->isPrimaryKey()
             ) {
-                    $this->tableDiff->addRemovedPkColumn($column->getName(), $column);
-                    $pkDifferences++;
+                $this->tableDiff->addRemovedPkColumn($column->getName(), $column);
+                $pkDifferences++;
             }
         }
 
@@ -307,7 +307,7 @@ class TableComparator
                 if (!$sameName || $toTableFk->isPolymorphic()) {
                     continue;
                 }
-                $hasChanged = ForeignKeyComparator::computeDiff($fromTableFk, $toTableFk, $caseInsensitive);
+                $hasChanged = ForeignKeyComparator::computeDiff($fromTableFk, $toTableFk, $caseInsensitive, $this->getToTable()->getDatabase());
                 if ($hasChanged) {
                     // same name, but different columns
                     $this->tableDiff->addModifiedFk($fromTableFk->getName(), $fromTableFk, $toTableFk);
