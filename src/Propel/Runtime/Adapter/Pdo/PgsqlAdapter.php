@@ -8,12 +8,15 @@
 
 namespace Propel\Runtime\Adapter\Pdo;
 
+use PDO;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Exception\InvalidArgumentException;
+use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Propel;
 use RuntimeException;
 
@@ -365,5 +368,33 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             . implode(', ', $selectClause);
 
         return $sql;
+    }
+
+    /**
+     * HACK: Adapted bidnValues to support casting for Postgres
+     */
+    public function bindValues(StatementInterface $stmt, array $params, DatabaseMap $dbMap): void
+    {
+        $position = 0;
+        foreach ($params as $param) {
+            $position++;
+            $parameter = ':p' . $position;
+            $value = $param['value'];
+            if ($value === null) {
+                $stmt->bindValue($parameter, null, PDO::PARAM_NULL);
+
+                continue;
+            }
+            $tableName = $param['table'] ?? null;
+            if ($tableName === null) {
+                $type = $param['type'] ?? PDO::PARAM_STR;
+                $stmt->bindValue($parameter, $value, $type);
+
+                continue;
+            }
+            [$columnName, $cast] = array_pad(explode("::", $param['column'] ?? ''), 2, null);
+            $cMap = $dbMap->getTable($tableName)->getColumn($columnName);
+            $this->bindValue($stmt, $parameter, $value, $cMap, $position);
+        }
     }
 }

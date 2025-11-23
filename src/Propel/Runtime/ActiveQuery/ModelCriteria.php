@@ -42,6 +42,12 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\Util\PropelModelPager;
 
+use function array_pad;
+use function explode;
+use function is_array;
+use function join;
+use function str_contains;
+
 /**
  * This class extends the Criteria by adding runtime introspection abilities
  * in order to ease the building of queries.
@@ -159,6 +165,7 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
+     * HACK: Added support for casts in filterBy() calls
      * Adds a condition on a column based on a column phpName and a value
      * Uses introspection to translate the column phpName into a fully qualified name
      * Warning: recognizes only the phpNames of the main Model (not joined tables)
@@ -176,11 +183,16 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function filterBy(string $column, $value, ?string $comparison = null)
     {
-        $columnName = $this->getRealColumnName($column);
-        $this->map[$columnName] = CriterionFactory::build($this, $columnName, $comparison, $value);
+        if (str_contains($column, '::')) {
+            [$columnProp, $cast] = array_pad(explode('::', $column, 2), 2, null);
+        }
+        $columnName = $this->getRealColumnName($columnProp ?? $column);
+        // $buildColumnName =  "$columnName::$cast" ?? $columnName;
+        $this->map[$columnName] = CriterionFactory::build($this, join('::', [$columnName, $cast ?? null]), $comparison, $value);
 
         return $this;
     }
+
 
     /**
      * Adds a list of conditions on the columns of the current model
