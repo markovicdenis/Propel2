@@ -972,4 +972,9 @@ ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);
             $this->getColumnListDDL($index->getColumnObjects()),
         );
     }
+
+    public function fixSqlType(?string $sqlType): ?string
+    {
+        return $this->convertSqlTypeToPgsql($sqlType ?? '');
+    }
 }
