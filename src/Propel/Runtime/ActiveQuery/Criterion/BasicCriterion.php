@@ -20,7 +20,7 @@ class BasicCriterion extends AbstractCriterion
     /**
      * @var bool
      */
-    protected $ignoreStringCase = true;
+    protected $ignoreStringCase = false;
 
     /**
      * Create a new instance.

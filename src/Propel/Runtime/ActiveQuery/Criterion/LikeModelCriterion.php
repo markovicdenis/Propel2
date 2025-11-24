@@ -20,7 +20,7 @@ class LikeModelCriterion extends BasicModelCriterion
     /**
      * @var bool
      */
-    protected $ignoreStringCase = true;
+    protected $ignoreStringCase = false;
 
     /**
      * Sets ignore case.
