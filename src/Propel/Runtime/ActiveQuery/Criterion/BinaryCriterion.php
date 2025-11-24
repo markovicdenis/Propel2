@@ -41,7 +41,7 @@ class BinaryCriterion extends AbstractCriterion
         if ($this->value !== null) {
             $params[] = ['table' => $this->realtable, 'column' => $this->column, 'value' => $this->value];
             $bindParam = ':p' . count($params);
-            $field = ($this->table === null) ? $this->column : $this->table . '.' . $this->column;
+            $field = $this->getQualifiedColumn();
 
             if ($this->comparison === Criteria::BINARY_ALL) {
                 // With ATTR_EMULATE_PREPARES => false, we can't have two identical params, so let's add another param

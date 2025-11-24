@@ -62,7 +62,7 @@ abstract class AbstractCriterion
     /**
      * Column name
      *
-     * @var string
+     * @var string|ColumnMap|null
      */
     protected $column;
 
@@ -160,7 +160,16 @@ abstract class AbstractCriterion
      */
     public function getColumn(): ?string
     {
-        return $this->column;
+        return $this->column instanceof ColumnMap ? $this->column->getName() : $this->column;
+    }
+
+    public function getQualifiedColumn(): string
+    {
+        if ($this->table !== null) {
+            return $this->table . '.' . $this->getColumn();
+        }
+
+        return $this->getColumn();
     }
 
     /**

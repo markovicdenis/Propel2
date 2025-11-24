@@ -48,7 +48,7 @@ class InCriterion extends AbstractCriterion
             $bindParams[] = ':p' . $index;
         }
         if (count($bindParams)) {
-            $field = ($this->table === null) ? $this->column : $this->table . '.' . $this->column;
+            $field = $this->getQualifiedColumn();
             $sb .= $field . $this->comparison . '(' . implode(',', $bindParams) . ')';
         } else {
             $sb .= ($this->comparison === Criteria::IN) ? '1<>1' : '1=1';

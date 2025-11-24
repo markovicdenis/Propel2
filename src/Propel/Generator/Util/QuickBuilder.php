@@ -358,7 +358,7 @@ class QuickBuilder
                     $this->database,
                     $database,
                     $diff,
-                ), null, $e);
+                ), 0, $e);
             }
         }
 

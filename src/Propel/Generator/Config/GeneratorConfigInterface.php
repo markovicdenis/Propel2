@@ -84,4 +84,6 @@ interface GeneratorConfigInterface
      * @return mixed The configuration property
      */
     public function getConfigProperty(string $name);
+
+    public function get(): array;
 }

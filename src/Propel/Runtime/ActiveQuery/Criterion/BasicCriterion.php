@@ -20,7 +20,7 @@ class BasicCriterion extends AbstractCriterion
     /**
      * @var bool
      */
-    protected $ignoreStringCase = false;
+    protected $ignoreStringCase = true;
 
     /**
      * Create a new instance.
@@ -71,7 +71,7 @@ class BasicCriterion extends AbstractCriterion
      */
     protected function appendPsForUniqueClauseTo(string &$sb, array &$params): void
     {
-        $field = ($this->table === null) ? $this->column : $this->table . '.' . $this->column;
+        $field = $this->getQualifiedColumn();
         // NULL VALUES need special treatment because the SQL syntax is different
         // i.e. table.column IS NULL rather than table.column = null
         if ($this->value !== null) {

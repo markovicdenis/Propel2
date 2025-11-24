@@ -79,7 +79,8 @@ abstract class AbstractModelCriterion extends AbstractCriterion
             )
             && $this->clause === $crit->getClause()
             && $this->column === $crit->getColumn()
-            && $this->comparison === $crit->getComparison());
+            && $this->comparison === $crit->getComparison()
+        );
 
         // check chained criterion
 

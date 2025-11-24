@@ -60,7 +60,7 @@ class RawModelCriterion extends AbstractModelCriterion
     protected function appendPsForUniqueClauseTo(string &$sb, array &$params): void
     {
         if (substr_count($this->clause, '?') !== 1) {
-            throw new InvalidClauseException(sprintf('Could not build SQL for expression `%s` because Criteria::MODEL_CLAUSE_RAW works only with a clause containing a single question mark placeholder', $this->column));
+            throw new InvalidClauseException(sprintf('Could not build SQL for expression `%s` because Criteria::MODEL_CLAUSE_RAW works only with a clause containing a single question mark placeholder', $this->getColumn()));
         }
         $params[] = [
             'table' => null,

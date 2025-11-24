@@ -57,10 +57,11 @@ class RawCriterion extends AbstractCriterion
      */
     protected function appendPsForUniqueClauseTo(string &$sb, array &$params): void
     {
-        if (substr_count($this->column, '?') !== 1) {
-            throw new InvalidClauseException(sprintf('Could not build SQL for expression `%s` because Criteria::RAW works only with a clause containing a single question mark placeholder', $this->column));
+        $column = $this->getColumn();
+        if (substr_count($column, '?') !== 1) {
+            throw new InvalidClauseException(sprintf('Could not build SQL for expression `%s` because Criteria::RAW works only with a clause containing a single question mark placeholder', $column));
         }
         $params[] = ['table' => null, 'type' => $this->type, 'value' => $this->value];
-        $sb .= str_replace('?', ':p' . count($params), $this->column);
+        $sb .= str_replace('?', ':p' . count($params), $column);
     }
 }

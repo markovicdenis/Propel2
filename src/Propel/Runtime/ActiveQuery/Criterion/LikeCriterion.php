@@ -9,7 +9,13 @@
 namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
+use Propel\Runtime\Adapter\SqlAdapterInterface;
+use Propel\Runtime\Map\ColumnMap;
+
+use function count;
+use function in_array;
 
 /**
  * Specialized Criterion used for LIKE expressions
@@ -20,7 +26,7 @@ class LikeCriterion extends AbstractCriterion
     /**
      * @var bool
      */
-    protected $ignoreStringCase = false;
+    protected $ignoreStringCase = true;
 
     /**
      * Create a new instance.
@@ -30,7 +36,7 @@ class LikeCriterion extends AbstractCriterion
      * @param mixed $value The condition to be added to the query string
      * @param string $comparison One of Criteria::LIKE and Criteria::NOT_LIKE
      */
-    public function __construct(Criteria $outer, $column, $value, string $comparison = Criteria::LIKE)
+    public function __construct(private Criteria $outer, $column, $value, string $comparison = Criteria::LIKE)
     {
         parent::__construct($outer, $column, $value, $comparison);
     }
@@ -69,7 +75,7 @@ class LikeCriterion extends AbstractCriterion
      */
     protected function appendPsForUniqueClauseTo(string &$sb, array &$params): void
     {
-        $field = ($this->table === null) ? $this->column : $this->table . '.' . $this->column;
+        $field = $this->getQualifiedColumn();
         $db = $this->getAdapter();
         // If selection is case insensitive use ILIKE for PostgreSQL or SQL
         // UPPER() function on column name for other databases.
@@ -81,8 +87,28 @@ class LikeCriterion extends AbstractCriterion
                     $this->comparison = Criteria::NOT_ILIKE;
                 }
             } else {
-                $field = $db->ignoreCase($field);
+                if ($db instanceof SqlAdapterInterface) {
+                    $field = $db->ignoreCase($field);
+                }
             }
+        }
+        if ($db instanceof PgsqlAdapter) {
+            $columnType = match (true) {
+                $this->column instanceof ColumnMap => $this->column->getType(),
+                $this->outer instanceof ModelCriteria => $this->outer->getTableMap()->getColumn($this->column)->getType(),
+                default => null,
+            };
+            // check if column is numeric
+            if (in_array($columnType, ['INTEGER', 'BIGINT', 'SMALLINT', 'TINYINT', 'DECIMAL', 'NUMERIC', 'FLOAT', 'DOUBLE'], true)) {
+                $field = "$field::text";
+            }
+        } else {
+            // check if comparison is ILIKE or NOT ILIKE and change to LIKE or NOT LIKE for non-Postgres DBs
+            $this->comparison = match ($this->comparison) {
+                Criteria::ILIKE => Criteria::LIKE,
+                Criteria::NOT_ILIKE => Criteria::NOT_LIKE,
+                default => $this->comparison,
+            };
         }
 
         if (str_contains($this->value, '%')) {
@@ -91,8 +117,7 @@ class LikeCriterion extends AbstractCriterion
             $params[] = ['table' => $this->realtable, 'column' => $this->column, 'value' => $this->value];
         }
 
-
-        $sb .= $field . $this->comparison;
+        $sb .= "{$field}{$this->comparison}";
 
         // If selection is case insensitive use SQL UPPER() function
         // on criteria or, if Postgres we are using ILIKE, so not necessary.

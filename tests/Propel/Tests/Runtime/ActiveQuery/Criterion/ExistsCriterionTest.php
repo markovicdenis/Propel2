@@ -27,7 +27,7 @@ class ExistsCriterionTest extends TestCaseFixtures
     public function testAppendPsToAppendsExistsClause()
     {
         $query = BookQuery::create();
-        $exists = new ExistsCriterion(new Criteria(), $query);
+        $exists = ExistsCriterion::create(new Criteria(), $query);
 
         $params = [];
         $ps = '';
@@ -46,7 +46,7 @@ class ExistsCriterionTest extends TestCaseFixtures
     public function testAppendPsToAppendsNotExistsClause()
     {
         $query = BookQuery::create();
-        $exists = new ExistsCriterion(new Criteria(), $query, ExistsCriterion::TYPE_NOT_EXISTS);
+        $exists = ExistsCriterion::create(new Criteria(), $query, ExistsCriterion::TYPE_NOT_EXISTS);
 
         $params = [];
         $ps = '';
@@ -67,7 +67,7 @@ class ExistsCriterionTest extends TestCaseFixtures
         $authorQuery = AuthorQuery::create();
         $bookQuery = BookQuery::create();
         $bookRelationMap = $authorQuery->getTableMap()->getRelation('Book');
-        new ExistsCriterion($authorQuery, $bookQuery, ExistsCriterion::TYPE_EXISTS, $bookRelationMap);
+        ExistsCriterion::create($authorQuery, $bookQuery, ExistsCriterion::TYPE_EXISTS, $bookRelationMap);
         $params = [];
         $bookSql = $bookQuery->createSelectSql($params);
 
@@ -82,7 +82,7 @@ class ExistsCriterionTest extends TestCaseFixtures
         $authorQuery = AuthorQuery::create();
         $bookQuery = BookQuery::create();
         $bookRelationMap = $authorQuery->getTableMap()->getRelation('Book');
-        $exists = new ExistsCriterion($authorQuery, $bookQuery, ExistsCriterion::TYPE_EXISTS, $bookRelationMap);
+        $exists = ExistsCriterion::create($authorQuery, $bookQuery, ExistsCriterion::TYPE_EXISTS, $bookRelationMap);
 
         $params = [];
         $ps = '';

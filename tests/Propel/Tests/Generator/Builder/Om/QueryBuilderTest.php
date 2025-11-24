@@ -61,6 +61,14 @@ class QueryBuilderTest extends BookstoreTestBase
         include_once(__DIR__ . '/TestableQueryBuilder.php');
     }
 
+    private function getReflectionMethod(string $className, string $methodName): ReflectionMethod
+    {
+        $method = new ReflectionMethod($className, $methodName);
+        $method->setAccessible(true);
+
+        return $method;
+    }
+
     /**
      * @return void
      */
@@ -119,10 +127,10 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testBasePreSelect()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreSelect');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreSelect');
         $this->assertEquals('Propel\Runtime\ActiveQuery\ModelCriteria', $method->getDeclaringClass()->getName(), 'BaseQuery does not override basePreSelect() by default');
 
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreSelect');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreSelect');
         $this->assertEquals('Propel\Tests\Bookstore\Behavior\Base\Table3Query', $method->getDeclaringClass()->getName(), 'BaseQuery overrides basePreSelect() when a behavior is registered');
     }
 
@@ -131,10 +139,10 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testBasePreDelete()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreDelete');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreDelete');
         $this->assertEquals('Propel\Runtime\ActiveQuery\ModelCriteria', $method->getDeclaringClass()->getName(), 'BaseQuery does not override basePreDelete() by default');
 
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreDelete');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreDelete');
         $this->assertEquals('Propel\Tests\Bookstore\Behavior\Base\Table3Query', $method->getDeclaringClass()->getName(), 'BaseQuery overrides basePreDelete() when a behavior is registered');
     }
 
@@ -143,10 +151,10 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testBasePostDelete()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePostDelete');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePostDelete');
         $this->assertEquals('Propel\Runtime\ActiveQuery\ModelCriteria', $method->getDeclaringClass()->getName(), 'BaseQuery does not override basePostDelete() by default');
 
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePostDelete');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePostDelete');
         $this->assertEquals('Propel\Tests\Bookstore\Behavior\Base\Table3Query', $method->getDeclaringClass()->getName(), 'BaseQuery overrides basePostDelete() when a behavior is registered');
     }
 
@@ -155,10 +163,10 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testBasePreUpdate()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreUpdate');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePreUpdate');
         $this->assertEquals('Propel\Runtime\ActiveQuery\ModelCriteria', $method->getDeclaringClass()->getName(), 'BaseQuery does not override basePreUpdate() by default');
 
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreUpdate');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePreUpdate');
         $this->assertEquals('Propel\Tests\Bookstore\Behavior\Base\Table3Query', $method->getDeclaringClass()->getName(), 'BaseQuery overrides basePreUpdate() when a behavior is registered');
     }
 
@@ -167,10 +175,10 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testBasePostUpdate()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePostUpdate');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table2Query', 'basePostUpdate');
         $this->assertEquals('Propel\Runtime\ActiveQuery\ModelCriteria', $method->getDeclaringClass()->getName(), 'BaseQuery does not override basePostUpdate() by default');
 
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePostUpdate');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\Behavior\Table3Query', 'basePostUpdate');
         $this->assertEquals('Propel\Tests\Bookstore\Behavior\Base\Table3Query', $method->getDeclaringClass()->getName(), 'BaseQuery overrides basePostUpdate() when a behavior is registered');
     }
 
@@ -197,7 +205,7 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testFindPk()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\BookQuery', 'findPk');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\BookQuery', 'findPk');
         $this->assertEquals('Propel\Tests\Bookstore\Base\BookQuery', $method->getDeclaringClass()->getName(), 'BaseQuery overrides findPk()');
     }
 
@@ -353,7 +361,7 @@ class QueryBuilderTest extends BookstoreTestBase
      */
     public function testFindPks()
     {
-        $method = new ReflectionMethod('\Propel\Tests\Bookstore\BookQuery', 'findPks');
+        $method = $this->getReflectionMethod('\Propel\Tests\Bookstore\BookQuery', 'findPks');
         $this->assertEquals('Propel\Tests\Bookstore\Base\BookQuery', $method->getDeclaringClass()->getName(), 'BaseQuery overrides findPks()');
     }
 
@@ -880,6 +888,8 @@ class QueryBuilderTest extends BookstoreTestBase
         $testLabel = RecordLabelQuery::create()
             ->limit(2)
             ->find($this->con);
+
+        $this->assertInstanceOf(\Propel\Tests\Bookstore\RecordLabel::class, $testLabel);
 
         ReleasePoolQuery::create()
             ->addJoin(ReleasePoolTableMap::COL_RECORD_LABEL_ID, RecordLabelTableMap::COL_ID)

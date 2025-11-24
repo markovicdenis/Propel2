@@ -11,6 +11,17 @@ namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion;
 
+use function array_diff;
+use function array_filter;
+use function array_map;
+use function array_unique;
+use function count;
+use function implode;
+use function method_exists;
+use function strpos;
+use function strrpos;
+use function substr;
+
 /**
  * This class produces the base object class (e.g. BaseMyTable) which contains
  * all the custom-built accessor and setter methods.
@@ -106,13 +117,13 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
     }
 
     /**
-     * @param array<mixed>|null $params
+     * @param array<mixed> $params
      * @param array<string> $sourceTableNames
      * @param array<string> $joinClause
      *
      * @return string
      */
-    protected function buildFromClause(?array &$params, array $sourceTableNames, array $joinClause): string
+    protected function buildFromClause(array &$params, array $sourceTableNames, array $joinClause): string
     {
         $sourceTableNames = array_filter($sourceTableNames);
         $sourceTableNames = array_unique($sourceTableNames);
@@ -176,13 +187,13 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
      *  joins with a null join type will be added to the FROM clause and the condition added to the WHERE clause.
      *  joins of a specified type: the LEFT side will be added to the fromClause and the RIGHT to the joinClause
      *
-     * @param array|null $params
+     * @param array $params
      * @param array<string> $sourceTableNamesCollector
      * @param-out array<string> $sourceTableNamesCollector
      *
      * @return array<string>
      */
-    protected function buildJoinClauses(?array &$params, array &$sourceTableNamesCollector): array
+    protected function buildJoinClauses(array &$params, array &$sourceTableNamesCollector): array
     {
         $joinClause = [];
 
@@ -220,12 +231,12 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
     /**
      * this will also add the table names to the FROM clause if they are not already included via a LEFT JOIN
      *
-     * @param array|null $params
+     * @param array $params
      * @param array<string> $sourceTableNamesCollector
      *
      * @return string|null
      */
-    protected function buildWhereClause(?array &$params, array &$sourceTableNamesCollector): ?string
+    protected function buildWhereClause(array &$params, array &$sourceTableNamesCollector): ?string
     {
         $columnNameToCriterions = $this->criteria->getMap();
         if (!$columnNameToCriterions) {

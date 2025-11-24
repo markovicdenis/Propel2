@@ -16,24 +16,27 @@ use Propel\Runtime\Map\RelationMap;
  */
 class ExistsCriterion extends ExistsQueryCriterion
 {
- /**
-  * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsCriterion::TYPE_*|null $typeOfExists
-  *
-  * @param \Propel\Runtime\ActiveQuery\ModelCriteria|\Propel\Runtime\ActiveQuery\Criteria $outerQuery
-  * @param \Propel\Runtime\ActiveQuery\ModelCriteria $existsQuery
-  * @param string|null $typeOfExists Either ExistsCriterion::TYPE_EXISTS or ExistsCriterion::TYPE_NOT_EXISTS
-  * @param \Propel\Runtime\Map\RelationMap|null $relationMap where outer query is on the left side
-  */
-    public function __construct(
+    /**
+     * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsCriterion::TYPE_*|null $typeOfExists
+     *
+     * @param \Propel\Runtime\ActiveQuery\ModelCriteria|\Propel\Runtime\ActiveQuery\Criteria $outerQuery
+     * @param \Propel\Runtime\ActiveQuery\ModelCriteria $existsQuery
+     * @param string|null $typeOfExists Either ExistsCriterion::TYPE_EXISTS or ExistsCriterion::TYPE_NOT_EXISTS
+     * @param \Propel\Runtime\Map\RelationMap|null $relationMap where outer query is on the left side
+     * HACK: converted to static create method instead of __construct
+     */
+    public static function create(
         $outerQuery,
         ModelCriteria $existsQuery,
         ?string $typeOfExists = null,
         ?RelationMap $relationMap = null
-    ) {
-        parent::__construct($outerQuery, null, $typeOfExists, $existsQuery);
+    ): ExistsCriterion {
+        // parent::__construct($outerQuery, null, $typeOfExists, $existsQuery);
+        $self = new self($outerQuery, null, $typeOfExists, $existsQuery);
 
         if ($relationMap && $outerQuery instanceof ModelCriteria) {
-            $this->initForRelation($outerQuery, $relationMap);
+            $self->initForRelation($outerQuery, $relationMap);
         }
+        return $self;
     }
 }
