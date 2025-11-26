@@ -211,6 +211,10 @@ class TableComparator
                 !$this->getToTable()->hasColumn($column->getName(), $caseInsensitive) ||
                 !$this->getToTable()->getColumn($column->getName(), $caseInsensitive)->isPrimaryKey()
             ) {
+                $isPartitioned = $this->getFromTable()->isPartitioned;
+                if ($isPartitioned) {
+                    continue;
+                }
                 $this->tableDiff->addRemovedPkColumn($column->getName(), $column);
                 $pkDifferences++;
             }

@@ -160,6 +160,8 @@ class Table extends ScopedMappingModel implements IdMethod
 
     protected ?string $defaultStringFormat = null;
 
+    public bool $isPartitioned = false;
+
     /**
      * Constructs a table object with a name
      *

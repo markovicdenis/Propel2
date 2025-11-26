@@ -145,9 +145,9 @@ class PgsqlSchemaParser extends AbstractSchemaParser
         $params = [];
 
         $sql = "
-          SELECT c.oid, c.relname, n.nspname
+          SELECT c.oid, c.relname, n.nspname, c.relkind
           FROM pg_class c join pg_namespace n on (c.relnamespace=n.oid)
-          WHERE c.relkind = 'r'
+          WHERE c.relkind IN ('r', 'p')
             AND n.nspname NOT IN ('information_schema','pg_catalog')
             AND n.nspname NOT LIKE 'pg_temp%'
             AND n.nspname NOT LIKE 'pg_toast%'";
@@ -200,6 +200,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             }
             $oid = $row['oid'];
             $table = new Table($name);
+            $table->isPartitioned = ($row['relkind'] === 'p');
             if ($namespaceName !== 'public') {
                 $table->setSchema($namespaceName);
             }
