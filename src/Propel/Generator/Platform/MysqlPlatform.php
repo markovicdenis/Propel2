@@ -1130,4 +1130,14 @@ ALTER TABLE %s ADD %s %s;
 
         return stripos($serverVersion, 'mariadb') !== false;
     }
+
+    /**
+     * Whether RDBMS supports INSERT null values in autoincremented primary keys
+     *
+     * @return bool
+     */
+    public function supportsInsertNullPk(): bool
+    {
+        return false;
+    }
 }

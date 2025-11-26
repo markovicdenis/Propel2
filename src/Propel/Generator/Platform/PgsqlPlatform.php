@@ -977,4 +977,14 @@ ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);
     {
         return $this->convertSqlTypeToPgsql($sqlType ?? '');
     }
+
+    /**
+     * Whether RDBMS supports INSERT null values in autoincremented primary keys
+     *
+     * @return bool
+     */
+    public function supportsInsertNullPk(): bool
+    {
+        return false;
+    }
 }
