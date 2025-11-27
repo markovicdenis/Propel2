@@ -14,6 +14,9 @@ trait StrictGroupByTrait
 
     private function getAggregateSelectSql(string $columnName, Criteria $criteria): string
     {
+        if (!$criteria instanceof ModelCriteria) {
+            return $columnName;
+        }
         if ($criteria->getAggregateSelect($columnName)) {
             $this->handledAggregateSelects[] = $columnName;
             $clause = $criteria->getAggregateSelect($columnName);
@@ -21,9 +24,6 @@ trait StrictGroupByTrait
                 return $clause;
             }
             return "$clause($columnName)";
-        }
-        if (!$criteria instanceof ModelCriteria) {
-            return $columnName;
         }
         $column = $criteria->getTableMap()->findColumnByName($columnName);
         if ($column) {

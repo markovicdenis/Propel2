@@ -40,7 +40,6 @@ use Propel\Runtime\Util\PropelConditionalProxy;
  */
 class Criteria
 {
-    use AggregateColumnsTrait;
     /**
      * @var string
      */

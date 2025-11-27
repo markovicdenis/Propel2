@@ -28,6 +28,7 @@ use Propel\Runtime\ActiveQuery\Exception\UnknownColumnException;
 use Propel\Runtime\ActiveQuery\Exception\UnknownModelException;
 use Propel\Runtime\ActiveQuery\Exception\UnknownRelationException;
 use Propel\Runtime\ActiveQuery\ModelCriteria as ActiveQueryModelCriteria;
+use Propel\Runtime\ActiveQuery\Traits\AggregateColumnsTrait;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\ClassNotFoundException;
@@ -90,6 +91,7 @@ use function trim;
  */
 class ModelCriteria extends BaseModelCriteria
 {
+    use AggregateColumnsTrait;
     /**
      * @var string
      */
