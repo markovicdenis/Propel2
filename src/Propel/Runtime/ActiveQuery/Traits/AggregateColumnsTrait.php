@@ -7,9 +7,10 @@ trait AggregateColumnsTrait
     private array $aggregateSelects = [];
 
 
-    public function addAggregateSelect(string $columnName, string $clause): void
+    public function addAggregateSelect(string $columnName, string $clause): self
     {
         $this->aggregateSelects[$columnName] = $clause;
+        return $this;
     }
 
     public function getAggregateSelects(): array
@@ -22,9 +23,10 @@ trait AggregateColumnsTrait
         $this->aggregateSelects = [];
     }
 
-    public function removeAggregateSelect(string $columnName): void
+    public function removeAggregateSelect(string $columnName): self
     {
         unset($this->aggregateSelects[$columnName]);
+        return $this;
     }
 
     public function getAggregateSelect(string $columnName): ?string
