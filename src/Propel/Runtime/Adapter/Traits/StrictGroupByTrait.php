@@ -12,7 +12,7 @@ trait StrictGroupByTrait
 {
     protected array $handledAggregateSelects = [];
 
-    private function getAggregateSelectSql(string $columnName, Criteria $criteria): string
+    private function getAggregateSelectSql(string $columnName, Criteria $criteria, ?string $adapter): string
     {
         if (!$criteria instanceof ModelCriteria) {
             return $columnName;
@@ -30,14 +30,14 @@ trait StrictGroupByTrait
             $type = $column->getType();
             $this->handledAggregateSelects[] = $columnName;
             return match ($type) {
-                'BOOLEAN' => "MAX($columnName::int)",
+                'BOOLEAN' => $adapter == 'pgsql' ? "MAX($columnName::int)" : "MAX($columnName)",
                 default => "MAX($columnName)",
             };
         }
         return $columnName;
     }
 
-    protected function resolveAggregateSelectSql(string $columnName, Criteria $criteria): string
+    protected function resolveAggregateSelectSql(string $columnName, Criteria $criteria, ?string $adapter): string
     {
         if (!$criteria->getGroupByColumns()) {
             return $columnName;
@@ -48,7 +48,7 @@ trait StrictGroupByTrait
         if (!$criteria instanceof ModelCriteria) {
             return $columnName;
         }
-        return $this->getAggregateSelectSql($columnName, $criteria);
+        return $this->getAggregateSelectSql($columnName, $criteria, $adapter);
     }
 
     protected function didHandleAggregateSelect(?string $columnName): bool

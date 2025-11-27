@@ -20,7 +20,7 @@ trait AggregateColumnsTrait
         return $columnName;
     }
 
-    public function addAggregateSelect(string $columnName, string $clause): self
+    public function addAggregateSelect(string $columnName, string $clause): static
     {
         $this->aggregateSelects[$this->normalizeColumnName($columnName)] = $clause;
         return $this;
@@ -31,13 +31,13 @@ trait AggregateColumnsTrait
         return $this->aggregateSelects;
     }
 
-    public function clearAggregateSelects(): self
+    public function clearAggregateSelects(): static
     {
         $this->aggregateSelects = [];
         return $this;
     }
 
-    public function removeAggregateSelect(string $columnName): self
+    public function removeAggregateSelect(string $columnName): static
     {
         unset($this->aggregateSelects[$columnName]);
         return $this;
