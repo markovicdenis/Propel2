@@ -319,6 +319,8 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
     {
         $selectClause = [];
 
+        $this->fixGroupByColumns($criteria);
+
         if ($aliasAll) {
             $this->turnSelectColumnsToAliases($criteria);
             // no select columns after that, they are all aliases

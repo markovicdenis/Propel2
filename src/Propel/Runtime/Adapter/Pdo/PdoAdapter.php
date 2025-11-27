@@ -14,6 +14,7 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\Exception\AdapterException;
+use Propel\Runtime\Adapter\Traits\StrictGroupByTrait;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\PdoConnection;
 use Propel\Runtime\Connection\StatementInterface;
@@ -46,6 +47,8 @@ use function substr;
  */
 abstract class PdoAdapter
 {
+    use StrictGroupByTrait;
+
     /**
      * Indicates if the database system can process DELETE statements with
      * aliases like 'DELETE t FROM my_table t JOIN my_other_table o ON ...'
