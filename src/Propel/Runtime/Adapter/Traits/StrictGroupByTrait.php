@@ -6,6 +6,7 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 
 use function in_array;
+use function str_contains;
 
 trait StrictGroupByTrait
 {
@@ -14,7 +15,12 @@ trait StrictGroupByTrait
     private function getAggregateSelectSql(string $columnName, Criteria $criteria): string
     {
         if ($criteria->getAggregateSelect($columnName)) {
-            return $criteria->getAggregateSelect($columnName);
+            $this->handledAggregateSelects[] = $columnName;
+            $clause = $criteria->getAggregateSelect($columnName);
+            if (str_contains($clause, '(')) {
+                return $clause;
+            }
+            return "$clause($columnName)";
         }
         if (!$criteria instanceof ModelCriteria) {
             return $columnName;
@@ -33,14 +39,16 @@ trait StrictGroupByTrait
 
     protected function resolveAggregateSelectSql(string $columnName, Criteria $criteria): string
     {
-        if (!$criteria instanceof ModelCriteria) {
+        if (!$criteria->getGroupByColumns()) {
             return $columnName;
         }
         if (in_array($columnName, $criteria->getGroupByColumns(), true)) {
             return $columnName;
         }
+        if (!$criteria instanceof ModelCriteria) {
+            return $columnName;
+        }
         return $this->getAggregateSelectSql($columnName, $criteria);
-        // return "{$this->getAggregateSelectSql($columnName, $criteria)} AS {$this->quoteIdentifier($columnName)}";
     }
 
     protected function didHandleAggregateSelect(?string $columnName): bool

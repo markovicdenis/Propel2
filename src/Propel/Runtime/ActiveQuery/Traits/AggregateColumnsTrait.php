@@ -2,14 +2,27 @@
 
 namespace Propel\Runtime\ActiveQuery\Traits;
 
+use Propel\Runtime\ActiveQuery\ModelCriteria;
+
 trait AggregateColumnsTrait
 {
     private array $aggregateSelects = [];
 
+    private function normalizeColumnName(string $columnName): string
+    {
+        if ($this instanceof ModelCriteria) {
+            $column = $this->getTableMap()->findColumnByName($columnName);
+            if ($column) {
+                return $column->getFullyQualifiedName();
+            }
+            return $columnName;
+        }
+        return $columnName;
+    }
 
     public function addAggregateSelect(string $columnName, string $clause): self
     {
-        $this->aggregateSelects[$columnName] = $clause;
+        $this->aggregateSelects[$this->normalizeColumnName($columnName)] = $clause;
         return $this;
     }
 
@@ -18,9 +31,10 @@ trait AggregateColumnsTrait
         return $this->aggregateSelects;
     }
 
-    public function clearAggregateSelects(): void
+    public function clearAggregateSelects(): self
     {
         $this->aggregateSelects = [];
+        return $this;
     }
 
     public function removeAggregateSelect(string $columnName): self
