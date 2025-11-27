@@ -460,6 +460,7 @@ abstract class PdoAdapter
             foreach ($criteria->getSelectColumns() as $columnName) {
                 // expect every column to be of "table.column" formation
                 // it could be a function:  e.g. MAX(books.price)
+                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria);
                 $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
 
                 $parenPos = strrpos($columnName, '(');

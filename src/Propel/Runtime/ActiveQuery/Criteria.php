@@ -18,6 +18,7 @@ use Propel\Runtime\ActiveQuery\QueryExecutor\InsertQueryExecutor;
 use Propel\Runtime\ActiveQuery\QueryExecutor\SelectQueryExecutor;
 use Propel\Runtime\ActiveQuery\QueryExecutor\UpdateQueryExecutor;
 use Propel\Runtime\ActiveQuery\SqlBuilder\SelectQuerySqlBuilder;
+use Propel\Runtime\ActiveQuery\Traits\AggregateColumnsTrait;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\LogicException;
@@ -39,6 +40,7 @@ use Propel\Runtime\Util\PropelConditionalProxy;
  */
 class Criteria
 {
+    use AggregateColumnsTrait;
     /**
      * @var string
      */
@@ -1749,7 +1751,7 @@ class Criteria
 
         $removed = $this->map[$key];
         unset($this->map[$key]);
-            
+
         return $removed->getValue();
     }
 

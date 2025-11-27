@@ -182,7 +182,11 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             $selected = $this->getPlainSelectedColumns($criteria);
             $asSelects = $criteria->getAsColumns();
 
+
             foreach ($selected as $colName) {
+                if ($this->didHandleAggregateSelect($colName)) {
+                    continue;
+                }
                 if (!in_array($colName, $groupBy, true)) {
                     // is a alias there that is grouped?
                     $alias = array_search($colName, $asSelects);
@@ -328,6 +332,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             foreach ($criteria->getSelectColumns() as $columnName) {
                 // expect every column to be of "table.column" formation
                 // it could be a function:  e.g. MAX(books.price)
+                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria);
                 $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
 
                 $parenPos = strrpos($columnName, '(');
