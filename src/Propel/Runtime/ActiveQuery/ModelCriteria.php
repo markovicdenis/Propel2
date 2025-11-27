@@ -92,6 +92,7 @@ use function trim;
 class ModelCriteria extends BaseModelCriteria
 {
     use AggregateColumnsTrait;
+
     /**
      * @var string
      */
