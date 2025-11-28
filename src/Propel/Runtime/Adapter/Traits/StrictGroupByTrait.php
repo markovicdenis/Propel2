@@ -5,6 +5,7 @@ namespace Propel\Runtime\Adapter\Traits;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 
+use function explode;
 use function in_array;
 use function str_contains;
 
@@ -51,9 +52,14 @@ trait StrictGroupByTrait
         return $this->getAggregateSelectSql($columnName, $criteria, $adapter);
     }
 
-    public function resolveAggregateOrderBy(string $columnName, Criteria $criteria, ?string $adapter): string
+    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, ?string $adapter): string
     {
-        return $this->resolveAggregateSelectSql($columnName, $criteria, $adapter);
+        // remove everything after space (ASC/DESC)
+        $parts = explode(' ', $clause, 2);
+        $colName = $parts[0];
+
+        $sql = $this->resolveAggregateSelectSql($colName, $criteria, $adapter);
+        return str_replace($colName, $sql, $clause);
     }
 
     protected function didHandleAggregateSelect(?string $columnName): bool
