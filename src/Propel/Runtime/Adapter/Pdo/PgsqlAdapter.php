@@ -402,4 +402,9 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             $this->bindValue($stmt, $parameter, $value, $cMap, $position);
         }
     }
+
+    public function resolveAggregateOrderBy(string $columnName, Criteria $criteria, ?string $adapter): string
+    {
+        return parent::resolveAggregateOrderBy($columnName, $criteria, 'pgsql');
+    }
 }

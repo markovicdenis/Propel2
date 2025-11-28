@@ -51,6 +51,11 @@ trait StrictGroupByTrait
         return $this->getAggregateSelectSql($columnName, $criteria, $adapter);
     }
 
+    public function resolveAggregateOrderBy(string $columnName, Criteria $criteria, ?string $adapter): string
+    {
+        return $this->resolveAggregateSelectSql($columnName, $criteria, $adapter);
+    }
+
     protected function didHandleAggregateSelect(?string $columnName): bool
     {
         return in_array($columnName ?? '', $this->handledAggregateSelects, true);
