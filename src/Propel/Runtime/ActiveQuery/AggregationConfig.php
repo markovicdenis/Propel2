@@ -17,7 +17,7 @@ class AggregationConfig
     ) {
     }
 
-    public static function create(?string $alias = null, ?string $function = null, ?string $clause = null): self
+    public static function create(?string $function = null, ?string $clause = null, ?string $alias = null): self
     {
         return new self('', $alias, $function, $clause);
     }
