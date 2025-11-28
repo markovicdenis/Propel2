@@ -490,7 +490,7 @@ abstract class PdoAdapter
 
         // set the aliases
         foreach ($criteria->getAsColumns() as $alias => $col) {
-            $selectClause[] = $col . ' AS ' . $alias;
+            $selectClause[] = $col . ' AS ' . $this->quoteIdentifierSafe($alias);
         }
 
         $selectModifiers = $criteria->getSelectModifiers();

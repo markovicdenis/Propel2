@@ -103,6 +103,14 @@ class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
         return '`' . $text . '`';
     }
 
+    public function quoteIdentifierSafe(string $text): string
+    {
+        if (strpos($text, '`') === 0 && strrpos($text, '`') === strlen($text) - 1) {
+            return $text;
+        }
+        return $this->quoteIdentifier($text);
+    }
+
     /**
      * @see SqlAdapterInterface::quoteIdentifierTable()
      *
