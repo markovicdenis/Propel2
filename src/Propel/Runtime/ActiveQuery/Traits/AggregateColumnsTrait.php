@@ -2,12 +2,15 @@
 
 namespace Propel\Runtime\ActiveQuery\Traits;
 
+use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 
 trait AggregateColumnsTrait
 {
+    /**
+     * @var AggregationConfig[]
+     */
     private array $aggregateSelects = [];
-    protected array $defaultAggregateSelects = [];
 
     private function normalizeColumnName(string $columnName): string
     {
@@ -21,15 +24,39 @@ trait AggregateColumnsTrait
         return $columnName;
     }
 
-    public function addAggregateSelect(string $columnName, string $clause): static
-    {
-        $this->aggregateSelects[$this->normalizeColumnName($columnName)] = $clause;
+    public function addAggregationConfig(
+        string $columnName,
+        string $clause,
+        ?string $alias = null,
+    ): static {
+        $name = $this->normalizeColumnName($columnName);
+        $config = new AggregationConfig(
+            columnName: $name,
+            alias: $alias,
+        );
+        if (str_contains($clause, '(')) {
+            $config->clause = $clause;
+        } else {
+            $config->function = $clause;
+        }
+        $this->aggregateSelects[$name] = $config;
         return $this;
     }
 
-    public function getAggregateSelects(): array
+    /**
+     * @return AggregationConfig[]
+     */
+    public function getAggregationConfigs(): array
     {
         return $this->aggregateSelects;
+    }
+
+    /**
+     * @return AggregationConfig[]
+     */
+    public function getDefaultAggregationConfigs(): array
+    {
+        return [];
     }
 
     public function clearAggregateSelects(): static
@@ -44,8 +71,12 @@ trait AggregateColumnsTrait
         return $this;
     }
 
-    public function getAggregateSelect(string $columnName): ?string
+    public function getAggregationConfig(string $columnName): ?AggregationConfig
     {
-        return $this->aggregateSelects[$columnName] ?? $this->defaultAggregateSelects[$columnName] ?? null;
+        $config = $this->getAggregationConfigs()[$columnName] ?? $this->getDefaultAggregationConfigs()[$columnName] ?? null;
+        if ($config) {
+            $config->columnName = $columnName;
+        }
+        return $config;
     }
 }

@@ -330,7 +330,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             foreach ($criteria->getSelectColumns() as $columnName) {
                 // expect every column to be of "table.column" formation
                 // it could be a function:  e.g. MAX(books.price)
-                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria, 'pgsql');
+                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria, $this);
                 $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
 
                 $parenPos = strrpos($columnName, '(');
@@ -403,8 +403,8 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
         }
     }
 
-    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, ?string $adapter): string
+    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, SqlAdapterInterface $adapter): string
     {
-        return parent::resolveAggregateOrderBy($clause, $criteria, 'pgsql');
+        return parent::resolveAggregateOrderBy($clause, $criteria, $adapter);
     }
 }

@@ -4,27 +4,28 @@ namespace Propel\Runtime\Adapter\Traits;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Adapter\Pdo\PdoAdapter;
+use Propel\Runtime\Adapter\SqlAdapterInterface;
 
 use function explode;
 use function in_array;
-use function str_contains;
 
 trait StrictGroupByTrait
 {
-    protected array $handledAggregateSelects = [];
+    private array $handledAggregateSelects = [];
 
-    private function getAggregateSelectSql(string $columnName, Criteria $criteria, ?string $adapter): string
-    {
+    private function getAggregateSelectSql(
+        string $columnName,
+        Criteria $criteria,
+        SqlAdapterInterface $adapter
+    ): string {
         if (!$criteria instanceof ModelCriteria) {
             return $columnName;
         }
-        if ($criteria->getAggregateSelect($columnName)) {
+        $config = $criteria->getAggregationConfig($columnName);
+        if ($config) {
             $this->handledAggregateSelects[] = $columnName;
-            $clause = $criteria->getAggregateSelect($columnName);
-            if (str_contains($clause, '(')) {
-                return $clause;
-            }
-            return "$clause($columnName)";
+            return $config->resolveClause($adapter, $columnName);
         }
         $column = $criteria->getTableMap()->findColumnByName($columnName);
         if ($column) {
@@ -38,8 +39,11 @@ trait StrictGroupByTrait
         return $columnName;
     }
 
-    protected function resolveAggregateSelectSql(string $columnName, Criteria $criteria, ?string $adapter): string
-    {
+    protected function resolveAggregateSelectSql(
+        string $columnName,
+        Criteria $criteria,
+        SqlAdapterInterface $adapter
+    ): string {
         if (!$criteria->getGroupByColumns()) {
             return $columnName;
         }
@@ -52,9 +56,11 @@ trait StrictGroupByTrait
         return $this->getAggregateSelectSql($columnName, $criteria, $adapter);
     }
 
-    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, ?string $adapter): string
-    {
-        // remove everything after space (ASC/DESC)
+    public function resolveAggregateOrderBy(
+        string $clause,
+        Criteria $criteria,
+        SqlAdapterInterface $adapter
+    ): string {
         $parts = explode(' ', $clause, 2);
         $colName = $parts[0];
 
@@ -65,42 +71,5 @@ trait StrictGroupByTrait
     protected function didHandleAggregateSelect(?string $columnName): bool
     {
         return in_array($columnName ?? '', $this->handledAggregateSelects, true);
-    }
-
-    private function createAggregateSelect(string $columnName, ModelCriteria $criteria): bool
-    {
-        $column = $criteria->getTableMap()->findColumnByName($columnName);
-        if ($column) {
-            $type = $column->getType();
-            $aggregateSelect = match ($type) {
-                'BOOLEAN' => "MAX($columnName::int)",
-                default => "MAX($columnName)",
-            };
-            $criteria->removeSelectColumn($columnName);
-            $criteria->withColumn($aggregateSelect, $this->quoteIdentifier($columnName));
-            return true;
-        }
-        return false;
-    }
-
-    protected function fixGroupByColumns(Criteria $criteria): void
-    {
-        if (!$criteria instanceof ModelCriteria) {
-            return;
-        }
-        $groupBy = $criteria->getGroupByColumns();
-        if ($groupBy) {
-            $selected = $this->getPlainSelectedColumns($criteria);
-            $asSelects = $criteria->getAsColumns();
-            foreach ($selected as $colName) {
-                // if (in_array($colName, $groupBy, true)) {
-                //     continue;
-                // }
-                if (in_array($colName, $asSelects, true)) {
-                    continue;
-                }
-                $this->createAggregateSelect($colName, $criteria);
-            }
-        }
     }
 }

@@ -14,6 +14,7 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\Exception\AdapterException;
+use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Adapter\Traits\StrictGroupByTrait;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\PdoConnection;
@@ -45,7 +46,7 @@ use function substr;
 /**
  * Base for PDO database adapters.
  */
-abstract class PdoAdapter
+abstract class PdoAdapter implements SqlAdapterInterface
 {
     use StrictGroupByTrait;
 
@@ -460,7 +461,7 @@ abstract class PdoAdapter
             foreach ($criteria->getSelectColumns() as $columnName) {
                 // expect every column to be of "table.column" formation
                 // it could be a function:  e.g. MAX(books.price)
-                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria, null);
+                $columnName = $this->resolveAggregateSelectSql($columnName, $criteria, $this);
                 $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
 
                 $parenPos = strrpos($columnName, '(');
