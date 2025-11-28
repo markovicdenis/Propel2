@@ -7,6 +7,7 @@ use Propel\Runtime\ActiveQuery\ModelCriteria;
 trait AggregateColumnsTrait
 {
     private array $aggregateSelects = [];
+    protected array $defaultAggregateSelects = [];
 
     private function normalizeColumnName(string $columnName): string
     {
@@ -45,6 +46,6 @@ trait AggregateColumnsTrait
 
     public function getAggregateSelect(string $columnName): ?string
     {
-        return $this->aggregateSelects[$columnName] ?? null;
+        return $this->aggregateSelects[$columnName] ?? $this->defaultAggregateSelects[$columnName] ?? null;
     }
 }
