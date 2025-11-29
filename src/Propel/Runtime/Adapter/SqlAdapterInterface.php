@@ -150,5 +150,7 @@ interface SqlAdapterInterface extends AdapterInterface
      */
     public function supportsAliasesInDelete(): bool;
 
-    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, SqlAdapterInterface $adapter): string;
+    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, SqlAdapterInterface $adapter): ?string;
+
+    public function quoteIdentifierSafe(string $text): string;
 }

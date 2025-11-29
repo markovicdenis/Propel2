@@ -307,7 +307,13 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
         $additionalSelectStatements = [];
 
         foreach ($orderBy as $orderByColumn) {
-            $orderByColumn = $this->adapter->resolveAggregateOrderBy($orderByColumn, $this->criteria, $this->adapter);
+            $resolvedOrderByColumn = $this->adapter->resolveAggregateOrderBy($orderByColumn, $this->criteria, $this->adapter);
+            if ($resolvedOrderByColumn !== null) {
+                $orderByClause[] = $resolvedOrderByColumn;
+
+                continue;
+            }
+
             $parenthesesOpenPos = strpos($orderByColumn, '(');
             $isFunctionStatement = ($parenthesesOpenPos !== false);
             if ($isFunctionStatement) {

@@ -4,7 +4,6 @@ namespace Propel\Runtime\Adapter\Traits;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
-use Propel\Runtime\Adapter\Pdo\PdoAdapter;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 
 use function explode;
@@ -60,12 +59,20 @@ trait StrictGroupByTrait
         string $clause,
         Criteria $criteria,
         SqlAdapterInterface $adapter
-    ): string {
+    ): ?string {
+        if (!$criteria instanceof ModelCriteria) {
+            return null;
+        }
         $parts = explode(' ', $clause, 2);
-        $colName = $parts[0];
+        $columnName = $parts[0];
 
-        $sql = $this->resolveAggregateSelectSql($colName, $criteria, $adapter);
-        return str_replace($colName, $sql, $clause);
+        // $sql = $this->resolveAggregateSelectSql($colName, $criteria, $adapter);
+        $config = $criteria->getAggregationConfig($columnName);
+        $statement = match (true) {
+            $config !== null => $config->resolveOrderByClause($adapter, $columnName),
+            default => $clause,
+        };
+        return str_replace($columnName, $statement, $clause);
     }
 
     protected function didHandleAggregateSelect(?string $columnName): bool

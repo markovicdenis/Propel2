@@ -21,8 +21,10 @@ use Propel\Runtime\Propel;
 use RuntimeException;
 
 use function array_map;
+use function array_pad;
 use function array_search;
 use function array_unique;
+use function explode;
 use function implode;
 use function in_array;
 use function sprintf;
@@ -182,7 +184,6 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
             $selected = $this->getPlainSelectedColumns($criteria);
             $asSelects = $criteria->getAsColumns();
 
-
             foreach ($selected as $colName) {
                 if ($this->didHandleAggregateSelect($colName)) {
                     continue;
@@ -192,7 +193,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
                     $alias = array_search($colName, $asSelects);
                     if ($alias) {
                         if (in_array($alias, $groupBy, true)) {
-                            continue; //yes, alias is selected.
+                            continue; // yes, alias is selected.
                         }
                     }
                     $groupBy[] = $colName;
@@ -334,7 +335,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
                 $selectClause[] = $columnName; // the full column name: e.g. MAX(books.price)
 
                 $parenPos = strrpos($columnName, '(');
-                $dotPos = strrpos($columnName, '.', ($parenPos !== false ? $parenPos : 0));
+                $dotPos = strrpos($columnName, '.', $parenPos !== false ? $parenPos : 0);
 
                 if ($dotPos === false) {
                     continue;
@@ -350,6 +351,8 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
                     $lastSpace = strrpos($tableName, ' ');
                     if ($lastSpace !== false) { // COUNT(DISTINCT books.price)
                         $tableName = substr($tableName, $lastSpace + 1);
+                        $quoteIdentifier = $this->getQuoteCharacter();
+                        $tableName = str_replace($quoteIdentifier, '', $tableName);
                     }
                 }
                 // resolve table alias
@@ -397,14 +400,9 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
 
                 continue;
             }
-            [$columnName, $cast] = array_pad(explode("::", $param['column'] ?? ''), 2, null);
+            [$columnName, $cast] = array_pad(explode('::', $param['column'] ?? ''), 2, null);
             $cMap = $dbMap->getTable($tableName)->getColumn($columnName);
             $this->bindValue($stmt, $parameter, $value, $cMap, $position);
         }
-    }
-
-    public function resolveAggregateOrderBy(string $clause, Criteria $criteria, SqlAdapterInterface $adapter): string
-    {
-        return parent::resolveAggregateOrderBy($clause, $criteria, $adapter);
     }
 }

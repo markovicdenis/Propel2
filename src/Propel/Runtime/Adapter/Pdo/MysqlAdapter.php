@@ -15,6 +15,12 @@ use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Map\ColumnMap;
+use function is_resource;
+use function rewind;
+use function strlen;
+use function strpos;
+use function strrpos;
+use function strtr;
 
 /**
  * This is used in order to connect to a MySQL database.
@@ -91,6 +97,11 @@ class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
         $con->exec('UNLOCK TABLES');
     }
 
+    public function getQuoteCharacter(): string
+    {
+        return '`';
+    }
+
     /**
      * @see SqlAdapterInterface::quoteIdentifier()
      *
@@ -100,12 +111,12 @@ class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
      */
     public function quoteIdentifier(string $text): string
     {
-        return '`' . $text . '`';
+        return $this->getQuoteCharacter() . $text . $this->getQuoteCharacter();
     }
 
     public function quoteIdentifierSafe(string $text): string
     {
-        if (strpos($text, '`') === 0 && strrpos($text, '`') === strlen($text) - 1) {
+        if (strpos($text, $this->getQuoteCharacter()) === 0 && strrpos($text, $this->getQuoteCharacter()) === strlen($text) - 1) {
             return $text;
         }
         return $this->quoteIdentifier($text);

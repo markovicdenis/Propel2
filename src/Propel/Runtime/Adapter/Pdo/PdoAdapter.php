@@ -240,6 +240,11 @@ abstract class PdoAdapter implements SqlAdapterInterface
         return '\'';
     }
 
+    public function getQuoteCharacter(): string
+    {
+        return '"';
+    }
+
     /**
      * Quotes database object identifiers (table names, col names, sequences, etc.).
      *
@@ -249,7 +254,7 @@ abstract class PdoAdapter implements SqlAdapterInterface
      */
     public function quoteIdentifier(string $text): string
     {
-        return '"' . $text . '"';
+        return $this->getQuoteCharacter() . $text . $this->getQuoteCharacter();
     }
 
     public function quoteIdentifierSafe(string $text): string
@@ -481,6 +486,8 @@ abstract class PdoAdapter implements SqlAdapterInterface
                     $lastSpace = strrpos($tableName, ' ');
                     if ($lastSpace !== false) { // COUNT(DISTINCT books.price)
                         $tableName = substr($tableName, $lastSpace + 1);
+                        $quoteIdentifier = $this->getQuoteCharacter();
+                        $tableName = str_replace($quoteIdentifier, '', $tableName);
                     }
                 }
                 // resolve table alias

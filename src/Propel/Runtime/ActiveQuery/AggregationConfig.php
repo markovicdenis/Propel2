@@ -22,7 +22,7 @@ class AggregationConfig
         return new self('', $alias, $function, $clause);
     }
 
-    public function resolveClause(SqlAdapterInterface|PdoAdapter $adapter, ?string $columnName = null): string
+    public function resolveClause(SqlAdapterInterface $adapter, ?string $columnName = null): string
     {
         $columnName ??= $this->columnName;
         // if ($this->clause) {
@@ -41,6 +41,23 @@ class AggregationConfig
         if ($this->alias !== null && !str_contains($statement, ' AS ')) {
             $statement .= ' AS ' . $adapter->quoteIdentifier($this->alias);
         }
+
+        return $statement;
+    }
+
+    public function resolveOrderByClause(SqlAdapterInterface $adapter, ?string $columnName = null): ?string
+    {
+        $columnName ??= $this->columnName;
+        if ($this->alias) {
+            return $adapter->quoteIdentifierSafe($this->alias);
+        }
+        $statement = match (true) {
+            $this->clause !== null => $this->clause,
+            $this->function !== null => "{$this->function}($columnName)",
+            default => null,
+        };
+
+        // check if incompatible with ORDER BY, eg COUNT()
 
         return $statement;
     }
