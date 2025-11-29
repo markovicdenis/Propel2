@@ -65,6 +65,9 @@ trait StrictGroupByTrait
         Criteria $criteria,
         SqlAdapterInterface $adapter
     ): ?string {
+        if (!$criteria->getGroupByColumns()) {
+            return null;
+        }
         if (!$criteria instanceof ModelCriteria) {
             return null;
         }
