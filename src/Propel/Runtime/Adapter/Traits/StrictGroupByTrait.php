@@ -32,6 +32,7 @@ trait StrictGroupByTrait
             $this->handledAggregateSelects[] = $columnName;
             return match ($type) {
                 'BOOLEAN' => $adapter == 'pgsql' ? "MAX($columnName::int)" : "MAX($columnName)",
+                'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'BINARY', 'VARBINARY', 'LONGVARBINARY', 'BLOB' => "LAST_VALUE($columnName)",
                 default => "MAX($columnName)",
             };
         }
