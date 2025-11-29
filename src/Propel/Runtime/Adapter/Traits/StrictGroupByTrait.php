@@ -4,6 +4,7 @@ namespace Propel\Runtime\Adapter\Traits;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 
 use function explode;
@@ -30,8 +31,9 @@ trait StrictGroupByTrait
         if ($column) {
             $type = $column->getType();
             $this->handledAggregateSelects[] = $columnName;
+            $isPostgres = $adapter instanceof PgsqlAdapter  ;
             return match ($type) {
-                'BOOLEAN' => $adapter == 'pgsql' ? "MAX($columnName::int)" : "MAX($columnName)",
+                'BOOLEAN' => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
                 'VARCHAR', 'CHAR', 'LONGVARCHAR' => "ANY_VALUE($columnName)",
                 'CLOB', 'BINARY', 'VARBINARY', 'LONGVARBINARY', 'BLOB' => "ANY_VALUE($columnName)",
                 'ENUM', 'SET' => "ANY_VALUE($columnName)",
