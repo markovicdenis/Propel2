@@ -75,7 +75,7 @@ trait StrictGroupByTrait
         $config = $criteria->getAggregationConfig($columnName);
         $statement = match (true) {
             $config !== null => $config->resolveOrderByClause($adapter, $columnName),
-            default => $clause,
+            default => $columnName,
         };
         return str_replace($columnName, $statement, $clause);
     }
