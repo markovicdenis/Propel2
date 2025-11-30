@@ -97,17 +97,23 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
             }
         }
 
-        $where = $this->criteria->getMap();
+        // $where = $this->criteria->getMap();
         $select = $this->criteria->getSelectColumns();
+        $groupBy = $this->criteria->getGroupByColumns();
         foreach ($select as $column) {
             // select tablename from column
             $parts = explode('.', $column);
             if (count($parts) === 2) {
                 $table = $parts[0];
-                if (in_array($table, $tables, true)) {
+                if (in_array($table, $tables, true) && !in_array($column, $groupBy, true)) {
                     $this->criteria->removeSelectColumn($column);
                 }
             }
+        }
+
+        // if empty select, add an alias constant
+        if (count($this->criteria->getSelectColumns()) === 0) {
+            $this->criteria->addAsColumn('constant_alias_for_count', '1');
         }
     }
 }
