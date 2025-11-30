@@ -11,6 +11,10 @@ namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Exception\LogicException;
 
+use function count;
+use function explode;
+use function in_array;
+
 class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
 {
     /**
@@ -49,6 +53,8 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
             return SelectQuerySqlBuilder::createSelectSql($this->criteria);
         }
 
+        $this->pruneSelect();
+
         if ($this->criteria->needsSelectAliases()) {
             if ($this->criteria->getHaving()) {
                 $errorMessage = 'Propel cannot create a COUNT query when using HAVING and duplicate column names in the SELECT part';
@@ -62,8 +68,37 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
         $baseSelectSql = $preparedStatementDto->getSqlStatement();
         $params = $preparedStatementDto->getParameters();
 
-        $countStatment = "SELECT COUNT(*) FROM ($baseSelectSql) propelmatch4cnt";
+        $countStatement = "SELECT COUNT(*) FROM ($baseSelectSql) propelmatch4cnt";
 
-        return new PreparedStatementDto($countStatment, $params);
+        return new PreparedStatementDto($countStatement, $params);
+    }
+
+    private function pruneSelect(): void
+    {
+        $tables = [];
+        $tables[] = $this->criteria->getPrimaryTableName();
+        foreach ($this->criteria->getJoins() as $join) {
+            $rightTable = $join->getRightTableName();
+            if (!in_array($rightTable, $tables, true)) {
+                $tables[] = $rightTable;
+            }
+            $leftTable = $join->getLeftTableName();
+            if (!in_array($leftTable, $tables, true)) {
+                $tables[] = $leftTable;
+            }
+        }
+
+        $where = $this->criteria->getMap();
+        $select = $this->criteria->getSelectColumns();
+        foreach ($select as $column) {
+            // select tablename from column
+            $parts = explode('.', $column);
+            if (count($parts) === 2) {
+                $table = $parts[0];
+                if (in_array($table, $tables, true)) {
+                    $this->criteria->removeSelectColumn($column);
+                }
+            }
+        }
     }
 }
