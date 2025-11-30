@@ -6,7 +6,6 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
-use Propel\Runtime\Map\ColumnMap;
 
 use function explode;
 use function in_array;
@@ -20,11 +19,11 @@ trait StrictGroupByTrait
         SqlAdapterInterface $adapter,
         Criteria $criteria,
     ): string {
-        $alias = $criteria->getAliases()[$columnName] ?? null;
+        $alias = $criteria->getAsColumns()[$columnName] ?? null;
         if ($alias !== null) {
             $columnName = $alias;
         }
-        $columnMap = match(true) {
+        $columnMap = match (true) {
             $criteria instanceof ModelCriteria => $criteria->getTableMap()->findColumnByName($columnName),
             default => null,
         };
