@@ -6,6 +6,7 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
+use Propel\Runtime\Map\ColumnMap;
 
 use function explode;
 use function in_array;
@@ -13,6 +14,21 @@ use function in_array;
 trait StrictGroupByTrait
 {
     private array $handledAggregateSelects = [];
+
+    private function convertToAggregateClause(
+        string $type,
+        string $columnName,
+        SqlAdapterInterface $adapter
+    ): string {
+        $isPostgres = $adapter instanceof PgsqlAdapter;
+        return match ($type) {
+            'BOOLEAN' => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
+            'VARCHAR', 'CHAR', 'LONGVARCHAR' => "ANY_VALUE($columnName)",
+            'CLOB', 'BINARY', 'VARBINARY', 'LONGVARBINARY', 'BLOB' => "ANY_VALUE($columnName)",
+            'ENUM', 'SET' => "ANY_VALUE($columnName)",
+            default => "MAX($columnName)",
+        };
+    }
 
     private function getAggregateSelectSql(
         string $columnName,
@@ -29,16 +45,8 @@ trait StrictGroupByTrait
         }
         $column = $criteria->getTableMap()->findColumnByName($columnName);
         if ($column) {
-            $type = $column->getType();
             $this->handledAggregateSelects[] = $columnName;
-            $isPostgres = $adapter instanceof PgsqlAdapter  ;
-            return match ($type) {
-                'BOOLEAN' => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
-                'VARCHAR', 'CHAR', 'LONGVARCHAR' => "ANY_VALUE($columnName)",
-                'CLOB', 'BINARY', 'VARBINARY', 'LONGVARBINARY', 'BLOB' => "ANY_VALUE($columnName)",
-                'ENUM', 'SET' => "ANY_VALUE($columnName)",
-                default => "MAX($columnName)",
-            };
+            return $this->convertToAggregateClause($column->getType(), $columnName, $adapter);
         }
         return $columnName;
     }
@@ -74,11 +82,14 @@ trait StrictGroupByTrait
         $parts = explode(' ', $clause, 2);
         $columnName = $parts[0];
 
-        // $sql = $this->resolveAggregateSelectSql($colName, $criteria, $adapter);
         $config = $criteria->getAggregationConfig($columnName);
         $statement = match (true) {
             $config !== null => $config->resolveOrderByClause($adapter, $columnName),
-            default => $columnName,
+            default => $this->convertToAggregateClause(
+                $criteria->getTableMap()?->findColumnByName($columnName)?->getType() ?? 'VARCHAR',
+                $columnName,
+                $adapter
+            ),
         };
         return str_replace($columnName, $statement, $clause);
     }
