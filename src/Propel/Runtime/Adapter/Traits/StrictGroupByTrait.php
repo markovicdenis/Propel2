@@ -16,10 +16,19 @@ trait StrictGroupByTrait
     private array $handledAggregateSelects = [];
 
     private function convertToAggregateClause(
-        string $type,
         string $columnName,
-        SqlAdapterInterface $adapter
+        SqlAdapterInterface $adapter,
+        Criteria $criteria,
     ): string {
+        $alias = $criteria->getAliases()[$columnName] ?? null;
+        if ($alias !== null) {
+            $columnName = $alias;
+        }
+        $columnMap = match(true) {
+            $criteria instanceof ModelCriteria => $criteria->getTableMap()->findColumnByName($columnName),
+            default => null,
+        };
+        $type = $columnMap ? $columnMap->getType() : 'VARCHAR';
         $isPostgres = $adapter instanceof PgsqlAdapter;
         return match ($type) {
             'BOOLEAN' => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
@@ -43,10 +52,19 @@ trait StrictGroupByTrait
             $this->handledAggregateSelects[] = $columnName;
             return $config->resolveClause($adapter, $columnName);
         }
-        $column = $criteria->getTableMap()->findColumnByName($columnName);
-        if ($column) {
+        // $column = $criteria->getTableMap()->findColumnByName($columnName);
+        // if ($column) {
+        //     $this->handledAggregateSelects[] = $columnName;
+        //     return $this->convertToAggregateClause($column->getType(), $columnName, $adapter);
+        // }
+        $resolvedType = $this->convertToAggregateClause(
+            $columnName,
+            $adapter,
+            $criteria,
+        );
+        if ($resolvedType) {
             $this->handledAggregateSelects[] = $columnName;
-            return $this->convertToAggregateClause($column->getType(), $columnName, $adapter);
+            return $resolvedType;
         }
         return $columnName;
     }
@@ -86,9 +104,9 @@ trait StrictGroupByTrait
         $statement = match (true) {
             $config !== null => $config->resolveOrderByClause($adapter, $columnName),
             default => $this->convertToAggregateClause(
-                $criteria->getTableMap()?->findColumnByName($columnName)?->getType() ?? 'VARCHAR',
                 $columnName,
-                $adapter
+                $adapter,
+                $criteria,
             ),
         };
         return str_replace($columnName, $statement, $clause);
