@@ -9,6 +9,7 @@
 namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Exception\LogicException;
 
 use function count;
@@ -75,6 +76,14 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
 
     private function pruneSelect(): void
     {
+        if (!$this->criteria instanceof ModelCriteria) {
+            return;
+        }
+        if (!$this->criteria->isKeepQuery()) {
+            return;
+        }
+        $this->criteria->setOffset(0);
+        $this->criteria->setLimit(-1);
         $tables = [];
         $tables[] = $this->criteria->getPrimaryTableName();
         foreach ($this->criteria->getJoins() as $join) {
