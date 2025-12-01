@@ -2424,7 +2424,9 @@ class ModelCriteria extends BaseModelCriteria
                 throw new PropelException("Cannot find selected column '$columnName'");
             }
             // always put quotes around the columnName to be safe, we strip them in the formatter
-            $this->addAsColumn('"' . $columnName . '"', $realColumnName);
+            // HACK: not going to do this, that is quoting aliases
+            // $this->addAsColumn('"' . $columnName . '"', $realColumnName);
+            $this->addAsColumn($columnName, $realColumnName);
         }
     }
 
