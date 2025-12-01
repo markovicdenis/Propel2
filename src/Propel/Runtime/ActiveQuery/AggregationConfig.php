@@ -49,7 +49,7 @@ class AggregationConfig
     {
         $columnName ??= $this->columnName;
         if ($this->alias) {
-            return $adapter->quoteIdentifierSafe($this->alias);
+            return $adapter->quoteIdentifier($this->alias);
         }
         $statement = match (true) {
             $this->clause !== null => $this->clause,

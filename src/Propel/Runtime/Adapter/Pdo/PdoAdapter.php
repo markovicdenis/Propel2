@@ -254,15 +254,11 @@ abstract class PdoAdapter implements SqlAdapterInterface
      */
     public function quoteIdentifier(string $text): string
     {
-        return $this->getQuoteCharacter() . $text . $this->getQuoteCharacter();
-    }
-
-    public function quoteIdentifierSafe(string $text): string
-    {
-        if (strpos($text, '"') === 0 && strrpos($text, '"') === strlen($text) - 1) {
+        $char = $this->getQuoteCharacter();
+        if (strpos($text, $char) === 0 && strrpos($text, $char) === strlen($text) - 1) {
             return $text;
         }
-        return $this->quoteIdentifier($text);
+        return "$char$text$char";
     }
 
     /**
@@ -498,7 +494,7 @@ abstract class PdoAdapter implements SqlAdapterInterface
 
         // set the aliases
         foreach ($criteria->getAsColumns() as $alias => $col) {
-            $selectClause[] = $col . ' AS ' . $this->quoteIdentifierSafe($alias);
+            $selectClause[] = $col . ' AS ' . $this->quoteIdentifier($alias);
         }
 
         $selectModifiers = $criteria->getSelectModifiers();

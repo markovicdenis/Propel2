@@ -363,7 +363,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
 
         // set the aliases
         foreach ($criteria->getAsColumns() as $alias => $col) {
-            $selectClause[] = $col . ' AS ' . $this->quoteIdentifierSafe($alias);
+            $selectClause[] = $col . ' AS ' . $this->quoteIdentifier($alias);
         }
 
         $selectModifiers = $criteria->getSelectModifiers();

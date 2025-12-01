@@ -23,13 +23,13 @@ class PropelConfiguration implements ConfigurationInterface
     /**
      * Generates the configuration tree builder.
      *
-     * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder The tree builder
+     * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder<'array'>
      */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('propel');
 
-        /** @var \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $rootNode */
+        /** @var ArrayNodeDefinition<TreeBuilder<'array'>> $rootNode */
         $rootNode = $treeBuilder->getRootNode();
 
         $this->addGeneralSection($rootNode);
@@ -45,7 +45,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -64,7 +64,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -90,7 +90,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -118,7 +118,7 @@ class PropelConfiguration implements ConfigurationInterface
                             ->end()
                             ->requiresAtLeastOneElement()
                             ->normalizeKeys(false)
-                            ->prototype('array')
+                            ->arrayPrototype()
                             ->fixXmlConfig('slave')
                             ->fixXmlConfig('model_path')
                                 ->children()
@@ -204,7 +204,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -225,7 +225,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -243,7 +243,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -258,7 +258,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */
@@ -336,7 +336,7 @@ class PropelConfiguration implements ConfigurationInterface
     }
 
     /**
-     * @param \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $node
+     * @param ArrayNodeDefinition<TreeBuilder<'array'>> $node
      *
      * @return void
      */

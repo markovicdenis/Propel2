@@ -15,6 +15,7 @@ use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Map\ColumnMap;
+
 use function is_resource;
 use function rewind;
 use function strlen;
@@ -100,26 +101,6 @@ class MysqlAdapter extends PdoAdapter implements SqlAdapterInterface
     public function getQuoteCharacter(): string
     {
         return '`';
-    }
-
-    /**
-     * @see SqlAdapterInterface::quoteIdentifier()
-     *
-     * @param string $text
-     *
-     * @return string
-     */
-    public function quoteIdentifier(string $text): string
-    {
-        return $this->getQuoteCharacter() . $text . $this->getQuoteCharacter();
-    }
-
-    public function quoteIdentifierSafe(string $text): string
-    {
-        if (strpos($text, $this->getQuoteCharacter()) === 0 && strrpos($text, $this->getQuoteCharacter()) === strlen($text) - 1) {
-            return $text;
-        }
-        return $this->quoteIdentifier($text);
     }
 
     /**
