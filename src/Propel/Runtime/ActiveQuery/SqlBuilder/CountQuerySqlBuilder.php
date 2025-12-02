@@ -65,6 +65,9 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
 
             $this->adapter->turnSelectColumnsToAliases($this->criteria);
         }
+
+        $this->addOneSelectColumnIfNoneExists();
+
         $preparedStatementDto = SelectQuerySqlBuilder::createSelectSql($this->criteria);
         $baseSelectSql = $preparedStatementDto->getSqlStatement();
         $params = $preparedStatementDto->getParameters();
@@ -110,9 +113,11 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
                 }
             }
         }
+    }
 
-        // if empty select, add an alias constant
-        if (count($this->criteria->getSelectColumns()) === 0) {
+    private function addOneSelectColumnIfNoneExists(): void
+    {
+        if (count($this->criteria->getSelectColumns()) === 0 && count($this->criteria->getAsColumns()) === 0) {
             $this->criteria->addAsColumn('constant_alias_for_count', '1');
         }
     }
