@@ -4,6 +4,8 @@
      *
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useInQuery()
      *
+     * @phpstan-param \Propel\Runtime\ActiveQuery\Criteria::*IN $type
+     *
      * @param string|null $modelAlias sets an alias for the nested query
      * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the IN query, like ExtendedBookQuery::class
      * @param string $typeOfIn Criteria::IN or Criteria::NOT_IN
@@ -21,6 +23,8 @@
      * Use the <?= $relationDescription ?> for a NOT IN query.
      *
      * @see use<?= $relationName ?>InQuery()
+     *
+     * @phpstan-param \Propel\Runtime\ActiveQuery\Criteria::*IN $type
      *
      * @param string|null $modelAlias sets an alias for the nested query
      * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the NOT IN query, like ExtendedBookQuery::class
