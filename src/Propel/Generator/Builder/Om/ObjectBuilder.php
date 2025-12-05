@@ -3994,7 +3994,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param $ctype \$key Primary key.
      * @return void
      */
-    public function setPrimaryKey(?$ctype \$key $defaultValue): void
+    public function setPrimaryKey($ctype \$key$defaultValue): void
     {
         \$this->set" . $col->getPhpName() . "(\$key);
     }
