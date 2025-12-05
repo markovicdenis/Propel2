@@ -521,7 +521,8 @@ class QueryBuilder extends AbstractOMBuilder
             foreach ($pks as $col) {
                 $colNames[] = '$' . $col->getName();
             }
-            $pkType = 'array[' . implode(', ', $colNames) . ']';
+            $pkDesc = 'array[' . implode(', ', $colNames) . ']';
+            $pkType = 'array';
             $script .= "
      * <code>
      * \$obj = \$c->findPk(array(" . implode(', ', $examplePk) . '), $con);';
@@ -534,7 +535,7 @@ class QueryBuilder extends AbstractOMBuilder
         $script .= "
      * </code>
      *
-     * @param " . $pkType . " \$key Primary key to use for the query
+     * @param " . $pkType . " \$key Primary key to use for the query $pkDesc
      * @param ConnectionInterface \$con an optional connection object
      *
      * @return $class|array|mixed the result, formatted by the current formatter

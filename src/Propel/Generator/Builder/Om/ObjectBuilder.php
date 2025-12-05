@@ -1676,6 +1676,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         try {
             \$row = [0 => null];
             \$dataFetcher = " . $this->getQueryClassName() . "::create(null, \$c)->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find(\$con);
+            assert(\$dataFetcher instanceof Criteria);
             if (\$dataFetcher instanceof PDODataFetcher) {
                 \$dataFetcher->bindColumn(1, \$row[0], PDO::PARAM_LOB, 0, PDO::SQLSRV_ENCODING_BINARY);
             }
@@ -6904,6 +6905,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 }
                 \$this->postSave(\$con);";
             $this->applyBehaviorModifier('postSave', $script, '                ');
+            $script .= "assert(\$this instanceof {$this->getObjectClassName(true)});";
             $script .= "
                 " . $this->getTableMapClassName() . "::addInstanceToPool(\$this);
             } else {
