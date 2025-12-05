@@ -1220,7 +1220,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$cloUnserialized = [];
         }
         if (!\$this->$cloUnserialized && null !== \$this->$clo) {
-            \$$cloUnserialized = substr(\$this->$clo ?? [], 2, -2);
+            \$$cloUnserialized = substr(\$this->$clo ?? '', 2, -2);
             \$this->$cloUnserialized = '' !== \$$cloUnserialized ? explode(' | ', \$$cloUnserialized ?? []) : array();
         }
 
