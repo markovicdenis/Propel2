@@ -5002,6 +5002,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addPKRefFKSet(string &$script, ForeignKey $refFK): void
     {
         $className = $this->getClassNameFromTable($refFK->getTable());
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $varName = $this->getPKRefFKVarName($refFK);
 
@@ -5018,6 +5019,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Make sure that that the passed-in $className isn't already associated with this object
         if (\$v !== null && \$v->get" . $this->getFKPhpNameAffix($refFK, false) . "(null) === null) {
+            assert(\$this instanceof $currentClassName);
             \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
         }
 
@@ -7206,6 +7208,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addClear(string &$script): void
     {
         $table = $this->getTable();
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7223,6 +7226,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $removeMethod = 'remove' . $this->getRefFKPhpNameAffix($fk, false);
             $script .= "
         if (null !== \$this->$varName) {
+            assert(\$this instanceof $currentClassName);
             \$this->$varName->$removeMethod(\$this);
         }";
         }
