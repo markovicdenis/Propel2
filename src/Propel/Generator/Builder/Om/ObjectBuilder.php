@@ -1221,7 +1221,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         if (!\$this->$cloUnserialized && null !== \$this->$clo) {
             \$$cloUnserialized = substr(\$this->$clo ?? '', 2, -2);
-            \$this->$cloUnserialized = '' !== \$$cloUnserialized ? explode(' | ', \$$cloUnserialized ?? []) : array();
+            \$this->$cloUnserialized = '' !== \$$cloUnserialized ? explode(' | ', \$$cloUnserialized) : [];
         }
 
         return \$this->$cloUnserialized ?? [];";
@@ -2174,7 +2174,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
         if (\$this->$cloUnserialized !== \$v) {
             \$this->$cloUnserialized = \$v;
-            \$this->$clo = '| ' . implode(' | ', \$v) . ' |';
+            \$this->$clo = \$v ? '| ' . implode(' | ', \$v) . ' |' : null;
             \$this->modifiedColumns[" . $this->getColumnConstant($col) . "] = true;
         }
 ";
