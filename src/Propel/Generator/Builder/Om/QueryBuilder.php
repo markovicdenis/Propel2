@@ -1058,7 +1058,7 @@ class QueryBuilder extends AbstractOMBuilder
             $script .= "
         \$key = \$this->getAliasedColName($qualifiedName);
         if (null === \$comparison || \$comparison == Criteria::CONTAINS_ALL) {
-            foreach (\$$variableName as \$value) {
+            foreach (\$$variableName ?? [] as \$value) {
                 \$value = '%| ' . \$value . ' |%';
                 if (\$this->containsKey(\$key)) {
                     \$this->addAnd(\$key, \$value, Criteria::LIKE);
@@ -1069,7 +1069,7 @@ class QueryBuilder extends AbstractOMBuilder
 
             return \$this;
         } elseif (\$comparison == Criteria::CONTAINS_SOME) {
-            foreach (\$$variableName as \$value) {
+            foreach (\$$variableName ?? [] as \$value) {
                 \$value = '%| ' . \$value . ' |%';
                 if (\$this->containsKey(\$key)) {
                     \$this->addOr(\$key, \$value, Criteria::LIKE);
@@ -1080,7 +1080,7 @@ class QueryBuilder extends AbstractOMBuilder
 
             return \$this;
         } elseif (\$comparison == Criteria::CONTAINS_NONE) {
-            foreach (\$$variableName as \$value) {
+            foreach (\$$variableName ?? [] as \$value) {
                 \$value = '%| ' . \$value . ' |%';
                 if (\$this->containsKey(\$key)) {
                     \$this->addAnd(\$key, \$value, Criteria::NOT_LIKE);
