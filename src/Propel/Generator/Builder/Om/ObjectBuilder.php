@@ -1217,11 +1217,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$cloUnserialized = [];
         }
         if (!\$this->$cloUnserialized && null !== \$this->$clo) {
-            \$$cloUnserialized = substr(\$this->$clo, 2, -2);
-            \$this->$cloUnserialized = '' !== \$$cloUnserialized ? explode(' | ', \$$cloUnserialized) : array();
+            \$$cloUnserialized = substr(\$this->$clo ?? [], 2, -2);
+            \$this->$cloUnserialized = '' !== \$$cloUnserialized ? explode(' | ', \$$cloUnserialized ?? []) : array();
         }
 
-        return \$this->$cloUnserialized;";
+        return \$this->$cloUnserialized ?? [];";
     }
 
     /**
@@ -1488,7 +1488,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "): bool
     {
-        return in_array(\$value, \$this->get$cfc(";
+        return in_array(\$value ?? [], \$this->get$cfc(";
         if ($column->isLazyLoad()) {
             $script .= '$con';
         }

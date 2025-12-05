@@ -903,7 +903,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Initializes a secondary ModelCriteria object, to be later merged with the current object
      *
-     * @psalm-param class-string<self>|null $secondaryCriteriaClass
+     * @psalm-param class-string<static>|null $secondaryCriteriaClass
      *
      * @see ModelCriteria::endUse()
      *
@@ -935,6 +935,8 @@ class ModelCriteria extends BaseModelCriteria
         }
 
         $secondaryCriteria->setPrimaryCriteria($this, $modelJoin);
+
+        assert($secondaryCriteria instanceof static);
 
         return $secondaryCriteria;
     }
