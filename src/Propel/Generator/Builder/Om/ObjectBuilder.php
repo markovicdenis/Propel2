@@ -4214,6 +4214,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
         // Add binding for other direction of this 1:1 relationship.
         if (\$v !== null) {
+            assert(\$this instanceof $className);
             \$v->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
         }
 ";
@@ -4222,6 +4223,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
         if (\$v !== null) {
+            assert(\$this instanceof $className);
             \$v->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
         }
 ";
@@ -4296,6 +4298,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
 
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
+
         $script .= "
 
     /**
@@ -4314,6 +4318,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()->findPk($localColumns, \$con);";
         } else {
             $script .= "
+            assert(\$this instanceof $currentClassName);
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()
                 ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this) // here
                 ->findOne(\$con);";
@@ -4658,6 +4663,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $joinedTableObjectBuilder = $this->getNewObjectBuilder($refFK->getTable());
         $className = $this->getClassNameFromBuilder($joinedTableObjectBuilder);
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -4686,6 +4692,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$query->distinct();
             }
 
+            assert(\$this instanceof $currentClassName || \$this instanceof ObjectCollection);
             return \$query
                 ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                 ->count(\$con);
@@ -4742,9 +4749,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     \$$collName = new \$collectionClassName;
                     \${$collName}->setModel('" . $this->getClassNameFromBuilder($this->getNewStubObjectBuilder($refFK->getTable()), true) . "');
 
+                    assert(\$$collName instanceof ObjectCollection);
                     return \$$collName;
                 }
             } else {
+                assert(\$this instanceof $className || \$this instanceof ObjectCollection);
                 \$$collName = $fkQueryClassName::create(null, \$criteria)
                     ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                     ->find(\$con);
@@ -4762,6 +4771,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                         \$this->{$collName}Partial = true;
                     }
 
+                    assert(\$$collName instanceof ObjectCollection);
                     return \$$collName;
                 }
 
@@ -4870,6 +4880,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $relatedObjectClassName = $this->getRefFKPhpNameAffix($refFK, false);
         $lowerRelatedObjectClassName = lcfirst($relatedObjectClassName);
         $collName = $this->getRefFKCollVarName($refFK);
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -4878,6 +4889,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function doAdd{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName}): void
     {
         \$this->{$collName}[]= \${$lowerRelatedObjectClassName};
+        assert(\$this instanceof $currentClassName);
         \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
     }
 ";
