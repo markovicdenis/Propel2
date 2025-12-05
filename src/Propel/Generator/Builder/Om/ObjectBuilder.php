@@ -3975,15 +3975,26 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $col = $pkeys[0];
         $clo = $col->getLowercasedName();
         $ctype = $col->getPhpType();
+        $defaultValue = match ($col->getPhpType()) {
+            'int' => ' = 0',
+            'float' => ' = 0.0',
+            'string' => " = ''",
+            'bool' => ' = false',
+            default => '',
+        };
+        if (!$col->isNotNull()) {
+            $ctype = "?$ctype";
+            $defaultValue = 'null';
+        }
 
         $script .= "
     /**
      * Generic method to set the primary key ($clo column).
      *
-     * @param $ctype|null \$key Primary key.
+     * @param $ctype \$key Primary key.
      * @return void
      */
-    public function setPrimaryKey(?$ctype \$key = null): void
+    public function setPrimaryKey(?$ctype \$key $defaultValue): void
     {
         \$this->set" . $col->getPhpName() . "(\$key);
     }
@@ -4429,7 +4440,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @phpstan-var ObjectCollection&\Traversable<{$className}> Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
-    protected $" . $this->getRefFKCollVarName($refFK) . "Partial;
+    /**
+     * @var bool|null
+     */
+    protected $" . $this->getRefFKCollVarName($refFK) . "Partial = null;
 ";
         }
     }
