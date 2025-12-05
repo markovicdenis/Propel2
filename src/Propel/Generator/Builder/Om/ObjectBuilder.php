@@ -167,11 +167,11 @@ class ObjectBuilder extends AbstractObjectBuilder
      *
      * @return string
      */
-    protected function getDefaultValueString(Column $column): string
+    protected function getDefaultValueString(Column $column, bool $acceptNull = true): string
     {
         $defaultValue = var_export(null, true);
         $val = $column->getPhpDefaultValue();
-        if ($val === null) {
+        if ($val === null && $acceptNull) {
             return $defaultValue;
         }
 
@@ -4186,7 +4186,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             if ($rightValueOrColumn instanceof Column) {
                 $script .= "
         if (\$v === null) {
-            \$this->set" . $column->getPhpName() . '(' . $this->getDefaultValueString($column) . ");
+            \$this->set" . $column->getPhpName() . '(' . $this->getDefaultValueString($column, false) . ");
         } else {
             \$this->set" . $column->getPhpName() . '($v->get' . $rightValueOrColumn->getPhpName() . "());
         }
@@ -4397,7 +4397,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param ConnectionInterface \$con optional connection object
      * @param string \$joinBehavior optional join type to use (defaults to $joinBehavior)
      * @return ObjectCollection|{$className}[] List of $className objects
-     * @phpstan-return ObjectCollection&\Traversable<$className}> List of $className objects
+     * @phpstan-return ObjectCollection&\Traversable<$className> List of $className objects
      */
     public function get" . $relCol . 'Join' . $relCol2 . "(?Criteria \$criteria = null, ?ConnectionInterface \$con = null, \$joinBehavior = $joinBehavior)
     {";
