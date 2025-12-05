@@ -522,6 +522,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $cptype = $this->getDateTimeClass($column);
         } else {
             $cptype = $column->getPhpType();
+            if ($cptype === 'array') {
+                $cptype = 'string';
+            }
         }
         $clo = $column->getLowercasedName();
 
