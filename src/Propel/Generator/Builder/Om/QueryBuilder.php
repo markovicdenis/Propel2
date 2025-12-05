@@ -657,7 +657,7 @@ class QueryBuilder extends AbstractOMBuilder
      *
      * @throws \\Propel\\Runtime\\Exception\\PropelException
      *
-     * @return $ARClassName A model object, or null if the key is not found
+     * @return ?$ARClassName A model object, or null if the key is not found
      */
     protected function findPkSimple(\$key, ConnectionInterface \$con)
     {
