@@ -560,7 +560,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         }
 
         // Add columns to map
-            $script .= "
+        $script .= "
         // columns";
         foreach ($table->getColumns() as $col) {
             $columnName = $col->getName();
@@ -642,7 +642,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             $script .= "
         \$this->addRelation('$relationName', '" . addslashes($this->getNewStubObjectBuilder($fkey->getTable())->getFullyQualifiedClassName()) . "', RelationMap::ONE_TO_" . ($fkey->isLocalPrimaryKey() ? 'ONE' : 'MANY') . ", $joinCondition, $onDelete, $onUpdate";
             if ($fkey->isLocalPrimaryKey()) {
-                 $script .= ', null';
+                $script .= ', null';
             } else {
                 $script .= ", '" . $this->getRefFKPhpNameAffix($fkey, true) . "'";
             }
@@ -1162,6 +1162,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function populateObject(array \$row, int \$offset = 0, string \$indexType = TableMap::TYPE_NUM): array
     {
+        assert(is_array(\$row), 'DataFetcher->fetch() must return array or null, false given.');
         \$key = {$this->getTableMapClassName()}::getPrimaryKeyHashFromRow(\$row, \$offset, \$indexType);
         if (null !== (\$obj = {$this->getTableMapClassName()}::getInstanceFromPool(\$key))) {
             // We no longer rehydrate the object, since this can cause data loss.
@@ -1311,7 +1312,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 ";
     }
 
- // addAddSelectColumns()
+    // addAddSelectColumns()
 
     /**
      * Adds the removeSelectColumns() method.
@@ -1359,7 +1360,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 ";
     }
 
- // addRemoveSelectColumns()
+    // addRemoveSelectColumns()
 
     /**
      * Adds the getTableMap() method which is a convenience method for apps to get DB metadata.
