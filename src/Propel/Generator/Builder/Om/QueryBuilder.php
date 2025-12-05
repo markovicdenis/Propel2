@@ -663,7 +663,7 @@ class QueryBuilder extends AbstractOMBuilder
     {
         \$sql = '$query';
         try {
-            \$stmt = \$con->prepare(\$sql);";
+            \$stmt = \$con->prepare(\$sql) ?: throw new \Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));";
         if ($table->hasCompositePrimaryKey()) {
             foreach ($table->getPrimaryKey() as $index => $column) {
                 $script .= $platform->getColumnBindingPHP($column, "':p$index'", "\$key[$index]", '            ');
@@ -2121,7 +2121,7 @@ class QueryBuilder extends AbstractOMBuilder
 ";
     }
 
- // end addDoOnDeleteCascade
+    // end addDoOnDeleteCascade
 
 
     /**

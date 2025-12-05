@@ -3120,7 +3120,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
     }
 
- // addToArray()
+    // addToArray()
 
     /**
      * Adds the switch-statement for looking up the array-key name for toArray
@@ -3749,7 +3749,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
     }
 
- // addReload()
+    // addReload()
 
     /**
      * Adds the methods related to refreshing, saving and deleting the object.
@@ -6637,7 +6637,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         );
 
         try {
-            \$stmt = \$con->prepare(\$sql);
+            \$stmt = \$con->prepare(\$sql) ?: throw new \Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
             foreach (\$modifiedColumns as \$identifier => \$columnName) {
                 switch (\$columnName) {";
 
