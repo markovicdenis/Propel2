@@ -109,7 +109,7 @@ class PropelDateTime extends DateTime
      *
      * @throws \Propel\Runtime\Exception\PropelException
      *
-     * @return mixed|null An instance of $dateTimeClass
+     * @return DateTimeInterface|null An instance of $dateTimeClass
      */
     public static function newInstance($value, ?DateTimeZone $timeZone = null, string $dateTimeClass = 'DateTime')
     {
@@ -140,7 +140,7 @@ class PropelDateTime extends DateTime
      *
      * @throws \Exception
      *
-     * @return mixed
+     * @return ?DateTimeInterface
      */
     protected static function createDateTime($value, ?DateTimeZone $timeZone = null, string $dateTimeClass = 'DateTime')
     {
@@ -168,7 +168,8 @@ class PropelDateTime extends DateTime
             }
         }
 
-        return $dateTimeObject;
+        // return $dateTimeObject;
+        return  $dateTimeObject instanceof DateTimeInterface ? $dateTimeObject : null;
     }
 
     /**
