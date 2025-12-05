@@ -613,7 +613,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * The unserialized \$$clo value - i.e. the persisted object.
      * This is necessary to avoid repeated calls to unserialize() at runtime.
-     * @var object
+     * @var array|null
      */";
     }
 
@@ -1488,12 +1488,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "): bool
     {
-        return in_array(\$value ?? [], \$this->get$cfc(";
+        return in_array(\$value, \$this->get$cfc(";
         if ($column->isLazyLoad()) {
             $script .= '$con';
         }
 
-        $script .= "));
+        $script .= ") ?? []);
     }
 ";
     }
