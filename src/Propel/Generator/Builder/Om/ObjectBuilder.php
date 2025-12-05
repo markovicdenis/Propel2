@@ -7222,6 +7222,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {";
 
         foreach ($table->getForeignKeys() as $fk) {
+            if ($fk->isLocalPrimaryKey()) {
+                continue;
+            }
             $varName = $this->getFKVarName($fk);
             $removeMethod = 'remove' . $this->getRefFKPhpNameAffix($fk, false);
             $script .= "
