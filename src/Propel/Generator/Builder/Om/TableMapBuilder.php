@@ -1231,6 +1231,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $script .= "
         // populate the object(s)
         while (\$row = \$dataFetcher->fetch()) {
+            assert(is_array(\$row), 'DataFetcher->fetch() must return array or null, false given.');
             \$key = {$this->getTableMapClassName()}::getPrimaryKeyHashFromRow(\$row, 0, \$dataFetcher->getIndexType());
             if (null !== (\$obj = {$this->getTableMapClassName()}::getInstanceFromPool(\$key))) {
                 // We no longer rehydrate the object, since this can cause data loss.
