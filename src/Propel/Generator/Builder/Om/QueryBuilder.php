@@ -1475,6 +1475,7 @@ class QueryBuilder extends AbstractOMBuilder
     public function join" . $relationName . '(?string $relationAlias = null, ?string $joinType = ' . $joinType . ")
     {
         \$tableMap = \$this->getTableMap();
+        assert(\$tableMap instanceof " . $this->getTableMapClassName() . ");
         \$relationMap = \$tableMap->getRelation('" . $relationName . "');
 
         // create a ModelJoin object for this join
@@ -1482,12 +1483,13 @@ class QueryBuilder extends AbstractOMBuilder
         \$join->setJoinType(\$joinType);
         \$join->setRelationMap(\$relationMap, \$this->useAliasInSQL ? \$this->getModelAlias() : null, \$relationAlias);
         if (\$previousJoin = \$this->getPreviousJoin()) {
+            assert(\$previousJoin instanceof ModelJoin);
             \$join->setPreviousJoin(\$previousJoin);
         }
 
         // add the ModelJoin to the current object
         if (\$relationAlias) {
-            \$this->addAlias(\$relationAlias, \$relationMap->getRightTable()->getName());
+            \$this->addAlias(\$relationAlias, \$relationMap->getRightTable()->getName() ?? '');
             \$this->addJoinObject(\$join, \$relationAlias);
         } else {
             \$this->addJoinObject(\$join, '" . $relationName . "');
