@@ -1620,8 +1620,8 @@ class QueryBuilder extends AbstractOMBuilder
             'queryClass' => $queryClass,
             'relationDescription' => $this->getRelationDescription($relationName, $fkTable),
             'relationName' => $relationName,
-            'inType' => trim(Criteria::IN),
-            'notInType' => trim(Criteria::NOT_IN),
+            'inType' => Criteria::IN,
+            'notInType' => Criteria::NOT_IN,
         ];
         $templatePath = $this->getTemplatePath(__DIR__);
 
