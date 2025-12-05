@@ -1681,7 +1681,7 @@ class QueryBuilder extends AbstractOMBuilder
     ) {
         \$relatedQuery = \$this->use{$relationName}Query(
             \$relationAlias,
-            \$joinType
+            \$joinType ?? {$joinType}
         );
         \$callable(\$relatedQuery);
         \$relatedQuery->endUse();
