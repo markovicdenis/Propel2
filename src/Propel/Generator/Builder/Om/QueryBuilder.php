@@ -527,6 +527,7 @@ class QueryBuilder extends AbstractOMBuilder
      * <code>
      * \$obj = \$c->findPk(array(" . implode(', ', $examplePk) . '), $con);';
         } else {
+            $pkDesc = '';
             $pkType = 'mixed';
             $script .= "
      * <code>
