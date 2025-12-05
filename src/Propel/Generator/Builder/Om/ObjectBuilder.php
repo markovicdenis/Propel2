@@ -4825,7 +4825,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function set{$relatedName}(Collection \${$inputCollection}, ?ConnectionInterface \$con = null)
     {
-        /** @var {$className}[] \${$inputCollection}ToDelete */
         \${$inputCollection}ToDelete = \$this->get{$relatedName}(new Criteria(), \$con)->diff(\${$inputCollection});
 
         ";

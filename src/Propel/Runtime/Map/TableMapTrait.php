@@ -42,9 +42,10 @@ trait TableMapTrait
      *
      * @throws \Propel\Runtime\Exception\PropelException - if the specified name could not be found in the fieldname mappings.
      *
-     * @return string translated name of the field.
+     * @return string|int translated name of the field.
+     * @psalm-return ($toType is TableMap::TYPE_NUM ? int : string)
      */
-    public static function translateFieldName(string $name, string $fromType, string $toType): string
+    public static function translateFieldName(string $name, string $fromType, string $toType): string|int
     {
         $toNames = static::getFieldNames($toType);
         $key = static::$fieldKeys[$fromType][$name] ?? null;
