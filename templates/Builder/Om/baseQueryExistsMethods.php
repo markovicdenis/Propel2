@@ -4,10 +4,10 @@
      *
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useExistsQuery()
      *
-     * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $type
+     * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $typeOfExists
      *
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<ModelCriteria>|null Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      * @param string $typeOfExists Either ExistsQueryCriterion::TYPE_EXISTS or ExistsQueryCriterion::TYPE_NOT_EXISTS
      *
      * @return <?= $queryClass ?> The inner query object of the EXISTS statement
@@ -23,8 +23,6 @@
      * Use the <?= $relationDescription ?> for a NOT EXISTS query.
      *
      * @see use<?= $relationName ?>ExistsQuery()
-     *
-     * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $type
      *
      * @param string|null $modelAlias sets an alias for the nested query
      * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
