@@ -4326,7 +4326,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if ($fk->isLocalPrimaryKey()) {
             $script .= "
             // Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
-            \$this->{$varName}->set" . $this->getRefFKPhpNameAffix($fk, false) . '($this);';
+            \$this->{$varName}?->set" . $this->getRefFKPhpNameAffix($fk, false) . '($this);';
         } else {
             $script .= "
             /* The following can be used additionally to

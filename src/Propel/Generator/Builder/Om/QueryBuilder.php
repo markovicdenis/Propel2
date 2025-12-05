@@ -879,7 +879,7 @@ class QueryBuilder extends AbstractOMBuilder
     /**
      * Filter the query by a list of primary keys
      *
-     * @param array|int \$keys The list of primary key to use for the query
+     * @param array \$keys The list of primary key to use for the query
      *
      * @return \$this The current query, for fluid interface
      */
@@ -911,7 +911,7 @@ class QueryBuilder extends AbstractOMBuilder
             // composite primary key
             $script .= "
         if (empty(\$keys)) {
-            \$this->add(null, '1<>1', Criteria::CUSTOM);
+            \$this->add('1', '1<>1', Criteria::CUSTOM);
 
             return \$this;
         }
