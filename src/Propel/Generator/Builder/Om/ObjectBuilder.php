@@ -3696,6 +3696,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // already in the pool.
 
         \$dataFetcher = " . $this->getQueryClassName() . "::create(null, \$this->buildPkeyCriteria())->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find(\$con);
+        assert(\$dataFetcher instanceof Criteria);
         \$row = \$dataFetcher->fetch();
         \$dataFetcher->close();
         if (!\$row) {

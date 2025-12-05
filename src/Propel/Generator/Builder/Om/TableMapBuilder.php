@@ -1162,7 +1162,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function populateObject(array \$row, int \$offset = 0, string \$indexType = TableMap::TYPE_NUM): array
     {
-        assert(is_array(\$row), 'DataFetcher->fetch() must return array or null, false given.');
         \$key = {$this->getTableMapClassName()}::getPrimaryKeyHashFromRow(\$row, \$offset, \$indexType);
         if (null !== (\$obj = {$this->getTableMapClassName()}::getInstanceFromPool(\$key))) {
             // We no longer rehydrate the object, since this can cause data loss.
