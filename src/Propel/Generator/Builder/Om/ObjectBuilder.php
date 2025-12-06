@@ -4681,7 +4681,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         \$collectionClassName = " . $this->getClassNameFromBuilder($this->getNewTableMapBuilder($refFK->getTable())) . "::getTableMap()->getCollectionClassName();
 
-        \$this->{$collName} = new \$collectionClassName;
+        \$collection = new \$collectionClassName;
+        assert(\$collection instanceof ObjectCollection);
+
+        \$this->{$collName} = \$collection;
         \$this->{$collName}->setModel('" . $this->getClassNameFromBuilder($this->getNewStubObjectBuilder($refFK->getTable()), true) . "');
     }
 ";
@@ -4876,7 +4879,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$this->{$collName}Partial = false;
             }
         }
-
+     
+        assert(\$this->$collName !== null);
         return \$this->$collName;
     }
 ";
