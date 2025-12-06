@@ -3438,7 +3438,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 $script .= "
                 if (!is_array(\$value)) {
                     \$v = trim(substr(\$value, 2, -2));
-                    \$value = \$v ? explode(' | ', \$v) : array();
+                    \$value = \$v ? explode(' | ', \$v) : [];
                 }";
             }
 
@@ -6661,7 +6661,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $identifier = var_export($this->quoteIdentifier($column->getName()), true);
             $script .= "
         if (\$this->isColumnModified($constantName)) {
-            \$modifiedColumns[':p' . \$index++]  = $identifier;
+            \$modifiedColumns[':p' . \$index++] = $identifier;
         }";
         }
 
