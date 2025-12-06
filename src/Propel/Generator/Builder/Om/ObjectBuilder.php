@@ -933,7 +933,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $descriptionReturnValueNull = $column->isNotNull() ? '' : ', NULL if column is NULL';
         $descriptionReturnMysqlInvalidDate = $handleMysqlDate ? ", and 0 if column value is $mysqlInvalidDateString" : '';
 
-        $script .= "
+        if ($this->useDateFormatter ?? false) {
+            $script .= "
     /**
      * Get the [optionally formatted] temporal [$clo] column value.
      * {$column->getDescription()}
@@ -947,6 +948,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *
      * @psalm-return (\$format is null ? {$dateTimeClass}{$orNull} : string{$orNull})
      */";
+        } else {
+            $script .= "
+    /**
+     * Get the [$clo] column value for DateTime (can be null).
+     * @return {$dateTimeClass}|null
+     */";
+        }
     }
 
     /**
@@ -1062,12 +1070,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        $script .= "
+        if ($this->useDateFormatter ?? false) {
+            $script .= "
         if (\$format === null) {
             return \$this->$clo;
         } else {
             return \$this->$clo instanceof \DateTimeInterface ? \$this->{$clo}->format(\$format) : null;
         }";
+        } else {
+            $script .= "
+        return \$this->$clo;";
+        }
     }
 
     /**
@@ -4520,7 +4533,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
     /**
      * @var ObjectCollection|{$className}[]|null Collection to store aggregation of $className objects.
-     * @phpstan-var ObjectCollection&\Traversable<{$className}> Collection to store aggregation of $className objects.
+     * @phpstan-var ObjectCollection&\Traversable<{$className}>|null Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
     /**
