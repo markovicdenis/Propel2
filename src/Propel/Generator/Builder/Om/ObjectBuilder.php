@@ -172,6 +172,9 @@ class ObjectBuilder extends AbstractObjectBuilder
         $defaultValue = var_export(null, true);
         $val = $column->getPhpDefaultValue();
         if ($val === null && $acceptNull) {
+            if ($defaultValue === 'NULL') {
+                $defaultValue = 'null';
+            }
             return $defaultValue;
         }
 
@@ -6940,6 +6943,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 }
                 \$this->postSave(\$con);";
             $this->applyBehaviorModifier('postSave', $script, '                ');
+            $script .= "";
             $script .= "assert(\$this instanceof {$this->getObjectClassName(true)});";
             $script .= "
                 " . $this->getTableMapClassName() . "::addInstanceToPool(\$this);
