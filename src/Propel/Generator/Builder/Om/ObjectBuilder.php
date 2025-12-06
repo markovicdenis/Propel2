@@ -4209,8 +4209,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Now add bi-directional relationship binding, taking into account whether this is
         // a one-to-one relationship.
-
-        if ($fk->isLocalPrimaryKey()) {
+        if ($fk->skipRefFKMethods) {
+            // do nothing
+        } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
         // Add binding for other direction of this 1:1 relationship.
         if (\$v !== null) {
@@ -4463,15 +4464,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addRefFKMethods(string &$script): void
     {
         $referrers = $this->getTable()->getReferrers();
+        $referrers = array_filter($referrers, fn (ForeignKey $fk) => !$fk->skipRefFKMethods);
         if (!$referrers) {
             return;
         }
 
         $this->addInitRelations($script, $referrers);
         foreach ($referrers as $refFK) {
-            if ($refFK->skipRefFKMethods) {
-                continue;
-            }
             $this->declareClassFromBuilder($this->getNewStubObjectBuilder($refFK->getTable()), 'Child');
             $this->declareClassFromBuilder($this->getNewStubQueryBuilder($refFK->getTable()));
             if ($refFK->isLocalPrimaryKey()) {
@@ -7153,6 +7152,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$copyObj->setNew(false);
 ";
             foreach ($table->getReferrers() as $fk) {
+                if ($fk->skipRefFKMethods) {
+                    continue;
+                }
                 //HL: commenting out self-referential check below
                 //        it seems to work as expected and is probably desirable to have those referrers from same table deep-copied.
                 //if ( $fk->getTable()->getName() != $table->getName() ) {
@@ -7225,6 +7227,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         foreach ($table->getForeignKeys() as $fk) {
             if ($fk->isLocalPrimaryKey()) {
+                continue;
+            }
+            if ($fk->skipRefFKMethods) {
                 continue;
             }
             $varName = $this->getFKVarName($fk);
