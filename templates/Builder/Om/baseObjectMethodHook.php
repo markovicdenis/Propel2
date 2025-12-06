@@ -7,12 +7,12 @@
      */
     public function preSave(?ConnectionInterface $con = null): bool
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'preSave'])) {
-            return parent::preSave($con);
-        }
-        <?php endif?>
-        return true;
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'preSave'])) {
+        return parent::preSave($con);
+    }
+    <?php endif?>
+    return true;
     }
 
 <?php endif?>
@@ -24,12 +24,12 @@
      */
     public function postSave(?ConnectionInterface $con = null): void
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'postSave'])) {
-            parent::postSave($con);
-        }
-        <?php endif?>
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'postSave'])) {
+        parent::postSave($con);
     }
+    <?php endif?>
+}
 
 <?php endif?>
 <?php if ($preInsert) :?>
@@ -40,12 +40,12 @@
      */
     public function preInsert(?ConnectionInterface $con = null): bool
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'preInsert'])) {
-            return parent::preInsert($con);
-        }
-        <?php endif?>
-        return true;
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'preInsert'])) {
+        return parent::preInsert($con);
+    }
+    <?php endif?>
+    return true;
     }
 
 <?php endif?>
@@ -57,12 +57,12 @@
      */
     public function postInsert(?ConnectionInterface $con = null): void
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'postInsert'])) {
-            parent::postInsert($con);
-        }
-        <?php endif?>
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'postInsert'])) {
+        parent::postInsert($con);
     }
+    <?php endif?>
+}
 
 <?php endif?>
 <?php if ($preUpdate) :?>
@@ -73,12 +73,12 @@
      */
     public function preUpdate(?ConnectionInterface $con = null): bool
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'preUpdate'])) {
-            return parent::preUpdate($con);
-        }
-        <?php endif?>
-        return true;
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'preUpdate'])) {
+        return parent::preUpdate($con);
+    }
+    <?php endif?>
+    return true;
     }
 
 <?php endif?>
@@ -90,12 +90,12 @@
      */
     public function postUpdate(?ConnectionInterface $con = null): void
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'postUpdate'])) {
-            parent::postUpdate($con);
-        }
-        <?php endif?>
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'postUpdate'])) {
+        parent::postUpdate($con);
     }
+    <?php endif?>
+}
 
 <?php endif?>
 <?php if ($preDelete) :?>
@@ -106,12 +106,12 @@
      */
     public function preDelete(?ConnectionInterface $con = null): bool
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'preDelete'])) {
-            return parent::preDelete($con);
-        }
-        <?php endif?>
-        return true;
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'preDelete'])) {
+        return parent::preDelete($con);
+    }
+    <?php endif?>
+    return true;
     }
 
 <?php endif?>
@@ -123,11 +123,11 @@
      */
     public function postDelete(?ConnectionInterface $con = null): void
     {
-        <?php if ($hasBaseClass) : ?>
-        if (is_callable([parent::class, 'postDelete'])) {
-            parent::postDelete($con);
-        }
-        <?php endif?>
+    <?php if ($hasBaseClass) : ?>
+    if (is_callable([parent::class, 'postDelete'])) {
+        parent::postDelete($con);
     }
+    <?php endif?>
+}
 
 <?php endif;
