@@ -4155,6 +4155,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $this->declareClassFromBuilder($this->getNewStubQueryBuilder($fk->getForeignTable()));
             $this->addFKMutator($script, $fk);
             $this->addFKRemover($script, $fk);
+            $this->addFKHasValue($script, $fk);
             $this->addFKAccessor($script, $fk);
         }
     }
@@ -4322,6 +4323,40 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         \$this->$varName = null;
 
         return \$this;
+    }";
+    }
+
+    /**
+     * Adds the has method for checking if an fkey related object is set.
+     *
+     * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return void
+     */
+    protected function addFKHasValue(string &$script, ForeignKey $fk): void
+    {
+        $fkTable = $fk->getForeignTable();
+        $interface = $fk->getInterface();
+
+        if ($interface) {
+            $className = $this->declareClass($interface);
+        } else {
+            $className = $this->getClassNameFromTable($fkTable);
+        }
+
+        $varName = $this->getFKVarName($fk);
+
+        $script .= "
+    /**
+     * Checks if $className exists.
+     *
+     * @return bool
+     */
+    public function has" . $this->getFKPhpNameAffix($fk, false) . "()
+    {";
+        $script .= "
+        return \$this->$varName !== null;
     }";
     }
 
@@ -4524,7 +4559,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if ($refFK->isLocalPrimaryKey()) {
             $script .= "
     /**
-     * @var $className one-to-one related $className object
+     * @var ?$className one-to-one related $className object
      */
     protected $" . $this->getPKRefFKVarName($refFK) . ";
 ";
