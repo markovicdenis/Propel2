@@ -3809,11 +3809,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= $this->addDoUpdate();
     }
 
-    /**
-     * @param string $script
-     *
-     * @return void
-     */
     protected function addHashCode(string &$script): void
     {
         $script .= "
@@ -3829,7 +3824,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $pkCheck = [];
         foreach ($this->getTable()->getPrimaryKey() as $pk) {
-            $pkCheck[] = 'null !== $this->get' . $pk->getPhpName() . '()';
+            $defaultValue = $this->getDefaultValueForColumn($pk);
+            $pkCheck[] = "$defaultValue !== \$this->get" . $pk->getPhpName() . '()';
         }
 
         $script .= $pkCheck ? implode(" &&\n            ", $pkCheck) : 'false';
@@ -3846,12 +3842,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
 
-        $script .= "
+
+        if ($foreignKeyPKCount) {
+            $script .= "
         \$validPrimaryKeyFKs = " . var_export($foreignKeyPKCount, true) . ";
         \$primaryKeyFKs = [];
 ";
-
-        if ($foreignKeyPKCount) {
             foreach ($primaryKeyFKs as $foreignKey) {
                 $name = '$this->a' . $this->getFKPhpNameAffix($foreignKey);
                 $script .= "
@@ -3867,10 +3863,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
         if (\$validPk) {
-            return crc32(json_encode(\$this->getPrimaryKey(), JSON_UNESCAPED_UNICODE));
-        } elseif (\$validPrimaryKeyFKs) {
-            return crc32(json_encode(\$primaryKeyFKs, JSON_UNESCAPED_UNICODE));
+            return crc32(json_encode(\$this->getPrimaryKey(), JSON_UNESCAPED_UNICODE) ?: '');
+        }";
+        if ($foreignKeyPKCount) {
+            $script .= "
+        if (\$validPrimaryKeyFKs) {
+            return crc32(json_encode(\$primaryKeyFKs, JSON_UNESCAPED_UNICODE) ?: '');
+        }";
         }
+        $script .= "
 
         return spl_object_hash(\$this);
     }
@@ -4090,8 +4091,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         return {$this->getDefaultValueForColumn($pkeys[0])} === \$this->get" . $pkeys[0]->getPhpName() . '();';
         } elseif ($pkeys) {
             $tests = [];
-            foreach ($pkeys as $pkey) {
-                $tests[] = "({$this->getDefaultValueForColumn($pkeys[0])} === \$this->get" . $pkey->getPhpName() . '())';
+            foreach ($pkeys as $ind => $pkey) {
+                $tests[] = "({$this->getDefaultValueForColumn($pkeys[$ind])} === \$this->get" . $pkey->getPhpName() . '())';
             }
             $script .= "
         return " . implode(' && ', $tests) . ';';
@@ -4206,6 +4207,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $funcParams = $orNull ? "?$className \$v = null" : "$className \$v";
 
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
+
         $script .= "
     /**
      * Declares an association between this object and a $className object.
@@ -4261,7 +4264,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
         if (\$v !== null) {
-            assert(\$this instanceof $className);
+            assert(\$this instanceof $currentClassName);
             \$v->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
         }
 ";
@@ -4821,7 +4824,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$query->distinct();
             }
 
-            assert(\$this instanceof $currentClassName || \$this instanceof ObjectCollection);
+            assert(\$this instanceof $currentClassName);
             return \$query
                 ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                 ->count(\$con);
@@ -4882,7 +4885,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     return \$$collName;
                 }
             } else {
-                assert(\$this instanceof $currentClassName || \$this instanceof ObjectCollection);
+                assert(\$this instanceof $currentClassName);
                 \$$collName = $fkQueryClassName::create(null, \$criteria)
                     ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                     ->find(\$con);
