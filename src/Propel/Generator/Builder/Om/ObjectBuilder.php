@@ -4400,7 +4400,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
         }
 
-        assert(\$this->aPlayer !== null);
+        assert(\$this->$varName !== null);
+        
         return \$this->$varName;
     }
 ";
