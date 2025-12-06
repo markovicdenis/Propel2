@@ -2224,7 +2224,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $script .= ");
-        \$currentArray[]= \$value;
+        \$currentArray[] = \$value;
         \$this->set$cfc(\$currentArray);
 
         return \$this;
@@ -2273,7 +2273,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $script .= ") ?? [] as \$element) {
             if (\$element != \$value) {
-                \$targetArray[]= \$element;
+                \$targetArray[] = \$element;
             }
         }
         \$this->set$cfc(\$targetArray);
@@ -4891,7 +4891,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function doAdd{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName}): void
     {
-        \$this->{$collName}[]= \${$lowerRelatedObjectClassName};
+        \$this->{$collName}[] = \${$lowerRelatedObjectClassName};
         assert(\$this instanceof $currentClassName);
         \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
     }
@@ -4940,10 +4940,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if (!$refFK->isComposite() && !$localColumn->isNotNull()) {
             $script .= "
-            \$this->{$inputCollection}[]= \${$lowerRelatedObjectClassName};";
+            \$this->{$inputCollection}[] = \${$lowerRelatedObjectClassName};";
         } else {
             $script .= "
-            \$this->{$inputCollection}[]= clone \${$lowerRelatedObjectClassName};";
+            \$this->{$inputCollection}[] = clone \${$lowerRelatedObjectClassName};";
         }
 
         $script .= "
