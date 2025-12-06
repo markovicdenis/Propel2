@@ -4533,7 +4533,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
     /**
      * @var ObjectCollection|{$className}[]|null Collection to store aggregation of $className objects.
-     * @phpstan-var ObjectCollection&\Traversable<{$className}>|null Collection to store aggregation of $className objects.
+     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
     /**
@@ -4726,7 +4726,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->{$collName}Partial = true;
         }
 
-        if (!\$this->{$collName}->contains(\$l)) {
+        if (!\$this->{$collName}?->contains(\$l)) {
             \$this->doAdd" . $this->getRefFKPhpNameAffix($refFK, false) . "(\$l);
 
             if (\$this->{$scheduledForDeletion} and \$this->{$scheduledForDeletion}->contains(\$l)) {
@@ -4911,14 +4911,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * It will also schedule objects for deletion based on a diff between old objects (aka persisted)
      * and new objects from the given Propel collection.
      *
-     * @param Collection \${$inputCollection} A Propel collection.
+     * @param ObjectCollection \${$inputCollection} A Propel collection.
      * @param ConnectionInterface \$con Optional connection object
      * @return \$this The current object (for fluent API support)
      */
-    public function set{$relatedName}(Collection \${$inputCollection}, ?ConnectionInterface \$con = null)
+    public function set{$relatedName}(ObjectCollection \${$inputCollection}, ?ConnectionInterface \$con = null)
     {
         \${$inputCollection}ToDelete = \$this->get{$relatedName}(new Criteria(), \$con)->diff(\${$inputCollection});
-
+        assert(\${$inputCollection}ToDelete instanceof ObjectCollection);
         ";
 
         if ($refFK->isAtLeastOneLocalPrimaryKey()) {
@@ -5019,10 +5019,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     public function remove{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName})
     {
         if (\$this->get{$relatedName}()->contains(\${$lowerRelatedObjectClassName})) {
-            \$pos = \$this->{$collName}->search(\${$lowerRelatedObjectClassName});
-            \$this->{$collName}->remove(\$pos);
+            \$pos = \$this->{$collName}?->search(\${$lowerRelatedObjectClassName});
+            \$this->{$collName}?->remove(\$pos);
             if (null === \$this->{$inputCollection}) {
-                \$this->{$inputCollection} = clone \$this->{$collName};
+                \$this->{$inputCollection} = \$this->{$collName} ? clone \$this->{$collName} : null;
                 \$this->{$inputCollection}->clear();
             }";
 
@@ -5185,8 +5185,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|{$className}[]
-     * @phpstan-var ObjectCollection&\Traversable<{$className}>
+     * @var ObjectCollection|{$className}[]|null
+     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \$$name = null;
 ";
@@ -5224,8 +5224,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|{$className}[]
-     * @phpstan-var ObjectCollection&\Traversable<{$className}>
+     * @var ObjectCollection|null
+     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \${$fkName}ScheduledForDeletion = null;
 ";
@@ -5245,8 +5245,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|{$className}[]
-     * @phpstan-var ObjectCollection&\Traversable<{$className}>
+     * @var ObjectCollection|null
+     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \${$fkName}ScheduledForDeletion = null;
 ";
