@@ -4124,6 +4124,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $this->declareClassFromBuilder($this->getNewStubObjectBuilder($fk->getForeignTable()), 'Child');
             $this->declareClassFromBuilder($this->getNewStubQueryBuilder($fk->getForeignTable()));
             $this->addFKMutator($script, $fk);
+            $this->addFKRemover($script, $fk);
             $this->addFKAccessor($script, $fk);
         }
     }
@@ -4143,7 +4144,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
     /**
-     * @var        $className
+     * @var        ?$className
      */
     protected $" . $varName . ";
 ";
@@ -4240,6 +4241,58 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         return \$this;
     }
 ";
+    }
+
+    /**
+     * Adds the unsetter method for setting an fkey related object.
+     *
+     * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return void
+     */
+    protected function addFKRemover(string &$script, ForeignKey $fk): void
+    {
+        $fkTable = $fk->getForeignTable();
+        $interface = $fk->getInterface();
+
+        if ($interface) {
+            $className = $this->declareClass($interface);
+        } else {
+            $className = $this->getClassNameFromTable($fkTable);
+        }
+
+        $varName = $this->getFKVarName($fk);
+
+        $script .= "
+    /**
+     * Removes an association between this object and a $className object.
+     *
+     * @return \$this The current object (for fluent API support)
+     */
+    public function unset" . $this->getFKPhpNameAffix($fk, false) . "()
+    {";
+
+        foreach ($fk->getMapping() as $map) {
+            [$column, $rightValueOrColumn] = $map;
+
+            if ($rightValueOrColumn instanceof Column) {
+                $script .= "
+        \$this->set" . $column->getPhpName() . '(' . $this->getDefaultValueString($column, false) . ");
+";
+            } else {
+                $val = var_export($rightValueOrColumn, true);
+                $script .= "
+        \$this->set" . $column->getPhpName() . "(null);
+            ";
+            }
+        } /* foreach local col */
+
+        $script .= "
+        \$this->$varName = null;
+
+        return \$this;
+    }";
     }
 
     /**
@@ -4347,6 +4400,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
         }
 
+        assert(\$this->aPlayer !== null);
         return \$this->$varName;
     }
 ";
@@ -4950,7 +5004,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $script .= "
-            \${$lowerRelatedObjectClassName}->set{$relCol}(null);
+            \${$lowerRelatedObjectClassName}->unset{$relCol}();
         }
 
         return \$this;
