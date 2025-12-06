@@ -222,6 +222,21 @@ class ObjectBuilder extends AbstractObjectBuilder
         return $defaultValue;
     }
 
+    protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
+    {
+        if ($column->isNotNull()) {
+            return match($column->getPhpType()) {
+                'int' => '0',
+                'float', 'double' => '0.0',
+                'bool', 'boolean' => 'false',
+                'string' => "''",
+                'array' => '[]',
+                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' '. $column->getPhpType()),
+            };
+        }
+        return 'null';
+    }
+
     /**
      * Return the parent class name, or null.
      *
@@ -1589,8 +1604,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
+        $fallback = $column->isNotNull() ? " ?? {$this->getTypeHintDefaultValue($column)}" : '';
+
         $script .= "
-        return \$this->$clo;";
+        return \$this->$clo$fallback;";
     }
 
     /**
@@ -4502,7 +4519,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } else {
             $script .= "
     /**
-     * @var ObjectCollection|{$className}[] Collection to store aggregation of $className objects.
+     * @var ObjectCollection|{$className}[]|null Collection to store aggregation of $className objects.
      * @phpstan-var ObjectCollection&\Traversable<{$className}> Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
