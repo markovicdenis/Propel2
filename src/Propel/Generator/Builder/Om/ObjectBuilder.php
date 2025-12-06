@@ -2224,7 +2224,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $script .= ");
-        \$currentArray []= \$value;
+        \$currentArray[]= \$value;
         \$this->set$cfc(\$currentArray);
 
         return \$this;
@@ -2273,7 +2273,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $script .= ") ?? [] as \$element) {
             if (\$element != \$value) {
-                \$targetArray []= \$element;
+                \$targetArray[]= \$element;
             }
         }
         \$this->set$cfc(\$targetArray);
