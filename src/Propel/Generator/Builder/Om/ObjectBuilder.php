@@ -4348,6 +4348,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $varName = $this->getFKVarName($fk);
 
         $script .= "
+
     /**
      * Checks if $className exists.
      *

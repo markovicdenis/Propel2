@@ -103,7 +103,7 @@
             return true;
         }
 
-        if (null === $this->getPrimaryKey() || null === $obj->getPrimaryKey()) {
+        if (!$this->getPrimaryKey() || !$obj->getPrimaryKey()) {
             return false;
         }
 
