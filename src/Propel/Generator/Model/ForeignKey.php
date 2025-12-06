@@ -119,7 +119,7 @@ class ForeignKey extends MappingModel
 
     public bool $skipRefFKMethods = false;
 
-    private string $interface = '';
+    private ?string $interface = null;
 
     private bool $autoNaming = false;
 
