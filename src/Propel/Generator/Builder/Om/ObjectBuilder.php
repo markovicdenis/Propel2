@@ -212,6 +212,10 @@ class ObjectBuilder extends AbstractObjectBuilder
             throw new EngineException('Cannot get default value string for ' . $column->getFullyQualifiedName());
         }
 
+        if ($defaultValue === 'NULL') {
+            $defaultValue = 'null';
+        }
+
         return $defaultValue;
     }
 
@@ -2047,9 +2051,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if ($def !== null && !$def->isExpression()) {
             $defaultValue = $this->getDefaultValueString($col);
             $script .= "
-            if ( (\$dt != \$this->{$clo}) // normalized values don't match
-                || (\$dt->format($fmt) === $defaultValue) // or the entered value matches the default
-                 ) {";
+            if ((\$dt != \$this->{$clo}) || (\$dt?->format($fmt) === $defaultValue)) {";
         } else {
             switch ($col->getType()) {
                 case 'DATE':
