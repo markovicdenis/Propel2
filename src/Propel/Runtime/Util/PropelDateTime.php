@@ -110,6 +110,7 @@ class PropelDateTime extends DateTime
      * @throws \Propel\Runtime\Exception\PropelException
      *
      * @return DateTimeInterface|null An instance of $dateTimeClass
+     * @psalm-return ($dateTimeClass is 'DateTime' ? DateTime|null : DateTimeInterface|null)
      */
     public static function newInstance($value, ?DateTimeZone $timeZone = null, string $dateTimeClass = 'DateTime')
     {
