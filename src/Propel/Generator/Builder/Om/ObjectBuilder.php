@@ -4531,8 +4531,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } else {
             $script .= "
     /**
-     * @var ObjectCollection|{$className}[]|null Collection to store aggregation of $className objects.
-     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null Collection to store aggregation of $className objects.
+     * @var (ObjectCollection&\Traversable<{$className}>)|null Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
     /**
@@ -4822,8 +4821,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *
      * @param Criteria \$criteria optional Criteria object to narrow the query
      * @param ConnectionInterface \$con optional connection object
-     * @return ObjectCollection|{$className}[] List of $className objects
-     * @phpstan-return ObjectCollection&\Traversable<{$className}> List of $className objects
+     * @return ObjectCollection&\Traversable<{$className}> List of $className objects
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function get$relCol(?Criteria \$criteria = null, ?ConnectionInterface \$con = null)
