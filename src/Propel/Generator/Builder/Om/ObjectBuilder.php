@@ -4086,12 +4086,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     public function isPrimaryKeyNull(): bool
     {";
         if (count($pkeys) === 1) {
-            $script .= '
-        return null === $this->get' . $pkeys[0]->getPhpName() . '();';
+            $script .= "
+        return {$this->getDefaultValueForColumn($pkeys[0])} === \$this->get" . $pkeys[0]->getPhpName() . '();';
         } elseif ($pkeys) {
             $tests = [];
             foreach ($pkeys as $pkey) {
-                $tests[] = '(null === $this->get' . $pkey->getPhpName() . '())';
+                $tests[] = "({$this->getDefaultValueForColumn($pkeys[0])} === \$this->get" . $pkey->getPhpName() . '())';
             }
             $script .= "
         return " . implode(' && ', $tests) . ';';
@@ -4847,6 +4847,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $collName = $this->getRefFKCollVarName($refFK);
 
         $className = $this->getClassNameFromTable($refFK->getTable());
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -4881,7 +4882,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     return \$$collName;
                 }
             } else {
-                assert(\$this instanceof $className || \$this instanceof ObjectCollection);
+                assert(\$this instanceof $currentClassName || \$this instanceof ObjectCollection);
                 \$$collName = $fkQueryClassName::create(null, \$criteria)
                     ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                     ->find(\$con);
@@ -4891,8 +4892,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                         \$this->init" . $this->getRefFKPhpNameAffix($refFK, true) . "(false);
 
                         foreach (\$$collName as \$obj) {
-                            if (false == \$this->{$collName}->contains(\$obj)) {
-                                \$this->{$collName}->append(\$obj);
+                            if (false == \$this->{$collName}?->contains(\$obj)) {
+                                \$this->{$collName}?->append(\$obj);
                             }
                         }
 
@@ -4910,7 +4911,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                         }
                     }
                 }
-
+                
+                assert(\$$collName instanceof ObjectCollection);
                 \$this->$collName = \$$collName;
                 \$this->{$collName}Partial = false;
             }
@@ -5146,7 +5148,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         \$this->$varName = \$v;
 
         // Make sure that that the passed-in $className isn't already associated with this object
-        if (\$v !== null && \$v->get" . $this->getFKPhpNameAffix($refFK, false) . "(null) === null) {
+        if (\$v !== null && !\$v->has" . $this->getFKPhpNameAffix($refFK, false) . "()) {
             assert(\$this instanceof $currentClassName);
             \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
         }
