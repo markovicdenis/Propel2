@@ -6943,9 +6943,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 }
                 \$this->postSave(\$con);";
             $this->applyBehaviorModifier('postSave', $script, '                ');
-            $script .= "";
-            $script .= "assert(\$this instanceof {$this->getObjectClassName(true)});";
             $script .= "
+                assert(\$this instanceof {$this->getObjectClassName(true)});
                 " . $this->getTableMapClassName() . "::addInstanceToPool(\$this);
             } else {
                 \$affectedRows = 0;
