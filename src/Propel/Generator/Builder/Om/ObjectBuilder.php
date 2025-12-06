@@ -550,7 +550,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $clo = $column->getLowercasedName();
 
-        $orNull = $column->isNotNull() ? '' : '|null';
+        $orNull = $column->isNotNull() ? '|null' : '|null';
 
         $script .= "
     /**
