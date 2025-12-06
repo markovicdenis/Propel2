@@ -4492,8 +4492,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param Criteria \$criteria optional Criteria object to narrow the query
      * @param ConnectionInterface \$con optional connection object
      * @param string \$joinBehavior optional join type to use (defaults to $joinBehavior)
-     * @return ObjectCollection|{$className}[] List of $className objects
-     * @phpstan-return ObjectCollection&\Traversable<$className> List of $className objects
+     * @return ObjectCollection&\Traversable<$className> List of $className objects
      */
     public function get" . $relCol . 'Join' . $relCol2 . "(?Criteria \$criteria = null, ?ConnectionInterface \$con = null, \$joinBehavior = $joinBehavior)
     {";
@@ -4979,7 +4978,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function doAdd{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName}): void
     {
-        \$this->{$collName}[] = \${$lowerRelatedObjectClassName};
+        \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
         assert(\$this instanceof $currentClassName);
         \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
     }
@@ -5023,15 +5022,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->{$collName}?->remove(\$pos);
             if (null === \$this->{$inputCollection}) {
                 \$this->{$inputCollection} = \$this->{$collName} ? clone \$this->{$collName} : null;
-                \$this->{$inputCollection}->clear();
+                \$this->{$inputCollection}?->clear();
             }";
 
         if (!$refFK->isComposite() && !$localColumn->isNotNull()) {
             $script .= "
-            \$this->{$inputCollection}[] = \${$lowerRelatedObjectClassName};";
+            \$this->{$inputCollection}?->append(\${$lowerRelatedObjectClassName});";
         } else {
             $script .= "
-            \$this->{$inputCollection}[] = clone \${$lowerRelatedObjectClassName};";
+            \$this->{$inputCollection}?->append(\${$lowerRelatedObjectClassName} ? clone \${$lowerRelatedObjectClassName} : null);";
         }
 
         $script .= "
@@ -5147,8 +5146,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             $script .= "
     /**
-     * @var ObjectCollection|{$className}[] Cross Collection to store aggregation of $className objects.
-     * @phpstan-var ObjectCollection&\Traversable<{$className}> Cross Collection to store aggregation of $className objects.
+     * @var ObjectCollection&\Traversable<{$className}> Cross Collection to store aggregation of $className objects.
      */
     protected \$coll" . $this->getFKPhpNameAffix($fk, true) . ";
 
@@ -5185,8 +5183,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|{$className}[]|null
-     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
+     * @var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \$$name = null;
 ";
@@ -5224,8 +5221,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|null
-     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
+     * @var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \${$fkName}ScheduledForDeletion = null;
 ";
@@ -5245,8 +5241,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
     /**
      * An array of objects scheduled for deletion.
-     * @var ObjectCollection|null
-     * @phpstan-var (ObjectCollection&\Traversable<{$className}>)|null
+     * @var (ObjectCollection&\Traversable<{$className}>)|null
      */
     protected \${$fkName}ScheduledForDeletion = null;
 ";
@@ -5868,8 +5863,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param Criteria \$criteria
      * @param ConnectionInterface \$con
      *
-     * @return {$relatedObjectClassName}[]|ObjectCollection
-     * @phpstan-return ObjectCollection&\Traversable<{$relatedObjectClassName}>
+     * @return ObjectCollection&\Traversable<{$relatedObjectClassName}>
      */
     public function get{$firstFkName}($signature, ?Criteria \$criteria = null, ?ConnectionInterface \$con = null)
     {
@@ -5901,8 +5895,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param Criteria \$criteria Optional query object to filter the query
      * @param ConnectionInterface \$con Optional connection object
      *
-     * @return ObjectCollection|{$relatedObjectClassName}[] List of {$relatedObjectClassName} objects
-     * @phpstan-return ObjectCollection&\Traversable<{$relatedObjectClassName}> List of {$relatedObjectClassName} objects
+     * @return ObjectCollection&\Traversable<{$relatedObjectClassName}> List of {$relatedObjectClassName} objects
      */
     public function get{$relatedName}(?Criteria \$criteria = null, ?ConnectionInterface \$con = null)
     {
