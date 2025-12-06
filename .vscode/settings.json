@@ -1,5 +1,5 @@
 {
-    "phpstan.binPath": "vendor/bin/phpstan",
+    "phpstan.binPath": "/Users/denis/.composer/vendor/bin/phpstan",
     "php.stubs": ["all"],
     "php-cs-fixer.ignorePHPVersion": true
 }

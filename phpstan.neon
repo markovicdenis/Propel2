@@ -4,7 +4,7 @@ parameters:
     level: 7
     reportUnmatchedIgnoredErrors: false
     paths:
-        - '%rootDir%/../../../src/'
+        - src
     ignoreErrors:
         - identifier: trait.unused
         - identifier: missingType.iterableValue
