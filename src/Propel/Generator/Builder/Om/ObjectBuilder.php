@@ -6711,15 +6711,19 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             throw new PropelException('Unable to get autoincrement id.', 0, \$e);
         }";
             $column = $table->getFirstPrimaryKeyColumn();
+            $pkType = match ($column->getPhpType()) {
+                'int', 'integer' => 'int',
+                default => 'string',
+            };
             if ($column) {
                 if ($table->isAllowPkInsert()) {
                     $script .= "
         if (\$pk !== null) {
-            \$this->set" . $column->getPhpName() . "(\$pk);
+            \$this->set" . $column->getPhpName() . "(($pkType) \$pk);
         }";
                 } else {
                     $script .= "
-        \$this->set" . $column->getPhpName() . '($pk);';
+        \$this->set" . $column->getPhpName() . "(($pkType) \$pk);";
                 }
             }
             $script .= "
