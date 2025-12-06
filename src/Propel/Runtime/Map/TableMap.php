@@ -641,7 +641,7 @@ class TableMap
      * @param string $type A string specifying the Propel type.
      * @param bool $isNotNull Whether column does not allow NULL values.
      * @param int|null $size An int specifying the size.
-     * @param string|null $defaultValue The default value for this column.
+     * @param string|int|null $defaultValue The default value for this column.
      *
      * @return \Propel\Runtime\Map\ColumnMap Newly added PrimaryKey column.
      */
@@ -651,7 +651,7 @@ class TableMap
         string $type,
         bool $isNotNull = false,
         ?int $size = null,
-        ?string $defaultValue = null
+        string|int|null $defaultValue = null
     ): ColumnMap {
         return $this->addColumn($columnName, $phpName, $type, $isNotNull, $size, $defaultValue, true, null, null);
     }
@@ -666,7 +666,7 @@ class TableMap
      * @param string $fkColumn A String with the foreign key column name.
      * @param bool $isNotNull Whether column does not allow NULL values.
      * @param int|null $size An int specifying the size.
-     * @param string|null $defaultValue The default value for this column.
+     * @param string|int|null $defaultValue The default value for this column.
      *
      * @return \Propel\Runtime\Map\ColumnMap Newly added ForeignKey column.
      */
@@ -678,7 +678,7 @@ class TableMap
         string $fkColumn,
         bool $isNotNull = false,
         ?int $size = null,
-        ?string $defaultValue = null
+        string|int|null $defaultValue = null
     ): ColumnMap {
         return $this->addColumn($columnName, $phpName, $type, $isNotNull, $size, $defaultValue, false, $fkTable, $fkColumn);
     }

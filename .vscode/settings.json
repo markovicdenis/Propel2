@@ -1,5 +1,7 @@
 {
-    "phpstan.binPath": "/Users/denis/.composer/vendor/bin/phpstan",
+    "phpstan.binPath": "vendor/bin/phpstan",
+    "phpstan.checkValidity": false,
+    "phpstan.memoryLimit": "2G",
     "php.stubs": ["all"],
     "php-cs-fixer.ignorePHPVersion": true
 }
