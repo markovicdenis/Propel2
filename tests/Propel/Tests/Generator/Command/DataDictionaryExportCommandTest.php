@@ -30,7 +30,7 @@ class DataDictionaryExportCommandTest extends TestCaseFixturesDatabase
     {
         $app = new Application('Propel', Propel::VERSION);
         $command = new DataDictionaryExportCommand();
-        $app->add($command);
+        $app->addCommand($command);
 
         $testRoot = __DIR__ . '/../../../..';
         $bookstoreConfigDir = $testRoot . '/Fixtures/bookstore';
@@ -47,7 +47,7 @@ class DataDictionaryExportCommandTest extends TestCaseFixturesDatabase
         $app->setAutoExit(false);
         $result = $app->run($input, $output);
 
-        if(is_dir($outputDir)) {
+        if (is_dir($outputDir)) {
             array_map('unlink', glob("$outputDir/*.*"));
             rmdir($outputDir);
         }

@@ -4469,6 +4469,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $this->addInitRelations($script, $referrers);
         foreach ($referrers as $refFK) {
+            if ($refFK->skipRefFKMethods) {
+                continue;
+            }
             $this->declareClassFromBuilder($this->getNewStubObjectBuilder($refFK->getTable()), 'Child');
             $this->declareClassFromBuilder($this->getNewStubQueryBuilder($refFK->getTable()));
             if ($refFK->isLocalPrimaryKey()) {

@@ -115,20 +115,13 @@ class ForeignKey extends MappingModel
      */
     private $localValues = [];
 
-    /**
-     * @var bool
-     */
-    private $skipSql = false;
+    private bool $skipSql = false;
 
-    /**
-     * @var string
-     */
-    private $interface;
+    public bool $skipRefFKMethods = false;
 
-    /**
-     * @var bool
-     */
-    private $autoNaming = false;
+    private string $interface = '';
+
+    private bool $autoNaming = false;
 
     /**
      * Constructs a new ForeignKey object.

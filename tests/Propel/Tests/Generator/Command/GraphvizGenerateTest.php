@@ -24,7 +24,7 @@ class GraphvizGenerateTest extends TestCaseFixtures
     {
         $app = new Application('Propel', Propel::VERSION);
         $command = new GraphvizGenerateCommand();
-        $app->add($command);
+        $app->addCommand($command);
 
         $outputDir = __DIR__ . '/../../../../graphviztest';
 

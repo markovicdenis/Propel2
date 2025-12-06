@@ -52,7 +52,7 @@ class AbstractCommandTest extends TestCase
     public function testRecursiveSearch()
     {
         $app = new Application();
-        $app->add($this->command);
+        $app->addCommand($this->command);
 
         $tester = new CommandTester($app->find('testable-command'));
 

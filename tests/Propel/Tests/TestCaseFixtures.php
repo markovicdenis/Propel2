@@ -166,7 +166,7 @@ class TestCaseFixtures extends TestCase
         }
 
         $app = new Application('Propel', Propel::VERSION);
-        array_map([$app, 'add'], $commands);
+        array_map([$app, 'addCommand'], $commands);
         $app->setAutoExit(false);
 
         return $app;
@@ -274,7 +274,7 @@ class TestCaseFixtures extends TestCase
             $db = 'mysql';
         }
 
-        $dsn = $db . ':host=' . (getenv('DB_HOSTNAME') ?: '127.0.0.1' ) . ';dbname=';
+        $dsn = $db . ':host=' . (getenv('DB_HOSTNAME') ?: '127.0.0.1') . ';dbname=';
         $dsn .= getenv('DB_NAME') ?: 'test';
 
         return $dsn;
