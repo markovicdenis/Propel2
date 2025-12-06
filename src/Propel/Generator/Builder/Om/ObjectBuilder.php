@@ -1604,7 +1604,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        $fallback = $column->isNotNull() ? " ?? {$this->getTypeHintDefaultValue($column)}" : '';
+        $fallback = $column->isNotNull() ? " ?? {$this->getDefaultValueForColumn($column)}" : '';
 
         $script .= "
         return \$this->$clo$fallback;";
