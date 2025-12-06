@@ -551,7 +551,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
         $script .= "
-     * @var        $cptype{$orNull}
+     * @var $cptype{$orNull}
      */";
     }
 
@@ -4144,7 +4144,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
     /**
-     * @var        ?$className
+     * @var ?$className
      */
     protected $" . $varName . ";
 ";
@@ -4401,7 +4401,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         assert(\$this->$varName !== null);
-        
+
         return \$this->$varName;
     }
 ";
@@ -4495,14 +4495,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if ($refFK->isLocalPrimaryKey()) {
             $script .= "
     /**
-     * @var        $className one-to-one related $className object
+     * @var $className one-to-one related $className object
      */
     protected $" . $this->getPKRefFKVarName($refFK) . ";
 ";
         } else {
             $script .= "
     /**
-     * @var        ObjectCollection|{$className}[] Collection to store aggregation of $className objects.
+     * @var ObjectCollection|{$className}[] Collection to store aggregation of $className objects.
      * @phpstan-var ObjectCollection&\Traversable<{$className}> Collection to store aggregation of $className objects.
      */
     protected $" . $this->getRefFKCollVarName($refFK) . ";
@@ -5117,7 +5117,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             $script .= "
     /**
-     * @var        ObjectCollection|{$className}[] Cross Collection to store aggregation of $className objects.
+     * @var ObjectCollection|{$className}[] Cross Collection to store aggregation of $className objects.
      * @phpstan-var ObjectCollection&\Traversable<{$className}> Cross Collection to store aggregation of $className objects.
      */
     protected \$coll" . $this->getFKPhpNameAffix($fk, true) . ";
