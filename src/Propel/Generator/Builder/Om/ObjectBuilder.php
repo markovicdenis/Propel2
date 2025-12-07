@@ -2610,15 +2610,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($colsWithDefaults as $col) {
-            /** @var \Propel\Generator\Model\Column $col */
             $clo = $col->getLowercasedName();
             $accessor = "\$this->$clo";
-            // if ($col->isTemporalType()) {
-            //     $fmt = $this->getTemporalFormatter($col);
-            //     $accessor = "\$this->$clo && \$this->{$clo}->format('$fmt')";
-            // }
-            $notEquals = '!==';
             $defaultValueString = $this->getDefaultValueString($col);
+            if ($col->isTemporalType() && $defaultValueString !== 'null') {
+                $fmt = $this->getTemporalFormatter($col);
+                $accessor = "\$this->$clo && \$this->{$clo}->format('$fmt')";
+            }
+            $notEquals = '!==';
             if (strpos($defaultValueString, 'new ') === 0) {
                 $notEquals = '!='; // allow object-comparison for custom PHP types
             }
@@ -4230,8 +4229,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             [$column, $rightValueOrColumn] = $map;
 
             if ($rightValueOrColumn instanceof Column) {
+                $defaultValue = match(false) {
+                    $rightValueOrColumn->isNotNull() => ' ?? '. $this->getDefaultValueForColumn($column),
+                    default => '',
+                };
                 $script .= "
-        \$this->set" . $column->getPhpName() . "(\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "());
+        \$this->set" . $column->getPhpName() . "(\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$defaultValue);
 ";
             } else {
                 $val = var_export($rightValueOrColumn, true);
