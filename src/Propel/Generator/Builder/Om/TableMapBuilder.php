@@ -740,11 +740,13 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             $script .= 'serialize([';
             $i = 0;
             foreach ($pkphp as $pkvar) {
-                $script .= ($i++ ? ', ' : '') . "(null === {$pkvar} || is_scalar({$pkvar}) || is_callable([{$pkvar}, '__toString']) ? (string) {$pkvar} : {$pkvar})";
+                // $script .= ($i++ ? ', ' : '') . "(null === {$pkvar} || is_scalar({$pkvar}) || is_callable([{$pkvar}, '__toString']) ? (string) {$pkvar} : {$pkvar})";
+                $script .= ($i++ ? ', ' : '') . "\$this->parsePKHash({$pkvar})";
             }
             $script .= '])';
         } else {
-            $script .= "null === {$pkphp[0]} || is_scalar({$pkphp[0]}) || is_callable([{$pkphp[0]}, '__toString']) ? (string) {$pkphp[0]} : {$pkphp[0]}";
+            // $script .= "null === {$pkphp[0]} || is_scalar({$pkphp[0]}) || is_callable([{$pkphp[0]}, '__toString']) ? (string) {$pkphp[0]} : {$pkphp[0]}";
+            $script .= "\$this->parsePKHash({$pkphp[0]})";
         }
 
         return $script;
