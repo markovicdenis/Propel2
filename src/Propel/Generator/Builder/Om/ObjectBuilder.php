@@ -1739,7 +1739,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
 
-        \$firstColumn = is_array(\$row) ? current(\$row) : null;
+            \$firstColumn = is_array(\$row) ? current(\$row) : null;
 ";
 
         if ($column->getType() === PropelTypes::CLOB && $platform instanceof OraclePlatform) {
@@ -2613,10 +2613,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             /** @var \Propel\Generator\Model\Column $col */
             $clo = $col->getLowercasedName();
             $accessor = "\$this->$clo";
-            if ($col->isTemporalType()) {
-                $fmt = $this->getTemporalFormatter($col);
-                $accessor = "\$this->$clo && \$this->{$clo}->format('$fmt')";
-            }
+            // if ($col->isTemporalType()) {
+            //     $fmt = $this->getTemporalFormatter($col);
+            //     $accessor = "\$this->$clo && \$this->{$clo}->format('$fmt')";
+            // }
             $notEquals = '!==';
             $defaultValueString = $this->getDefaultValueString($col);
             if (strpos($defaultValueString, 'new ') === 0) {
