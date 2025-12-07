@@ -106,7 +106,7 @@ interface ConnectionInterface
      * @param string|null $name Name of the sequence object from which the ID should be
      *                     returned.
      *
-     * @return string|int If a sequence name was not specified for the name parameter,
+     * @return string|int|false If a sequence name was not specified for the name parameter,
      *                returns a string representing the row ID of the last row that was
      *                inserted into the database.
      *                If a sequence name was specified for the name parameter, returns

@@ -554,7 +554,7 @@ class QueryBuilder extends AbstractOMBuilder
         }
 
         $script .= "
-        if (\$key === null) {
+        if (!\$key) {
             return null;
         }";
         if ($table->hasCompositePrimaryKey()) {
