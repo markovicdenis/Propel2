@@ -1010,18 +1010,25 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $defaultfmt = $this->getTemporalTypeDefaultFormat($column);
         $visibility = $column->getAccessorVisibility();
 
+        if (!($this->useDateFormatter ?? false)) {
+            $script .= '
+    ' . $visibility . " function get$cfc()
+    {";
+            return;
+        }
+
         $format = var_export($defaultfmt, true);
         if ($format === 'NULL') {
             $format = 'null';
         }
 
-        $script .= "
-    " . $visibility . " function get$cfc(\$format = " . $format;
+        $script .= '
+    ' . $visibility . " function get$cfc(\$format = " . $format;
         if ($column->isLazyLoad()) {
             $script .= ', $con = null';
         }
-        $script .= ")
-    {";
+        $script .= ')
+    {';
     }
 
     /**
@@ -6798,7 +6805,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         );
 
         try {
-            \$stmt = \$con->prepare(\$sql) ?: throw new \Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
+            \$stmt = \$con->prepare(\$sql) ?: throw new Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
             foreach (\$modifiedColumns as \$identifier => \$columnName) {
                 switch (\$columnName) {";
 

@@ -665,7 +665,7 @@ class QueryBuilder extends AbstractOMBuilder
     {
         \$sql = '$query';
         try {
-            \$stmt = \$con->prepare(\$sql) ?: throw new \Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));";
+            \$stmt = \$con->prepare(\$sql) ?: throw new Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));";
         if ($table->hasCompositePrimaryKey()) {
             foreach ($table->getPrimaryKey() as $index => $column) {
                 $script .= $platform->getColumnBindingPHP($column, "':p$index'", "\$key[$index]", '            ');
@@ -682,7 +682,7 @@ class QueryBuilder extends AbstractOMBuilder
             throw new PropelException(sprintf('Unable to execute SELECT statement [%s]', \$sql), 0, \$e);
         }
         \$obj = null;
-        if (\$row = \$stmt->fetch(\PDO::FETCH_NUM)) {";
+        if (\$row = \$stmt->fetch(PDO::FETCH_NUM)) {";
 
         if ($usesConcreteInheritance) {
             $script .= "
