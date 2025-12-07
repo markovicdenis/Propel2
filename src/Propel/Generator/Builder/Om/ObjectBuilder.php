@@ -4205,6 +4205,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $varName = $this->getFKVarName($fk);
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
+        $mod = $orNull ? '?' : '';
 
         $funcParams = $orNull ? "?$className \$v = null" : "$className \$v";
 
@@ -4226,11 +4227,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             if ($rightValueOrColumn instanceof Column) {
                 $script .= "
-        if (\$v === null) {
-            \$this->set" . $column->getPhpName() . '(' . $this->getDefaultValueString($column, false) . ");
-        } else {
-            \$this->set" . $column->getPhpName() . '($v->get' . $rightValueOrColumn->getPhpName() . "());
-        }
+        \$this->set" . $column->getPhpName() . "(\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "());
 ";
             } else {
                 $val = var_export($rightValueOrColumn, true);
@@ -4255,24 +4252,19 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
         // Add binding for other direction of this 1:1 relationship.
-        if (\$v !== null) {
-            assert(\$this instanceof $className);
-            \$v->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
-        }
+        assert(\$this instanceof $currentClassName);
+        \$v{$mod}->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         } else {
             $script .= "
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
-        if (\$v !== null) {
-            assert(\$this instanceof $currentClassName);
-            \$v->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
-        }
+        assert(\$this instanceof $currentClassName);
+        \$v{$mod}->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         }
 
         $script .= "
-
         return \$this;
     }
 ";

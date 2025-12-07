@@ -15,6 +15,10 @@ use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Map\Exception\ColumnNotFoundException;
 use Propel\Runtime\Map\Exception\RelationNotFoundException;
 
+use function is_callable;
+use function is_scalar;
+use function is_string;
+
 /**
  * TableMap is used to model a table in a database.
  *
@@ -998,5 +1002,20 @@ class TableMap
     public function getPhpTypeForColumn($columnName)
     {
         return "";
+    }
+
+    /**
+     * Custom function to parse primary key hash
+     */
+    public function parsePKHash(mixed $key): ?string
+    {
+        if (is_string($key)) {
+            return $key;
+        }
+        if ($key === null || is_scalar($key) || is_callable([$key, '__toString'])) {
+            return (string) $key;
+        }
+
+        return null;
     }
 }
