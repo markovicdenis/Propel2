@@ -2463,7 +2463,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
         if (is_string(\$v)) {
-            \$v = in_array(strtolower(\$v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+            \$v = in_array(strtolower(\$v), ['false', 'off', '-', 'no', 'n', '0', '']) ? false : true;
         } else {
             \$v = (boolean) \$v;
         }
@@ -4422,7 +4422,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         ksort($localColumns); // restoring the order of the foreign PK
         $localColumns = count($localColumns) > 1 ?
-            ('array(' . implode(', ', $localColumns) . ')') : reset($localColumns);
+            ('[' . implode(', ', $localColumns) . ']') : reset($localColumns);
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
 

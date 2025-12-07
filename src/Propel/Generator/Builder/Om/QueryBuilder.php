@@ -525,7 +525,7 @@ class QueryBuilder extends AbstractOMBuilder
             $pkType = 'array';
             $script .= "
      * <code>
-     * \$obj = \$c->findPk(array(" . implode(', ', $examplePk) . '), $con);';
+     * \$obj = \$c->findPk([" . implode(', ', $examplePk) . '], $con);';
         } else {
             $pkDesc = '';
             $pkType = 'mixed';
@@ -768,10 +768,10 @@ class QueryBuilder extends AbstractOMBuilder
      * <code>";
         if ($count === 1) {
             $script .= "
-     * \$objs = \$c->findPks(array(12, 56, 832), \$con);";
+     * \$objs = \$c->findPks([12, 56, 832], \$con);";
         } else {
             $script .= "
-     * \$objs = \$c->findPks(array(array(12, 56), array(832, 123), array(123, 456)), \$con);";
+     * \$objs = \$c->findPks([[12, 56], [832, 123], [123, 456]], \$con);";
         }
         $script .= "
      * </code>
@@ -962,8 +962,8 @@ class QueryBuilder extends AbstractOMBuilder
      * Example usage:
      * <code>
      * \$query->filterBy$colPhpName(1234); // WHERE $colName = 1234
-     * \$query->filterBy$colPhpName(array(12, 34)); // WHERE $colName IN (12, 34)
-     * \$query->filterBy$colPhpName(array('min' => 12)); // WHERE $colName > 12
+     * \$query->filterBy$colPhpName([12, 34]); // WHERE $colName IN (12, 34)
+     * \$query->filterBy$colPhpName(['min' => 12]); // WHERE $colName > 12
      * </code>";
             if ($col->isForeignKey()) {
                 foreach ($col->getForeignKeys() as $fk) {
@@ -977,14 +977,14 @@ class QueryBuilder extends AbstractOMBuilder
      * @param mixed \$$variableName The value to use as filter.
      *              Use scalar values for equality.
      *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => \$minValue, 'max' => \$maxValue) for intervals.";
+     *              Use associative ['min' => \$minValue, 'max' => \$maxValue] for intervals.";
         } elseif ($col->isTemporalType()) {
             $script .= "
      * Example usage:
      * <code>
      * \$query->filterBy$colPhpName('2011-03-14'); // WHERE $colName = '2011-03-14'
      * \$query->filterBy$colPhpName('now'); // WHERE $colName = '2011-03-14'
-     * \$query->filterBy$colPhpName(array('max' => 'yesterday')); // WHERE $colName > '2011-03-13'
+     * \$query->filterBy$colPhpName(['max' => 'yesterday']); // WHERE $colName > '2011-03-13'
      * </code>
      *
      * @param mixed \$$variableName The value to use as filter.
@@ -992,7 +992,7 @@ class QueryBuilder extends AbstractOMBuilder
      *              Empty strings are treated as NULL.
      *              Use scalar values for equality.
      *              Use array values for in_array() equivalent.
-     *              Use associative array('min' => \$minValue, 'max' => \$maxValue) for intervals.";
+     *              Use associative ['min' => \$minValue, 'max' => \$maxValue] for intervals.";
         } elseif ($col->getType() == PropelTypes::PHP_ARRAY) {
             $script .= "
      * @param array \$$variableName The values to use as filter.";
@@ -1154,7 +1154,7 @@ class QueryBuilder extends AbstractOMBuilder
         } elseif ($col->isBooleanType()) {
             $script .= "
         if (is_string(\$$variableName)) {
-            \$$variableName = in_array(strtolower(\$$variableName), array('false', 'off', '-', 'no', 'n', '0', ''), true) ? false : true;
+            \$$variableName = in_array(strtolower(\$$variableName), ['false', 'off', '-', 'no', 'n', '0', ''], true) ? false : true;
         }";
         } elseif ($col->isUuidBinaryType()) {
             $uuidSwapFlag = $this->getUuidSwapFlagLiteral();
@@ -1770,7 +1770,7 @@ class QueryBuilder extends AbstractOMBuilder
             }
             $conditionsString = implode(', ', $conditions);
             $script .= "
-            \$this->combine(array(" . $conditionsString . '), Criteria::LOGICAL_OR);';
+            \$this->combine([" . $conditionsString . '], Criteria::LOGICAL_OR);';
         } elseif ($table->hasPrimaryKey()) {
             $col = $pks[0];
             $const = $this->getColumnConstant($col);
