@@ -914,9 +914,9 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @throws \Propel\Runtime\Exception\PropelException
      *
-     * @return static The secondary criteria object
+     * @return self The secondary criteria object
      */
-    public function useQuery(string $relationName, ?string $secondaryCriteriaClass = null): static
+    public function useQuery(string $relationName, ?string $secondaryCriteriaClass = null)
     {
         if (!isset($this->joins[$relationName])) {
             throw new PropelException('Unknown class or alias ' . $relationName);
@@ -937,8 +937,6 @@ class ModelCriteria extends BaseModelCriteria
         }
 
         $secondaryCriteria->setPrimaryCriteria($this, $modelJoin);
-
-        assert($secondaryCriteria instanceof static);
 
         return $secondaryCriteria;
     }
