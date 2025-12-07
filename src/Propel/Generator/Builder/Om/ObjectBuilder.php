@@ -6496,6 +6496,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
         }
 
+        foreach ($table->getPrimaryKey() as $column) {
+            if ($this->fixPrimaryKeyDefaultValues ?? true) {
+                $defaultValue = $this->getDefaultValueForColumn($column);
+                $script .= "
+            if (\$this->{$column->getLowercasedName()} === $defaultValue) {
+                \$this->{$column->getLowercasedName()} = null;
+            }
+";
+            }
+        }
+
         if (count($table->getForeignKeys())) {
             $script .= "
             // We call the save method on the following object(s) if they
