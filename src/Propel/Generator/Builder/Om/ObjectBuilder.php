@@ -2458,12 +2458,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $this->addMutatorOpenBody($script, $col);
 
         $script .= "
-        if (\$v !== null) {
-            if (is_string(\$v)) {
-                \$v = in_array(strtolower(\$v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
-            } else {
-                \$v = (boolean) \$v;
-            }
+        if (is_string(\$v)) {
+            \$v = in_array(strtolower(\$v), array('false', 'off', '-', 'no', 'n', '0', '')) ? false : true;
+        } else {
+            \$v = (boolean) \$v;
         }
 
         if (\$this->$clo !== \$v) {
@@ -2517,7 +2515,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Perform type-casting to ensure that we can use type-sensitive
         // checking in mutators.
-        if ($col->isPhpPrimitiveType()) {
+        if ($col->isPhpPrimitiveType() && ($this->useAdditionalNullCheck ?? false)) {
             $script .= "
         if (\$v !== null) {
             \$v = (" . $col->getPhpType() . ") \$v;
@@ -5076,7 +5074,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->{$inputCollection}?->append(\${$lowerRelatedObjectClassName});";
         } else {
             $script .= "
-            \$this->{$inputCollection}?->append(\${$lowerRelatedObjectClassName} ? clone \${$lowerRelatedObjectClassName} : null);";
+            \$this->{$inputCollection}?->append(clone \${$lowerRelatedObjectClassName});";
         }
 
         $script .= "
