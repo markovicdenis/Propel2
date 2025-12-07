@@ -41,6 +41,7 @@ use Propel\Runtime\Map\ColumnMap;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
+use Propel\Runtime\Traits\ParsePKTrait;
 use Propel\Runtime\Util\PropelModelPager;
 
 use function array_key_exists;
@@ -92,6 +93,7 @@ use function trim;
 class ModelCriteria extends BaseModelCriteria
 {
     use AggregateColumnsTrait;
+    use ParsePKTrait;
 
     /**
      * @var string
@@ -2688,20 +2690,5 @@ class ModelCriteria extends BaseModelCriteria
         $this->isSelfSelected = true;
 
         return parent::addSelectColumn($name);
-    }
-
-    /**
-     * Custom function to parse primary key hash
-     */
-    public function parsePKHash(mixed $key): ?string
-    {
-        if (is_string($key)) {
-            return $key;
-        }
-        if ($key === null || is_scalar($key) || is_callable([$key, '__toString'])) {
-            return (string) $key;
-        }
-
-        return null;
     }
 }
