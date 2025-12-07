@@ -3735,13 +3735,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // We don't need to alter the object instance pool; we're just modifying this instance
         // already in the pool.
 
+        /** @var \Propel\Runtime\DataFetcher\DataFetcherInterface */
         \$dataFetcher = " . $this->getQueryClassName() . "::create(null, \$this->buildPkeyCriteria())->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find(\$con);
-        assert(\$dataFetcher instanceof Criteria);
+
         \$row = \$dataFetcher->fetch();
         \$dataFetcher->close();
-        if (!\$row) {
+
+        if (!\$row || !is_array(\$row)) {
             throw new PropelException('Cannot find matching row in the database to reload object values.');
         }
+
         \$this->hydrate(\$row, 0, true, \$dataFetcher->getIndexType()); // rehydrate
 ";
 
