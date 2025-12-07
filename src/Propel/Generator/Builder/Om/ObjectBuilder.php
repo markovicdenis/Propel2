@@ -225,13 +225,14 @@ class ObjectBuilder extends AbstractObjectBuilder
     protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
     {
         if ($column->isNotNull()) {
-            return match($column->getPhpType()) {
-                'int' => '0',
-                'float', 'double' => '0.0',
-                'bool', 'boolean' => 'false',
-                'string' => "''",
-                'array' => '[]',
-                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' '. $column->getPhpType()),
+            return match($column->getType()) {
+                'INTEGER', 'SMALLINT', 'TINYINT' => '0',
+                'FLOAT', 'DOUBLE', 'REAL' => '0.0',
+                'BOOLEAN' => 'false',
+                'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
+                'ARRAY' => '[]',
+                'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
+                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
             };
         }
         return 'null';
@@ -1715,11 +1716,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         \$c->addSelectColumn(" . $this->getColumnConstant($column) . ");
         try {
             \$row = [0 => null];
+            /** @var \\Propel\\Runtime\\DataFetcher\\DataFetcherInterface */
             \$dataFetcher = " . $this->getQueryClassName() . "::create(null, \$c)->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find(\$con);
-            assert(\$dataFetcher instanceof Criteria);
+
             if (\$dataFetcher instanceof PDODataFetcher) {
                 \$dataFetcher->bindColumn(1, \$row[0], PDO::PARAM_LOB, 0, PDO::SQLSRV_ENCODING_BINARY);
             }
+
             \$row = \$dataFetcher->fetch(PDO::FETCH_BOUND);
             \$dataFetcher->close();";
         } else {
@@ -1727,15 +1730,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         \$c = \$this->buildPkeyCriteria();
         \$c->addSelectColumn(" . $this->getColumnConstant($column) . ");
         try {
+            /** @var \\Propel\\Runtime\\DataFetcher\\DataFetcherInterface */
             \$dataFetcher = " . $this->getQueryClassName() . "::create(null, \$c)->setFormatter(ModelCriteria::FORMAT_STATEMENT)->find(\$con);
-            assert(\$dataFetcher instanceof Criteria);
+
             \$row = \$dataFetcher->fetch();
             \$dataFetcher->close();";
         }
 
         $script .= "
 
-        \$firstColumn = \$row ? current(\$row) : null;
+        \$firstColumn = is_array(\$row) ? current(\$row) : null;
 ";
 
         if ($column->getType() === PropelTypes::CLOB && $platform instanceof OraclePlatform) {
@@ -6685,7 +6689,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
             if ($table->isAllowPkInsert()) {
                 $script .= "
-        if (\$pk !== null) {
+        if (\$pk !== false) {
             \$this->set" . $col->getPhpName() . "(\$pk);  //[IMV] update autoincrement primary key
         }";
             } else {
@@ -6832,7 +6836,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             if ($column) {
                 if ($table->isAllowPkInsert()) {
                     $script .= "
-        if (\$pk !== null) {
+        if (\$pk !== false) {
             \$this->set" . $column->getPhpName() . "(($pkType) \$pk);
         }";
                 } else {
