@@ -4878,10 +4878,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 } else {
                     \$collectionClassName = " . $this->getClassNameFromBuilder($this->getNewTableMapBuilder($refFK->getTable())) . "::getTableMap()->getCollectionClassName();
 
+                    /** @var ObjectCollection&\Traversable<{$className}>  */
                     \$$collName = new \$collectionClassName;
                     \${$collName}->setModel('" . $this->getClassNameFromBuilder($this->getNewStubObjectBuilder($refFK->getTable()), true) . "');
 
-                    assert(\$$collName instanceof ObjectCollection);
                     return \$$collName;
                 }
             } else {
@@ -7202,6 +7202,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopy(string &$script): void
     {
         $this->addCopyInto($script);
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7220,6 +7221,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         // we use get_class(), because this might be a subclass
         \$clazz = get_class(\$this);
+
+        /** @var " . $currentClassName . " \$copyObj */
         " . $this->buildObjectInstanceCreationCode('$copyObj', '$clazz') . "
         \$this->copyInto(\$copyObj, \$deepCopy);
 
@@ -7239,6 +7242,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopyInto(string &$script): void
     {
         $table = $this->getTable();
+        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7247,7 +7251,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If desired, this method can also make copies of all associated (fkey referrers)
      * objects.
      *
-     * @param object \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
+     * @param $currentClassName \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
      * @param bool \$deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
      * @param bool \$makeNew Whether to reset autoincrement PKs and make the object new.
      * @throws \Propel\Runtime\Exception\PropelException
@@ -7267,7 +7271,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         foreach ($table->getColumns() as $col) {
             if (!in_array($col, $autoIncCols, true)) {
                 $script .= "
-        \$copyObj->set" . $col->getPhpName() . '($this->get' . $col->getPhpName() . '());';
+        \$copyObj->setByName('{$col->getPhpName()}', \$this->getByName('{$col->getPhpName()}'));";
             }
         }
 
@@ -7324,7 +7328,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $coldefval = $col->getPhpDefaultValue();
             $coldefval = var_export($coldefval, true);
             $script .= "
-            \$copyObj->set" . $col->getPhpName() . "($coldefval); // this is a auto-increment column, so set to default value";
+            \$copyObj->setByName('{$col->getPhpName()}', null); // this is an auto-increment column, so set to default value";
         }
         $script .= "
         }
