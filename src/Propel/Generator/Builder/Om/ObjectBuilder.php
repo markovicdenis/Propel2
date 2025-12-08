@@ -4475,9 +4475,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
         }
+        ";
 
+        if (!$orNull) {
+            $script .= "
         assert(\$this->$varName !== null);
+            ";
+        }
 
+        $script .= "
         return \$this->$varName;
     }
 ";
