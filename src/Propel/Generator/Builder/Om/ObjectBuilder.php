@@ -4241,7 +4241,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     default => '',
                 };
                 $script .= "
-        \$this->set" . $column->getPhpName() . "(\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$defaultValue);
+        \$this->set" . $column->getPhpName() . "(\$v->isNew() ? null : \$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$defaultValue);
 ";
             } else {
                 $val = var_export($rightValueOrColumn, true);
