@@ -4236,12 +4236,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             [$column, $rightValueOrColumn] = $map;
 
             if ($rightValueOrColumn instanceof Column) {
-                $defaultValue = match(false) {
-                    $rightValueOrColumn->isNotNull() => ' ?? '. $this->getDefaultValueForColumn($column),
-                    default => '',
-                };
+                $prefix = $orNull ? "\$v{$mod}->isNew() ? null : " : '';
+                $suffix = $rightValueOrColumn->isNotNull() ? '' :  " ?? " . $this->getDefaultValueForColumn($column, false);
                 $script .= "
-        \$this->set" . $column->getPhpName() . "(\$v->isNew() ? null : \$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$defaultValue);
+        \$this->set" . $column->getPhpName() . "($prefix\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
 ";
             } else {
                 $val = var_export($rightValueOrColumn, true);
