@@ -144,17 +144,12 @@ class ObjectBuilder extends AbstractObjectBuilder
      */
     protected function getTemporalFormatter(Column $column): ?string
     {
-        switch ($column->getType()) {
-            case PropelTypes::DATE:
-                return $this->getPlatformOrFail()->getDateFormatter();
-            case PropelTypes::TIME:
-                return $this->getPlatformOrFail()->getTimeFormatter();
-            case PropelTypes::TIMESTAMP:
-            case PropelTypes::DATETIME:
-                return $this->getPlatformOrFail()->getTimestampFormatter();
-            default:
-                return null;
-        }
+        return match($column->getType()) {
+            PropelTypes::DATE => $this->getPlatformOrFail()->getDateFormatter(),
+            PropelTypes::TIME => $this->getPlatformOrFail()->getTimeFormatter(),
+            PropelTypes::TIMESTAMP, PropelTypes::DATETIME => $this->getPlatformOrFail()->getTimestampFormatter(),
+            default => null,
+        };
     }
 
     /**
@@ -982,17 +977,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function getTemporalTypeDefaultFormatConfigKey(Column $column): ?string
     {
-        switch ($column->getType()) {
-            case PropelTypes::DATE:
-                return 'generator.dateTime.defaultDateFormat';
-            case PropelTypes::TIME:
-                return 'generator.dateTime.defaultTimeFormat';
-            case PropelTypes::TIMESTAMP:
-            case PropelTypes::DATETIME:
-                return 'generator.dateTime.defaultTimeStampFormat';
-            default:
-                return null;
-        }
+        return match($column->getType()) {
+            PropelTypes::DATE => 'generator.dateTime.defaultDateFormat',
+            PropelTypes::TIME => 'generator.dateTime.defaultTimeFormat',
+            PropelTypes::TIMESTAMP, PropelTypes::DATETIME => 'generator.dateTime.defaultTimeStampFormat',
+            default => null,
+        };
     }
 
     /**
@@ -2097,18 +2087,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
             if ((\$dt != \$this->{$clo}) || (\$dt?->format($fmt) === $defaultValue)) {";
         } else {
-            switch ($col->getType()) {
-                case 'DATE':
-                    $format = 'Y-m-d';
-
-                    break;
-                case 'TIME':
-                    $format = 'H:i:s.u';
-
-                    break;
-                default:
-                    $format = 'Y-m-d H:i:s.u';
-            }
+            $format = match($col->getType()) {
+                PropelTypes::DATE => 'Y-m-d',
+                PropelTypes::TIME => 'H:i:s.u',
+                default => 'Y-m-d H:i:s.u',
+            };
             $script .= "
             if (\$this->{$clo} === null || \$dt === null || \$dt->format(\"$format\") !== \$this->{$clo}->format(\"$format\")) {";
         }
@@ -3197,16 +3180,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         return "
-                switch (\$keyType) {
-                    case TableMap::TYPE_CAMELNAME:
-                        \$key = '" . $camelCaseName . "';
-                        break;
-                    case TableMap::TYPE_FIELDNAME:
-                        \$key = '" . $fieldName . "';
-                        break;
-                    default:
-                        \$key = '" . $phpName . "';
-                }
+                \$key = match (\$keyType) {
+                    TableMap::TYPE_CAMELNAME => '$camelCaseName',
+                    TableMap::TYPE_FIELDNAME => '$fieldName',
+                    default => '$phpName',
+                };
         ";
     }
 
@@ -3366,20 +3344,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $table = $this->getTable();
         $script .= "
-        switch (\$pos) {";
+        return match (\$pos) {";
         $i = 0;
         foreach ($table->getColumns() as $col) {
             $cfc = $col->getPhpName();
             $script .= "
-            case $i:
-                return \$this->get$cfc();
-                ";
+            $i => \$this->get$cfc(),";
             $i++;
         } /* foreach */
         $script .= "
-            default:
-                return null;
-        } // switch()";
+            default => null
+        };";
     }
 
     /**
