@@ -73,7 +73,7 @@
 
     /**
      * Sets the modified state for the object to be false.
-     * @param string $col If supplied, only the specified column is reset.
+     * @param ?string $col If supplied, only the specified column is reset.
      * @return void
      */
     public function resetModified(?string $col = null): void
