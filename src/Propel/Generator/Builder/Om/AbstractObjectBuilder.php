@@ -151,7 +151,8 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
     {
         $table = $this->getTable();
 
-        return (!$table->isAlias() && $this->getBuildProperty('generator.objectModel.addGenericMutators') && !$table->isReadOnly());
+        // HACK: removed $table->isReadOnly() to add for readonly
+        return (!$table->isAlias() && $this->getBuildProperty('generator.objectModel.addGenericMutators'));
     }
 
     /**
@@ -192,7 +193,7 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
      */
     public function hasBehaviorModifier(string $hookName, string $modifier = ''): bool
     {
-         return parent::hasBehaviorModifier($hookName, 'ObjectBuilderModifier');
+        return parent::hasBehaviorModifier($hookName, 'ObjectBuilderModifier');
     }
 
     /**

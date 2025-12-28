@@ -1183,7 +1183,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      ";
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return object|array{$orNull}
@@ -1387,7 +1387,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return string|null
@@ -1456,7 +1456,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return array|null
@@ -1522,7 +1522,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return bool
@@ -1580,7 +1580,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $column->getDescription();
         if ($column->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return " . ($column->getTypeHint() ?: ($column->getPhpType() ?: 'mixed')) . $orNull . "
@@ -2250,7 +2250,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $col->getDescription();
         if ($col->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return \$this The current object (for fluent API support)
@@ -2298,7 +2298,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * " . $col->getDescription();
         if ($col->isLazyLoad()) {
             $script .= "
-     * @param ConnectionInterface|null \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
      * @return \$this The current object (for fluent API support)
@@ -3613,7 +3613,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Removes this object from datastore and sets delete attribute.
      *
-     * @param ConnectionInterface \$con
+     * @param ?ConnectionInterface \$con
      * @return void
      * @throws \Propel\Runtime\Exception\PropelException
      * @see $className::setDeleted()
@@ -3722,7 +3722,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * This will only work if the object has been saved and has a valid primary key set.
      *
      * @param bool \$deep (optional) Whether to also de-associated any related objects.
-     * @param ConnectionInterface \$con (optional) The ConnectionInterface connection to use.
+     * @param ?ConnectionInterface \$con (optional) The ConnectionInterface connection to use.
      * @return void
      * @throws \Propel\Runtime\Exception\PropelException - if this object is deleted, unsaved or doesn't have pk match in db
      */
@@ -4237,7 +4237,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             if ($rightValueOrColumn instanceof Column) {
                 $prefix = $orNull ? "\$v{$mod}->isNew() ? null : " : '';
-                $suffix = $rightValueOrColumn->isNotNull() ? '' :  " ?? " . $this->getDefaultValueForColumn($column, false);
+                $suffix = $rightValueOrColumn->isNotNull() ? '' : " ?? " . $this->getDefaultValueForColumn($column, false);
                 $script .= "
         \$this->set" . $column->getPhpName() . "($prefix\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
 ";
@@ -4438,7 +4438,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Get the associated $className object
      *
-     * @param ConnectionInterface \$con Optional Connection object.
+     * @param ?ConnectionInterface \$con Optional Connection object.
      * @return {$className}{$orNull} $returnDesc
      * @throws \Propel\Runtime\Exception\PropelException
      */
@@ -4539,8 +4539,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * api reasonable.  You can provide public methods for those you
      * actually need in " . $table->getPhpName() . ".
      *
-     * @param Criteria \$criteria optional Criteria object to narrow the query
-     * @param ConnectionInterface \$con optional connection object
+     * @param ?Criteria \$criteria optional Criteria object to narrow the query
+     * @param ?ConnectionInterface \$con optional connection object
      * @param string \$joinBehavior optional join type to use (defaults to $joinBehavior)
      * @return ObjectCollection&\Traversable<$className> List of $className objects
      */
@@ -4812,9 +4812,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns the number of related $className objects.
      *
-     * @param Criteria \$criteria
+     * @param ?Criteria \$criteria
      * @param bool \$distinct
-     * @param ConnectionInterface \$con
+     * @param ?ConnectionInterface \$con
      * @return int Count of related $className objects.
      * @throws \Propel\Runtime\Exception\PropelException
      */
@@ -4873,8 +4873,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If this " . $this->getObjectClassName() . " is new, it will return
      * an empty collection or the current collection; the criteria is ignored on a new object.
      *
-     * @param Criteria \$criteria optional Criteria object to narrow the query
-     * @param ConnectionInterface \$con optional connection object
+     * @param ?Criteria \$criteria optional Criteria object to narrow the query
+     * @param ?ConnectionInterface \$con optional connection object
      * @return ObjectCollection&\Traversable<{$className}> List of $className objects
      * @throws \Propel\Runtime\Exception\PropelException
      */
@@ -4965,7 +4965,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * and new objects from the given Propel collection.
      *
      * @param ObjectCollection \${$inputCollection} A Propel collection.
-     * @param ConnectionInterface \$con Optional connection object
+     * @param ?ConnectionInterface \$con Optional connection object
      * @return \$this The current object (for fluent API support)
      */
     public function set{$relatedName}(ObjectCollection \${$inputCollection}, ?ConnectionInterface \$con = null)
@@ -5117,7 +5117,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Gets a single $className object, which is related to this object by a one-to-one relationship.
      *
-     * @param ConnectionInterface \$con optional connection object
+     * @param ?ConnectionInterface \$con optional connection object
      * @return $className|null
      * @throws \Propel\Runtime\Exception\PropelException
      */
@@ -5822,8 +5822,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If this " . $this->getObjectClassName() . " is new, it will return
      * an empty collection or the current collection; the criteria is ignored on a new object.
      *
-     * @param Criteria \$criteria Optional query object to filter the query
-     * @param ConnectionInterface \$con Optional connection object
+     * @param ?Criteria \$criteria Optional query object to filter the query
+     * @param ?ConnectionInterface \$con Optional connection object
      *
      * @return ObjectCombinationCollection Combination list of {$classNames} objects
      */
@@ -5914,8 +5914,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If you have attached new $relatedObjectClassName object to this object you need to call `save` first to get
      * the correct return value. Use get$relatedName() to get the current internal state.
      * $phpDoc
-     * @param Criteria \$criteria
-     * @param ConnectionInterface \$con
+     * @param ?Criteria \$criteria
+     * @param ?ConnectionInterface \$con
      *
      * @return ObjectCollection&\Traversable<{$relatedObjectClassName}>
      */
@@ -5946,8 +5946,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If this " . $this->getObjectClassName() . " is new, it will return
      * an empty collection or the current collection; the criteria is ignored on a new object.
      *
-     * @param Criteria \$criteria Optional query object to filter the query
-     * @param ConnectionInterface \$con Optional connection object
+     * @param ?Criteria \$criteria Optional query object to filter the query
+     * @param ?ConnectionInterface \$con Optional connection object
      *
      * @return ObjectCollection&\Traversable<{$relatedObjectClassName}> List of {$relatedObjectClassName} objects
      */
@@ -6024,7 +6024,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * and new objects from the given Propel collection.
      *
      * @param Collection \${$inputCollection} A Propel collection.
-     * @param ConnectionInterface \$con Optional connection object
+     * @param ?ConnectionInterface \$con Optional connection object
      * @return \$this The current object (for fluent API support)
      */
     public function set{$relatedNamePlural}(Collection \${$inputCollection}, ?ConnectionInterface \$con = null)
@@ -6100,9 +6100,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Gets the number of $relatedObjectClassName objects related by a many-to-many relationship
      * to the current object by way of the $crossRefTableName cross-reference table.
      *
-     * @param Criteria \$criteria Optional query object to filter the query
+     * @param ?Criteria \$criteria Optional query object to filter the query
      * @param bool \$distinct Set to true to force count distinct
-     * @param ConnectionInterface \$con Optional connection object
+     * @param ?ConnectionInterface \$con Optional connection object
      *
      * @return int The number of related $relatedObjectClassName objects
      */
@@ -6155,8 +6155,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If you have attached new $relatedObjectClassName object to this object you need to call `save` first to get
      * the correct return value. Use get$relatedName() to get the current internal state.
      * $phpDoc
-     * @param Criteria \$criteria
-     * @param ConnectionInterface \$con
+     * @param ?Criteria \$criteria
+     * @param ?ConnectionInterface \$con
      *
      * @return int
      */
@@ -6488,7 +6488,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @throws \Propel\Runtime\Exception\PropelException
      * @see save()
      */
-    protected function doSave(ConnectionInterface \$con" . ($reloadOnUpdate || $reloadOnInsert ? ', $skipReload = false' : '') . "): int
+    protected function doSave(ConnectionInterface \$con" . ($reloadOnUpdate || $reloadOnInsert ? ', bool $skipReload = false' : '') . "): int
     {
         \$affectedRows = 0; // initialize var to track total num of affected rows
         if (!\$this->alreadyInSave) {
