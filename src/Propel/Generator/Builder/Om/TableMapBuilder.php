@@ -1402,7 +1402,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     /**
      * Deletes all rows from the " . $table->getName() . " table.
      *
-     * @param ConnectionInterface \$con the connection to use
+     * @param ?ConnectionInterface \$con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).
      */
     public static function doDeleteAll(?ConnectionInterface \$con = null): int
@@ -1428,7 +1428,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @param mixed \$values Criteria or " . $this->getObjectClassName() . " object or primary key or array of primary keys
      *              which is used to create the DELETE statement
-     * @param ConnectionInterface \$con the connection to use
+     * @param ?ConnectionInterface \$con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).  This includes CASCADE-related rows
      *                         if supported by native driver or if emulated using Propel.
      * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
@@ -1534,7 +1534,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * Performs an INSERT on the database, given a " . $this->getObjectClassName() . " or Criteria object.
      *
      * @param mixed \$criteria Criteria or " . $this->getObjectClassName() . " object containing data that is used to create the INSERT statement.
-     * @param ConnectionInterface \$con the ConnectionInterface connection to use
+     * @param ?ConnectionInterface \$con the ConnectionInterface connection to use
      * @return mixed The new primary key.
      * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
      *                         rethrown wrapped into a PropelException.
