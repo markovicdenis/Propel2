@@ -537,7 +537,7 @@ class QueryBuilder extends AbstractOMBuilder
      * </code>
      *
      * @param " . $pkType . " \$key Primary key to use for the query $pkDesc
-     * @param ConnectionInterface \$con an optional connection object
+     * @param ?ConnectionInterface \$con an optional connection object
      *
      * @return $class|array|mixed the result, formatted by the current formatter
      */
@@ -776,7 +776,7 @@ class QueryBuilder extends AbstractOMBuilder
         $script .= "
      * </code>
      * @param array \$keys Primary keys to use for the query
-     * @param ConnectionInterface \$con an optional connection object
+     * @param ?ConnectionInterface \$con an optional connection object
      *
      * @return Collection|array|mixed the list of results, formatted by the current formatter
      */
@@ -2217,7 +2217,7 @@ class QueryBuilder extends AbstractOMBuilder
     /**
      * Deletes all rows from the " . $table->getName() . " table.
      *
-     * @param ConnectionInterface \$con the connection to use
+     * @param ?ConnectionInterface \$con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).
      */
     public function doDeleteAll(?ConnectionInterface \$con = null): int
