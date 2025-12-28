@@ -9,13 +9,14 @@
 namespace Propel\Runtime\ActiveRecord;
 
 use RecursiveIterator;
+use ReturnTypeWillChange;
 
 /**
  * Pre-order node iterator for Node objects.
  *
  * @author Heltem <heltem@o2php.com>
  *
- * @implements \RecursiveIterator<(int|string), mixed>
+ * @implements RecursiveIterator<(int|string), mixed>
  */
 class NestedSetRecursiveIterator implements RecursiveIterator
 {
@@ -59,7 +60,7 @@ class NestedSetRecursiveIterator implements RecursiveIterator
      *
      * @return mixed
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function current()
     {
         return $this->curNode;
@@ -70,7 +71,7 @@ class NestedSetRecursiveIterator implements RecursiveIterator
      *
      * @return string
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function key(): string
     {
         $method = method_exists($this->curNode, 'getPath') ? 'getPath' : 'getAncestors';
@@ -114,7 +115,7 @@ class NestedSetRecursiveIterator implements RecursiveIterator
     }
 
     /**
-     * @return \Propel\Runtime\ActiveRecord\NestedSetRecursiveIterator|\RecursiveIterator<int|string, mixed>|null
+     * @return \Propel\Runtime\ActiveRecord\NestedSetRecursiveIterator|RecursiveIterator<int|string, mixed>|null
      */
     public function getChildren(): ?RecursiveIterator
     {

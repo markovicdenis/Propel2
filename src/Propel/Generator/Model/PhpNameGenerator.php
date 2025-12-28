@@ -8,6 +8,9 @@
 
 namespace Propel\Generator\Model;
 
+use function count;
+use function strlen;
+
 /**
  * A <code>NameGeneratorInterface</code> implementation for PHP-esque names.
  *

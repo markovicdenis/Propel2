@@ -8,6 +8,8 @@
 
 namespace Propel\Generator\Model;
 
+use function in_array;
+
 /**
  * A class for holding a column default value.
  *

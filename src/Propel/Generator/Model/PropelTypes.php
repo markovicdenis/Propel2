@@ -10,6 +10,8 @@ namespace Propel\Generator\Model;
 
 use PDO;
 
+use function in_array;
+
 /**
  * A class that maps PropelTypes to PHP native types and PDO types.
  *

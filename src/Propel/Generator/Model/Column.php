@@ -12,6 +12,11 @@ use Exception;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Platform\PlatformInterface;
 
+use function count;
+use function in_array;
+use function is_string;
+use function sprintf;
+
 /**
  * A class for holding data about a column used in an application.
  *
@@ -269,7 +274,7 @@ class Column extends MappingModel
     {
         $domainName = $this->getAttribute('domain');
         if ($domainName) {
-             return $this->getDatabase()->getDomain($domainName);
+            return $this->getDatabase()->getDomain($domainName);
         }
         $type = $this->getAttribute('type', static::DEFAULT_TYPE);
         $type = strtoupper($type);

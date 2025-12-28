@@ -12,6 +12,12 @@ use PDO;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\DataFetcher\PDODataFetcher;
 use Propel\Runtime\Exception\InvalidArgumentException;
+use PDOStatement;
+
+use function constant;
+use function defined;
+use function is_string;
+use function sprintf;
 
 /**
  * PDO extension that implements ConnectionInterface and builds StatementInterface statements.
@@ -26,7 +32,7 @@ class PdoConnection implements ConnectionInterface
     protected $name;
 
     /**
-     * @var \PDO
+     * @var PDO
      */
     protected $pdo;
 
@@ -128,7 +134,7 @@ class PdoConnection implements ConnectionInterface
     /**
      * @inheritDoc
      *
-     * @return \PDOStatement|false
+     * @return PDOStatement|false
      */
     public function query(string $statement)
     {
@@ -177,7 +183,7 @@ class PdoConnection implements ConnectionInterface
      * @param string $statement
      * @param array $driverOptions
      *
-     * @return \PDOStatement|false
+     * @return PDOStatement|false
      */
     public function prepare(string $statement, array $driverOptions = [])
     {

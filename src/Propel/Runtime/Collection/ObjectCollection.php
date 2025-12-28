@@ -18,6 +18,9 @@ use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 
+use function is_callable;
+use function is_object;
+
 /**
  * Class for iterating over a list of Propel objects
  *

@@ -15,6 +15,9 @@ use Exception;
 use InvalidArgumentException;
 use Propel\Runtime\Exception\PropelException;
 
+use function sprintf;
+use function strlen;
+
 /**
  * DateTime subclass which supports serialization.
  *
@@ -71,9 +74,9 @@ class PropelDateTime extends DateTime
      *
      * @param string|null $time Optional, in seconds. Floating point allowed.
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
-     * @return \DateTime
+     * @return DateTime
      */
     public static function createHighPrecision(?string $time = null): DateTime
     {
@@ -104,7 +107,7 @@ class PropelDateTime extends DateTime
      * Factory method to get a DateTime object from a temporal input
      *
      * @param mixed $value The value to convert (can be a string, a timestamp, or another DateTime)
-     * @param \DateTimeZone|null $timeZone (optional) timezone
+     * @param DateTimeZone|null $timeZone (optional) timezone
      * @param string $dateTimeClass The class of the object to create, defaults to DateTime
      *
      * @throws \Propel\Runtime\Exception\PropelException
@@ -136,10 +139,10 @@ class PropelDateTime extends DateTime
 
     /**
      * @param mixed $value
-     * @param \DateTimeZone|null $timeZone
+     * @param DateTimeZone|null $timeZone
      * @param string $dateTimeClass
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return ?DateTimeInterface
      */

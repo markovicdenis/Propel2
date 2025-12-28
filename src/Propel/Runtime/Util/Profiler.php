@@ -10,6 +10,8 @@ namespace Propel\Runtime\Util;
 
 use Propel\Common\Config\Exception\InvalidConfigurationException;
 
+use function count;
+
 /**
  * Profiler for Propel
  *

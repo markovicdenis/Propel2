@@ -25,6 +25,13 @@ use Propel\Runtime\Map\ColumnMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\Util\PropelConditionalProxy;
 
+use function array_key_exists;
+use function count;
+use function in_array;
+use function is_array;
+use function sprintf;
+use function strlen;
+
 /**
  * This is a utility class for holding criteria information for a query.
  *

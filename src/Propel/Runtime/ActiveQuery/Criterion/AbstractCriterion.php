@@ -14,6 +14,9 @@ use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Map\ColumnMap;
 use Propel\Runtime\Propel;
 
+use function count;
+use function strlen;
+
 /**
  * This is an "inner" class that describes an object in the criteria.
  *

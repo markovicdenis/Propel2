@@ -11,6 +11,8 @@ namespace Propel\Runtime\ActiveQuery\Criterion;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Map\ColumnMap;
 
+use function is_int;
+
 /**
  * Creates Criterion objects, extracted from Criteria class
  */

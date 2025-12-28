@@ -10,6 +10,8 @@ namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 
+use function count;
+
 /**
  * This is an "inner" class that describes an object in the criteria.
  *

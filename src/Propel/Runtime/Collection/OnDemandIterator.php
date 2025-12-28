@@ -13,6 +13,9 @@ use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Propel;
+use ReturnTypeWillChange;
+
+use function is_array;
 
 /**
  * Class for iterating over a statement and returning one Propel object at a time
@@ -97,7 +100,7 @@ class OnDemandIterator implements IteratorInterface
      *
      * @return \Propel\Runtime\ActiveRecord\ActiveRecordInterface
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function current(): ActiveRecordInterface
     {
         if (!is_array($this->currentRow)) {
@@ -114,7 +117,7 @@ class OnDemandIterator implements IteratorInterface
      *
      * @return int
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function key(): int
     {
         return $this->currentKey;

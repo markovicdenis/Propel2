@@ -10,6 +10,9 @@ namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criterion\Exception\InvalidClauseException;
 
+use function count;
+use function strpos;
+
 /**
  * Specialized ModelCriterion used for traditional expressions,
  * e.g. table.column = ? or table.column >= ? etc.

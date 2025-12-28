@@ -11,6 +11,8 @@ namespace Propel\Runtime\ActiveQuery;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 
+use function sprintf;
+
 /**
  * Data object to describe a joined hydration in a Model Query
  * ModelWith objects are used by formatters to hydrate related objects

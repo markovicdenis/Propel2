@@ -22,6 +22,9 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 
+use function in_array;
+use function sprintf;
+
 /**
  * Postgresql PlatformInterface implementation.
  *

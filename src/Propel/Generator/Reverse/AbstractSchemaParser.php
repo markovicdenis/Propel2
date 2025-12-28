@@ -248,7 +248,7 @@ abstract class AbstractSchemaParser implements SchemaParserInterface
     /**
      * Returns the database's platform.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return \Propel\Generator\Platform\PlatformInterface
      */

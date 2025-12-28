@@ -18,6 +18,8 @@ use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Runtime\Util\Profiler;
 use Psr\Log\LoggerInterface;
 
+use function assert;
+
 /**
  * Propel's main resource pool and initialization & configuration class.
  *

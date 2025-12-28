@@ -10,6 +10,9 @@ namespace Propel\Runtime\DataFetcher;
 
 use PDO;
 use Propel\Runtime\Map\TableMap;
+use ReturnTypeWillChange;
+
+use function sprintf;
 
 /**
  * Class PDODataFetcher
@@ -125,7 +128,7 @@ class PDODataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function current()
     {
         return $this->current;
@@ -136,7 +139,7 @@ class PDODataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function key()
     {
         return $this->index;

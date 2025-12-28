@@ -11,6 +11,11 @@ namespace Propel\Runtime\ActiveQuery;
 use Countable;
 use Propel\Runtime\Propel;
 
+use function count;
+use function is_array;
+use function is_object;
+use function is_scalar;
+
 trait InstancePoolTrait
 {
     /**

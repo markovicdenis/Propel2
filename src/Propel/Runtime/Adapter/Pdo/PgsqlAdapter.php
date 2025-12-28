@@ -19,6 +19,7 @@ use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Propel;
 use RuntimeException;
+use PDOStatement;
 
 use function array_map;
 use function array_pad;
@@ -111,7 +112,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      * @param string|null $name
      *
      * @throws \Propel\Runtime\Exception\InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return int
      */
@@ -239,9 +240,9 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      * @param \Propel\Runtime\Connection\ConnectionInterface $con propel connection
      * @param \Propel\Runtime\ActiveQuery\Criteria|string $query query the criteria or the query string
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
-     * @return \Propel\Runtime\Connection\StatementInterface|\PDOStatement|false A PDO statement executed using the connection, ready to be fetched
+     * @return \Propel\Runtime\Connection\StatementInterface|PDOStatement|false A PDO statement executed using the connection, ready to be fetched
      */
     public function doExplainPlan(ConnectionInterface $con, $query)
     {

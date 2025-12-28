@@ -11,6 +11,11 @@ namespace Propel\Generator\Model;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\Exception\RuntimeException;
 
+use function count;
+use function in_array;
+use function is_array;
+use function is_string;
+
 /**
  * A class for information about table foreign keys.
  *

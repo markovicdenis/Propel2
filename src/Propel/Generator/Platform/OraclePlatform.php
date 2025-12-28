@@ -19,6 +19,10 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 
+use function count;
+use function sprintf;
+use function strlen;
+
 /**
  * Oracle PlatformInterface implementation.
  *

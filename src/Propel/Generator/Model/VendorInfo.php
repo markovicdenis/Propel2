@@ -10,6 +10,8 @@ namespace Propel\Generator\Model;
 
 use Propel\Generator\Exception\SchemaException;
 
+use function in_array;
+
 /**
  * Object to hold vendor specific information.
  *

@@ -13,6 +13,10 @@ use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Platform\PlatformInterface;
 
+use function count;
+use function in_array;
+use function sprintf;
+
 /**
  * A class for holding application data structures.
  *

@@ -8,6 +8,14 @@
 
 namespace Propel\Generator\Model;
 
+use function array_change_key_case;
+use function explode;
+use function in_array;
+use function is_bool;
+use function sprintf;
+use function strtolower;
+use function trim;
+
 /**
  * An abstract model class to represent objects that belongs to a schema like
  * databases, tables, columns, indices, unices, foreign keys...

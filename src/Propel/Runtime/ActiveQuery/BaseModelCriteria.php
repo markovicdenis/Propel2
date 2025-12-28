@@ -18,8 +18,11 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 use Traversable;
 
+use function is_array;
+use function is_string;
+
 /**
- * @implements \IteratorAggregate<(int|string), mixed>
+ * @implements IteratorAggregate<(int|string), mixed>
  */
 class BaseModelCriteria extends Criteria implements IteratorAggregate
 {
@@ -344,7 +347,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
      *
      * @throws \Propel\Runtime\Exception\LogicException
      *
-     * @return \Traversable
+     * @return Traversable
      */
     public function getIterator(): Traversable
     {

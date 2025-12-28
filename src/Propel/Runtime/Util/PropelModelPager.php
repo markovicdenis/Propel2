@@ -16,6 +16,10 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Traversable;
 
+use function count;
+use function is_array;
+use function sprintf;
+
 /**
  * Implements a pager based on a ModelCriteria
  * The code from this class heavily borrows from symfony's sfPager class
@@ -23,7 +27,7 @@ use Traversable;
  * @author Fabien Potencier <fabien.potencier@symfony-project.com>
  * @author François Zaninotto
  *
- * @implements \IteratorAggregate<int|string, mixed>
+ * @implements IteratorAggregate<int|string, mixed>
  */
 class PropelModelPager implements IteratorAggregate, Countable
 {
@@ -438,7 +442,7 @@ class PropelModelPager implements IteratorAggregate, Countable
     }
 
     /**
-     * @return \Propel\Runtime\Collection\CollectionIterator|\Traversable
+     * @return \Propel\Runtime\Collection\CollectionIterator|Traversable
      */
     public function getIterator(): Traversable
     {

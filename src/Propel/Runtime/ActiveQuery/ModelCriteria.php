@@ -1451,7 +1451,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param mixed $key Primary key to use for the query
      * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\EntityNotFoundException|\Exception When nothing is found
+     * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1477,7 +1477,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\EntityNotFoundException|\Exception When nothing is found
+     * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1504,7 +1504,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param mixed $value A value for the condition
      * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\EntityNotFoundException|\Exception When nothing is found
+     * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1533,7 +1533,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param mixed $conditions An array of conditions, using column phpNames as key
      * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return mixed the list of results, formatted by the current formatter
      */
@@ -1551,7 +1551,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * @throws \Propel\Runtime\Exception\PropelException
      *
-     * @return \Exception
+     * @return Exception
      */
     private function createEntityNotFoundException(): Exception
     {
@@ -2040,7 +2040,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
      *
      * @throws \Propel\Runtime\Exception\PropelException
-     * @throws \Exception|\Propel\Runtime\Exception\PropelException
+     * @throws Exception|\Propel\Runtime\Exception\PropelException
      *
      * @return int Number of updated rows
      */

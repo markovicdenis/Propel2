@@ -32,6 +32,13 @@ use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Propel;
 use RuntimeException;
 
+use function count;
+use function function_exists;
+use function in_array;
+use function is_array;
+use function is_string;
+use function sprintf;
+
 class QuickBuilder
 {
     use VfsTrait;
@@ -293,7 +300,7 @@ class QuickBuilder
     /**
      * @param \Propel\Runtime\Connection\ConnectionInterface $con
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return int The number of statements executed
      */
@@ -324,7 +331,7 @@ class QuickBuilder
      * @param \Propel\Runtime\Connection\ConnectionInterface $con
      *
      * @throws \Propel\Generator\Exception\BuildException
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return \Propel\Generator\Model\Database|null
      */
@@ -525,11 +532,7 @@ class QuickBuilder
      */
     public function fixNamespaceDeclarations(string $source): string
     {
-        $cooperativeLexems = [T_WHITESPACE, T_NS_SEPARATOR, T_STRING];
-
-        if (PHP_VERSION_ID >= 80000) {
-            $cooperativeLexems = array_merge($cooperativeLexems, [T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED]);
-        }
+        $cooperativeLexems = [T_WHITESPACE, T_NS_SEPARATOR, T_STRING, T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED];
 
         $source = $this->forceNamespace($source);
 

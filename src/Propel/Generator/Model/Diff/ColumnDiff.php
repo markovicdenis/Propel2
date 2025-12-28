@@ -10,6 +10,8 @@ namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Column;
 
+use function sprintf;
+
 /**
  * Value object for storing Column object diffs.
  * Heavily inspired by Doctrine2's Migrations

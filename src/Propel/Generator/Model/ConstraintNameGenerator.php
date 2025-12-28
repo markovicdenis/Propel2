@@ -8,6 +8,8 @@
 
 namespace Propel\Generator\Model;
 
+use function strlen;
+
 /**
  * A <code>NameGeneratorInterface</code> implementation for table-specific
  * constraints. Conforms to the maximum column name length for the

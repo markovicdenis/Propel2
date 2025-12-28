@@ -12,6 +12,10 @@ use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Map\Exception\TableNotFoundException;
 use Propel\Runtime\Propel;
 
+use function get_class;
+use function is_string;
+use function sprintf;
+
 /**
  * DatabaseMap is used to model a database.
  *

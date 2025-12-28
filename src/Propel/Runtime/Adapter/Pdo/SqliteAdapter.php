@@ -13,6 +13,8 @@ use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 
+use function sprintf;
+
 /**
  * This is used in order to connect to a SQLite database.
  *

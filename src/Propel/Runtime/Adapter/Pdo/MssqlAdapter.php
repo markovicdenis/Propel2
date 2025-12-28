@@ -17,6 +17,12 @@ use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Map\DatabaseMap;
 use RuntimeException;
 
+use function count;
+use function is_array;
+use function is_resource;
+use function sprintf;
+use function strlen;
+
 /**
  * This is used to connect to a MSSQL database.
  *
@@ -288,7 +294,7 @@ class MssqlAdapter extends PdoAdapter implements SqlAdapterInterface
      * @param \Propel\Runtime\ActiveQuery\Criteria $values
      * @param \Propel\Runtime\Map\DatabaseMap $dbMap
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

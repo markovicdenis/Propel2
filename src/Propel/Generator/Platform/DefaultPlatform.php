@@ -27,6 +27,12 @@ use Propel\Generator\Platform\Util\AlterTableStatementMerger;
 use Propel\Runtime\Connection\ConnectionInterface;
 use ReflectionClass;
 
+use function count;
+use function in_array;
+use function is_string;
+use function sprintf;
+use function strlen;
+
 /**
  * Default implementation for the PlatformInterface interface.
  *

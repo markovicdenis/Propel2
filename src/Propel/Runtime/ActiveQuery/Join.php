@@ -14,6 +14,11 @@ use Propel\Runtime\ActiveQuery\Join as ActiveQueryJoin;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Exception\LogicException;
 
+use function count;
+use function is_array;
+use function is_string;
+use function sprintf;
+
 /**
  * Data object to describe a join between two tables, for example
  * <pre>
@@ -801,7 +806,7 @@ class Join
                 if ($this->leftValues[$i]) {
                     $conditions[] = $this->getLeftColumn($i) . $this->getOperator($i) . var_export($this->leftValues[$i], true);
                 } elseif ($this->rightValues[$i]) {
-                        $conditions[] = $this->getRightColumn($i) . $this->getOperator($i) . var_export($this->rightValues[$i], true);
+                    $conditions[] = $this->getRightColumn($i) . $this->getOperator($i) . var_export($this->rightValues[$i], true);
                 } else {
                     $conditions[] = $this->getLeftColumn($i) . $this->getOperator($i) . $this->getRightColumn($i);
                 }

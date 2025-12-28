@@ -14,6 +14,9 @@ use Propel\Generator\Builder\Util\PropelTemplate;
 use Propel\Generator\Exception\LogicException;
 use ReflectionObject;
 
+use function dirname;
+use function sprintf;
+
 /**
  * Information about behaviors of a table.
  *
@@ -381,7 +384,7 @@ class Behavior extends MappingModel
      * @param array $vars
      * @param string|null $templatePath
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string
      */

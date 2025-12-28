@@ -12,6 +12,8 @@ use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Index;
 use Propel\Generator\Platform\MysqlPlatform;
 
+use function assert;
+
 /**
  * Creates migration statements for UUID columns in MySQL.
  *

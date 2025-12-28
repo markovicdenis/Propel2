@@ -10,6 +10,9 @@ namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Traversable;
 
+use function count;
+use function iterator_to_array;
+
 /**
  * Specialized ModelCriterion used for IN or NOT IN model clauses,
  * e.g. 'book.TITLE NOT IN ?'

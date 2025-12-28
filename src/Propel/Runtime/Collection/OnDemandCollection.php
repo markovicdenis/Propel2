@@ -14,6 +14,7 @@ use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Map\TableMap;
 use Traversable;
+use ReturnTypeWillChange;
 
 /**
  * Class for iterating over a statement and returning one Propel object at a time
@@ -139,7 +140,7 @@ class OnDemandCollection extends Collection
      *
      * @return mixed
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function &offsetGet($offset)
     {
         throw new PropelException('The On Demand Collection does not allow access by offset');
@@ -177,7 +178,7 @@ class OnDemandCollection extends Collection
      *
      * @return string|null
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function serialize(): ?string
     {
         throw new PropelException('The On Demand Collection cannot be serialized');
@@ -190,7 +191,7 @@ class OnDemandCollection extends Collection
      *
      * @return void
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function unserialize($data): void
     {
         throw new PropelException('The On Demand Collection cannot be serialized');

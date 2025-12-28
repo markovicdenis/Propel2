@@ -20,6 +20,11 @@ use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Runtime\Connection\ConnectionInterface;
 use RuntimeException;
+use PDOStatement;
+
+use function count;
+use function in_array;
+use function sprintf;
 
 /**
  * Mysql database schema parser.
@@ -144,7 +149,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Database $database
      * @param \Propel\Generator\Model\Table|null $filterTable
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -199,7 +204,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
      */
     protected function addColumns(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query(sprintf('SHOW COLUMNS FROM %s', $this->getPlatform()->doQuoting($table->getName())));
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -352,7 +357,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
      *
      * @param \Propel\Generator\Model\Table $table
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return string|null
      */
@@ -380,7 +385,7 @@ EOT;
      *
      * @param \Propel\Generator\Model\Column $column
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return string|null
      */
@@ -410,7 +415,7 @@ EOT;
      *
      * @param \Propel\Generator\Model\Table $table
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -518,7 +523,7 @@ EOT;
      */
     protected function addIndexes(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query(sprintf('SHOW INDEX FROM %s', $this->getPlatform()->doQuoting($table->getName())));
 
         // Loop through the returned results, grouping the same key_name together
@@ -573,7 +578,7 @@ EOT;
      */
     protected function addPrimaryKey(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query(sprintf('SHOW KEYS FROM %s', $this->getPlatform()->doQuoting($table->getName())));
 
         // Loop through the returned results, grouping the same key_name together
@@ -600,7 +605,7 @@ EOT;
      */
     protected function addTableVendorInfo(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SHOW TABLE STATUS LIKE '" . $table->getName() . "'");
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$this->addVendorInfo) {

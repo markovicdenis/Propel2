@@ -11,6 +11,10 @@ namespace Propel\Generator\Model;
 use DOMDocument;
 use DOMNode;
 use Propel\Generator\Exception\EngineException;
+use DOMElement;
+
+use function in_array;
+use function sprintf;
 
 /**
  * A class for holding data about a domain used in the schema.
@@ -444,7 +448,7 @@ class Domain extends MappingModel
     /**
      * @todo Remove? This method is never called.
      *
-     * @param \DOMNode $node
+     * @param DOMNode $node
      *
      * @return void
      */
@@ -452,7 +456,7 @@ class Domain extends MappingModel
     {
         $doc = ($node instanceof DOMDocument) ? $node : $node->ownerDocument;
 
-        /** @var \DOMElement $domainNode */
+        /** @var DOMElement $domainNode */
         $domainNode = $node->appendChild($doc->createElement('domain'));
         $domainNode->setAttribute('type', $this->getType());
         $domainNode->setAttribute('name', $this->getName());

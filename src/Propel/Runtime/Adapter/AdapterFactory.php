@@ -10,6 +10,8 @@ namespace Propel\Runtime\Adapter;
 
 use Propel\Runtime\Exception\InvalidArgumentException;
 
+use function sprintf;
+
 /**
  * Factory for Adapter classes.
  */

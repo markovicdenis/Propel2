@@ -10,6 +10,8 @@ namespace Propel\Runtime\Parser;
 
 use Propel\Runtime\Exception\FileNotFoundException;
 
+use function sprintf;
+
 /**
  * Base class for all parsers. A parser converts data from and to an associative array.
  *

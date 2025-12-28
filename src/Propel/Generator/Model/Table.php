@@ -20,6 +20,14 @@ use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\Exception\RuntimeException;
 use Propel\Runtime\Util\UuidConverter;
 
+use function array_slice;
+use function count;
+use function get_class;
+use function in_array;
+use function is_array;
+use function is_string;
+use function sprintf;
+
 /**
  * Data about a table used in an application.
  *

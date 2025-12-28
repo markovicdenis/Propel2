@@ -19,6 +19,12 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 use RuntimeException;
 use stdClass;
+use PDOStatement;
+
+use function count;
+use function in_array;
+use function sprintf;
+use function strlen;
 
 /**
  * Postgresql database schema parser.
@@ -162,7 +168,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $sql .= ' AND c.relname = ?';
             $params[] = $filterTable->getCommonName();
         } elseif (!$database->getSchema()) {
-            /** @var \PDOStatement $stmt */
+            /** @var PDOStatement $stmt */
             $stmt = $this->dbh->query('SELECT schema_name FROM information_schema.schemata');
             $searchPath = [];
 
@@ -186,7 +192,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
         $sql .= "
           ORDER BY relname";
 
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->prepare($sql);
 
         $stmt->execute($params);
@@ -224,7 +230,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Table $table The Table model class to add columns to.
      * @param int $oid The table OID
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -380,7 +386,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Table $table
      * @param int $oid
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -509,7 +515,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Table $table
      * @param int $oid
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -583,7 +589,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Table $table
      * @param int $oid
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -634,7 +640,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      *
      * @param \Propel\Generator\Model\Database $database
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

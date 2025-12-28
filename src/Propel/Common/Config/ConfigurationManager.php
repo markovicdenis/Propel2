@@ -16,6 +16,9 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException 
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Finder\Finder;
 
+use function array_key_exists;
+use function in_array;
+
 /**
  * Class ConfigurationManager
  *
@@ -54,7 +57,7 @@ class ConfigurationManager
      * @param array|null $extraConf Array of configuration properties, to be merged with those loaded from file.
      *                              It's useful when passing configuration parameters from command line.
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function __construct(?string $path = null, ?array $extraConf = [])
     {

@@ -14,17 +14,21 @@ use PDOStatement;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Traversable;
 
+use function func_get_args;
+use function func_num_args;
+use function sprintf;
+
 /**
  * Wraps a Statement class, providing logging.
  *
- * @implements \IteratorAggregate<int|string, mixed>
+ * @implements IteratorAggregate<int|string, mixed>
  */
 class StatementWrapper implements StatementInterface, IteratorAggregate
 {
     /**
      * The wrapped statement class
      *
-     * @var \PDOStatement
+     * @var PDOStatement
      */
     protected $statement;
 
@@ -80,7 +84,7 @@ class StatementWrapper implements StatementInterface, IteratorAggregate
      */
     public function prepare(array $options)
     {
-        /** @var \PDOStatement $statement */
+        /** @var PDOStatement $statement */
         $statement = $this->connection->getWrappedConnection()->prepare($this->sql, $options);
         $this->statement = $statement;
 
@@ -303,7 +307,7 @@ class StatementWrapper implements StatementInterface, IteratorAggregate
     /**
      * Return the internal statement, which is traversable
      *
-     * @return \Traversable
+     * @return Traversable
      */
     public function getIterator(): Traversable
     {
@@ -319,7 +323,7 @@ class StatementWrapper implements StatementInterface, IteratorAggregate
     }
 
     /**
-     * @return \PDOStatement
+     * @return PDOStatement
      */
     public function getStatement(): PDOStatement
     {
@@ -327,7 +331,7 @@ class StatementWrapper implements StatementInterface, IteratorAggregate
     }
 
     /**
-     * @param \PDOStatement $statement
+     * @param PDOStatement $statement
      *
      * @return void
      */

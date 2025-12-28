@@ -27,6 +27,17 @@ return new Config()
         //     'scope' => 'namespaced',
         //     'strict' => true,
         // ],
+        'global_namespace_import' => [
+            'import_classes' => true,
+            'import_functions' => true,
+            'import_constants' => true,
+        ],
+        'native_function_invocation' => [
+            'include' => ['@compiler_optimized'],
+            'scope' => 'all',
+            'strict' => false,
+        ],
     ])
     ->setFinder($finder)
+    ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
     ->setUnsupportedPhpVersionAllowed(true); // allow running under newer PHP

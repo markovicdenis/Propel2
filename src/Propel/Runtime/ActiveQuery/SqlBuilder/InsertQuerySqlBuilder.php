@@ -11,6 +11,8 @@ namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Exception\PropelException;
 
+use function count;
+
 class InsertQuerySqlBuilder extends AbstractSqlQueryBuilder
 {
     /**

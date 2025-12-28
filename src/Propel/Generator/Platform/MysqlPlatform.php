@@ -24,6 +24,8 @@ use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\Util\MysqlUuidMigrationBuilder;
 
 use function stripos;
+use function in_array;
+use function sprintf;
 
 /**
  * MySql PlatformInterface implementation.

@@ -9,6 +9,9 @@
 namespace Propel\Runtime\DataFetcher;
 
 use Propel\Runtime\Map\TableMap;
+use ReturnTypeWillChange;
+
+use function count;
 
 /**
  * Class ArrayDataFetcher
@@ -37,7 +40,7 @@ class ArrayDataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function current()
     {
         return $this->dataObject === null ? null : current($this->dataObject);
@@ -59,7 +62,7 @@ class ArrayDataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function key()
     {
         return $this->dataObject === null ? null : key($this->dataObject);

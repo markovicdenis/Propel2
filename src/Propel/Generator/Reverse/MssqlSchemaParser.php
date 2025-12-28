@@ -20,6 +20,9 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 use RuntimeException;
 
+use function count;
+use function sprintf;
+
 /**
  * Microsoft SQL Server database schema parser.
  *
@@ -87,7 +90,7 @@ class MssqlSchemaParser extends AbstractSchemaParser
      * @param \Propel\Generator\Model\Database $database
      * @param array $additionalTables
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return int
      */
@@ -274,7 +277,7 @@ class MssqlSchemaParser extends AbstractSchemaParser
      *
      * @param \Propel\Generator\Model\Table $table
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

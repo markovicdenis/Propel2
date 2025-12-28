@@ -16,6 +16,10 @@ use Propel\Runtime\Map\Exception\ColumnNotFoundException;
 use Propel\Runtime\Map\Exception\RelationNotFoundException;
 use Propel\Runtime\Traits\ParsePKTrait;
 
+use function array_key_exists;
+use function count;
+use function sprintf;
+
 /**
  * TableMap is used to model a table in a database.
  *
