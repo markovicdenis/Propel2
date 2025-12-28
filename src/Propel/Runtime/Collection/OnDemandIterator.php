@@ -25,12 +25,12 @@ use function is_array;
 class OnDemandIterator implements IteratorInterface
 {
     /**
-     * @var \Propel\Runtime\Formatter\ObjectFormatter
+     * @var \Propel\Runtime\Formatter\ObjectFormatter|null
      */
     protected $formatter;
 
     /**
-     * @var \Propel\Runtime\DataFetcher\DataFetcherInterface
+     * @var \Propel\Runtime\DataFetcher\DataFetcherInterface|null
      */
     protected $dataFetcher;
 
@@ -45,7 +45,7 @@ class OnDemandIterator implements IteratorInterface
     protected $currentKey;
 
     /**
-     * @var bool
+     * @var bool|null
      */
     protected $isValid;
 

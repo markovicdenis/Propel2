@@ -46,14 +46,14 @@ abstract class AbstractSchemaParser implements SchemaParserInterface
      * Map native DB types to Propel types.
      * (Override in subclasses.)
      *
-     * @var array
+     * @var array|null
      */
     protected $nativeToPropelTypeMap;
 
     /**
      * Map to hold reverse type mapping (initialized on-demand).
      *
-     * @var array
+     * @var array|null
      */
     protected $reverseTypeMap;
 

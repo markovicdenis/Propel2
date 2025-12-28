@@ -36,7 +36,7 @@ class PDODataFetcher extends AbstractDataFetcher
     /**
      * For SQLITE rowCount emulation.
      *
-     * @var int
+     * @var int|null
      */
     private $cachedCount;
 

@@ -108,7 +108,7 @@ class Propel
     public const LOG_DEBUG = 100;
 
     /**
-     * @var \Propel\Runtime\ServiceContainer\ServiceContainerInterface
+     * @var \Propel\Runtime\ServiceContainer\ServiceContainerInterface|null
      */
     private static $serviceContainer;
 
