@@ -7000,7 +7000,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $script .= "
      *
-     * @param ConnectionInterface \$con";
+     * @param ?ConnectionInterface \$con";
         if ($reloadOnUpdate || $reloadOnInsert) {
             $script .= "
      * @param boolean \$skipReload Whether to skip the reload for this object from database.";
