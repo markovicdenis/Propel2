@@ -1426,13 +1426,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     /**
      * Performs a DELETE on the database, given a " . $this->getObjectClassName() . " or Criteria object OR a primary key value.
      *
-     * @param mixed \$values Criteria or " . $this->getObjectClassName() . " object or primary key or array of primary keys
-     *              which is used to create the DELETE statement
+     * @param mixed \$values Criteria or " . $this->getObjectClassName() . " object or primary key or array of primary keys which is used to create the DELETE statement
      * @param ?ConnectionInterface \$con the connection to use
-     * @return int The number of affected rows (if supported by underlying database driver).  This includes CASCADE-related rows
-     *                         if supported by native driver or if emulated using Propel.
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+     * @return int The number of affected rows (if supported by underlying database driver).  This includes CASCADE-related rows if supported by native driver or if emulated using Propel.
+     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be rethrown wrapped into a PropelException.
      */
      public static function doDelete(\$values, ?ConnectionInterface \$con = null): int
      {
