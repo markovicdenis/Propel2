@@ -844,7 +844,6 @@ class QueryBuilder extends AbstractOMBuilder
             $col = $pks[0];
             $const = $this->getColumnConstant($col);
             $script .= "
-
         \$this->addUsingAlias($const, \$key, Criteria::EQUAL);
 
         return \$this;";
@@ -903,7 +902,6 @@ class QueryBuilder extends AbstractOMBuilder
             $col = $pks[0];
             $const = $this->getColumnConstant($col);
             $script .= "
-
         \$this->addUsingAlias($const, \$keys, Criteria::IN);
 
         return \$this;";
