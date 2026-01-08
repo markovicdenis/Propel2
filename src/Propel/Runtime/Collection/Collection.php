@@ -23,6 +23,12 @@ use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
 use Serializable;
 use Traversable;
+use ReturnTypeWillChange;
+
+use function count;
+use function in_array;
+use function is_object;
+use function sprintf;
 
 /**
  * Class for iterating over a list of Propel elements
@@ -40,8 +46,8 @@ use Traversable;
  *
  * @author Francois Zaninotto
  *
- * @implements \ArrayAccess<int|string, mixed>
- * @implements \IteratorAggregate<int|string, mixed>
+ * @implements ArrayAccess<int|string, mixed>
+ * @implements IteratorAggregate<int|string, mixed>
  */
 class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializable
 {
@@ -125,7 +131,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * @return mixed
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function &offsetGet($offset)
     {
         if (isset($this->data[$offset])) {
@@ -436,7 +442,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     /**
      * @return string|null
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function serialize(): ?string
     {
         $repr = [
@@ -453,7 +459,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * @return void
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function unserialize($data): void
     {
         $repr = unserialize($data);

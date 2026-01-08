@@ -25,6 +25,10 @@ use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Platform\SqlsrvPlatform;
 use Propel\Runtime\Exception\PropelException;
 
+use function count;
+use function in_array;
+use function sprintf;
+
 /**
  * Generates a base Object class for user object model (OM).
  *
@@ -2455,7 +2459,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if (is_string(\$v)) {
             \$v = in_array(strtolower(\$v), ['false', 'off', '-', 'no', 'n', '0', '']) ? false : true;
         } else {
-            \$v = (boolean) \$v;
+            \$v = (bool) \$v;
         }
 
         if (\$this->$clo !== \$v) {
@@ -2726,6 +2730,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         try {";
         $n = 0;
         foreach ($table->getColumns() as $col) {
+            $phpType = match($col->getType()) {
+                'boolean' => 'bool',
+                'double' => 'float',
+                default => $col->getPhpType(),
+            };
             if (!$col->isLazyLoad()) {
                 $indexName = "TableMap::TYPE_NUM == \$indexType ? $n + \$startcol : $tableMap::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)";
 
@@ -2781,7 +2790,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$clo = (\$col) ? UuidConverter::binToUuid(\$col, $uuidSwapFlag) : null;";
                 } elseif ($col->isPhpPrimitiveType()) {
                     $script .= "
-            \$this->$clo = (null !== \$col) ? (" . $col->getPhpType() . ') $col : null;';
+            \$this->$clo = (null !== \$col) ? (" . $phpType . ') $col : null;';
                 } elseif ($col->getType() === PropelTypes::OBJECT) {
                     $script .= "
             \$this->$clo = \$col;";
@@ -6978,7 +6987,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param ?ConnectionInterface \$con";
         if ($reloadOnUpdate || $reloadOnInsert) {
             $script .= "
-     * @param boolean \$skipReload Whether to skip the reload for this object from database.";
+     * @param bool \$skipReload Whether to skip the reload for this object from database.";
         }
         $script .= "
      * @return int The number of rows affected by this insert/update and any referring fk objects' save() operations.

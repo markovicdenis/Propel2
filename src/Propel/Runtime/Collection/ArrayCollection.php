@@ -21,7 +21,7 @@ use Propel\Runtime\Exception\PropelException;
 class ArrayCollection extends Collection
 {
     /**
-     * @var \Propel\Runtime\ActiveRecord\ActiveRecordInterface
+     * @var \Propel\Runtime\ActiveRecord\ActiveRecordInterface|null
      */
     protected $workerObject;
 

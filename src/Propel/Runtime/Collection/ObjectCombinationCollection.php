@@ -10,6 +10,8 @@ namespace Propel\Runtime\Collection;
 
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 
+use function func_get_args;
+
 /**
  * Class for iterating over a list of Propel objects
  *
