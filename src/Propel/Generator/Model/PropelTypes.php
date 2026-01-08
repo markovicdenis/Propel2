@@ -662,7 +662,7 @@ class PropelTypes
      */
     public static function isPhpPrimitiveType(string $phpType): bool
     {
-        return in_array($phpType, ['boolean', 'int', 'double', 'float', 'string'], true);
+        return in_array($phpType, ['bool', 'boolean', 'int', 'double', 'float', 'string'], true);
     }
 
     /**

@@ -755,7 +755,6 @@ class Column extends MappingModel
     {
         $phpType = $this->phpType ?: $this->getPhpNative();
         return match($phpType) {
-            'integer' => 'int',
             'boolean' => 'bool',
             'double' => 'float',
             default => $phpType,
