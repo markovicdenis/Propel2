@@ -2730,11 +2730,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         try {";
         $n = 0;
         foreach ($table->getColumns() as $col) {
-            $phpType = match($col->getType()) {
-                'boolean' => 'bool',
-                'double' => 'float',
-                default => $col->getPhpType(),
-            };
             if (!$col->isLazyLoad()) {
                 $indexName = "TableMap::TYPE_NUM == \$indexType ? $n + \$startcol : $tableMap::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)";
 
@@ -2790,7 +2785,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$clo = (\$col) ? UuidConverter::binToUuid(\$col, $uuidSwapFlag) : null;";
                 } elseif ($col->isPhpPrimitiveType()) {
                     $script .= "
-            \$this->$clo = (null !== \$col) ? (" . $phpType . ') $col : null;';
+            \$this->$clo = (null !== \$col) ? (" . $col->getPhpType() . ') $col : null;';
                 } elseif ($col->getType() === PropelTypes::OBJECT) {
                     $script .= "
             \$this->$clo = \$col;";

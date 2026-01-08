@@ -753,7 +753,13 @@ class Column extends MappingModel
      */
     public function getPhpType(): string
     {
-        return $this->phpType ?: $this->getPhpNative();
+        $phpType = $this->phpType ?: $this->getPhpNative();
+        return match($phpType) {
+            'integer' => 'int',
+            'boolean' => 'bool',
+            'double' => 'float',
+            default => $phpType,
+        };
     }
 
     /**
