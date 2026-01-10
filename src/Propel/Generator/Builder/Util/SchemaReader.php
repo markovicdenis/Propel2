@@ -14,6 +14,11 @@ use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Schema;
 use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\PlatformInterface;
+use XMLParser;
+
+use function count;
+use function dirname;
+use function sprintf;
 
 /**
  * A class that is used to parse an input xml schema file and creates a Schema
@@ -39,7 +44,7 @@ class SchemaReader
     private $schema;
 
     /**
-     * @var \XMLParser|resource
+     * @var XMLParser|resource
      */
     private $parser;
 
@@ -196,7 +201,6 @@ class SchemaReader
                 ),
             );
         }
-        xml_parser_free($this->parser);
         $this->parser = $parserStash;
 
         array_pop($this->schemasTagsStack);
