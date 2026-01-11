@@ -6784,10 +6784,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         foreach ($table->getColumns() as $column) {
             $constantName = $this->getColumnConstant($column);
             $identifier = var_export($this->quoteIdentifier($column->getName()), true);
-            $script .= "
+            $isRequired = $column->isNotNull() && $column->isPhpObjectType();
+            if ($isRequired) {
+                $script .= "
+        \$modifiedColumns[':p' . \$index++] = $identifier;
+        ";
+            } else {
+                $script .= "
         if (\$this->isColumnModified($constantName)) {
             \$modifiedColumns[':p' . \$index++] = $identifier;
         }";
+            }
         }
 
         $script .= "
