@@ -6787,8 +6787,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $isRequired = $column->isNotNull() && $column->isPhpObjectType();
             if ($isRequired) {
                 $script .= "
-        \$modifiedColumns[':p' . \$index++] = $identifier;
-        ";
+        \$modifiedColumns[':p' . \$index++] = $identifier;";
             } else {
                 $script .= "
         if (\$this->isColumnModified($constantName)) {
