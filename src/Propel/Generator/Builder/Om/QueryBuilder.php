@@ -17,6 +17,10 @@ use Propel\Generator\Model\Table;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion;
 
+use function array_slice;
+use function count;
+use function sprintf;
+
 /**
  * Generates a base Query class for user object model (OM).
  *
@@ -908,7 +912,7 @@ class QueryBuilder extends AbstractOMBuilder
         } else {
             // composite primary key
             $script .= "
-        if (empty(\$keys)) {
+        if (!\$keys) {
             \$this->add('1', '1<>1', Criteria::CUSTOM);
 
             return \$this;
