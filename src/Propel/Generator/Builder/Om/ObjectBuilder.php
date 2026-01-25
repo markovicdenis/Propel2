@@ -7310,9 +7310,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
                 } else {
                     $script .= "
-            foreach (\$this->get" . $this->getRefFKPhpNameAffix($fk, true) . "() as \$relObj) {
-                if (\$relObj !== \$this) {  // ensure that we don't try to copy a reference to ourselves
-                    \$copyObj->add" . $this->getRefFKPhpNameAffix($fk) . "(\$relObj->copy(\$deepCopy));
+            foreach (\$this->get" . $this->getRefFKPhpNameAffix($fk, true) . "() as \$rObj) {
+                if (\$rObj !== \$this) {  // ensure that we don't try to copy a reference to ourselves
+                    \$copyObj->add" . $this->getRefFKPhpNameAffix($fk) . "(\$rObj->copy(\$deepCopy));
                 }
             }
 ";
