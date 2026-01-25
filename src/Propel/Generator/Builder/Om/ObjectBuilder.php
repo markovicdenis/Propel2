@@ -4759,7 +4759,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if (!\$this->{$collName}?->contains(\$l)) {
             \$this->doAdd" . $this->getRefFKPhpNameAffix($refFK, false) . "(\$l);
 
-            if (\$this->{$scheduledForDeletion} and \$this->{$scheduledForDeletion}->contains(\$l)) {
+            if (\$this->{$scheduledForDeletion} && \$this->{$scheduledForDeletion}->contains(\$l)) {
                 \$this->{$scheduledForDeletion}->remove(\$this->{$scheduledForDeletion}->search(\$l));
             }
         }
