@@ -136,7 +136,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testDoInsertUsesMatchExpressionForColumnBinding()
+    public function testDoInsertUsesInlineMatchForSimpleBindingsAndClosureForComplexBindings()
     {
         $table = new Table('Foo');
 
@@ -150,16 +150,23 @@ class ObjectBuilderTest extends TestCase
         $name->setDomain(new Domain('VARCHAR'));
         $table->addColumn($name);
 
+        $payload = new Column('payload');
+        $payload->setDomain(new Domain('BLOB'));
+        $table->addColumn($payload);
+
         $builder = new TestableObjectBuilder($table);
         $builder->setPlatform(new MysqlPlatform());
 
         $script = $builder->addDoInsertToScript();
 
         $this->assertStringContainsString('match ($columnName)', $script);
-        $this->assertStringContainsString("'id' => (function () use (\$identifier, \$stmt) {", $script);
-        $this->assertStringContainsString("'name' => (function () use (\$identifier, \$stmt) {", $script);
+        $this->assertStringContainsString("'id' => \$stmt->bindValue(\$identifier, \$this->id, PDO::PARAM_INT),", $script);
+        $this->assertStringContainsString("'name' => \$stmt->bindValue(\$identifier, \$this->name, PDO::PARAM_STR),", $script);
+        $this->assertStringContainsString("'payload' => (function () use (\$identifier, \$stmt) {", $script);
+        $this->assertStringContainsString('rewind($this->payload);', $script);
         $this->assertStringContainsString('default => null,', $script);
         $this->assertStringNotContainsString('switch ($columnName)', $script);
+        $this->assertStringNotContainsString("'name' => (function () use (\$identifier, \$stmt) {", $script);
     }
 
 }

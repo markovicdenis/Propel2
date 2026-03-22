@@ -6829,6 +6829,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $columnNameCase = var_export($this->quoteIdentifier($column->getName()), true);
             $accessValueStatement = $this->getAccessValueStatement($column);
             $bindValueStatement = $platform->getColumnBindingPHP($column, '$identifier', $accessValueStatement, $tab);
+            $trimmedBindValueStatement = trim($bindValueStatement);
+            if ($this->isInlineBindableStatement($trimmedBindValueStatement)) {
+                $script .= "
+                    $columnNameCase => " . rtrim($trimmedBindValueStatement, ';') . ',';
+
+                continue;
+            }
+
             $script .= "
                     $columnNameCase => (function () use (\$identifier, \$stmt) {" . $bindValueStatement . "
                     })(),";
@@ -6898,6 +6906,22 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         return "\$this->$columnName";
+    }
+
+    /**
+     * Returns whether a generated PDO binding snippet can be used directly as a match expression arm.
+     *
+     * @param string $statement
+     *
+     * @return bool
+     */
+    protected function isInlineBindableStatement(string $statement): bool
+    {
+        if (str_contains($statement, "\n")) {
+            return false;
+        }
+
+        return (bool)preg_match('/^\$stmt->bind(?:Value|Param)\(.*\);$/', $statement);
     }
 
     /**
