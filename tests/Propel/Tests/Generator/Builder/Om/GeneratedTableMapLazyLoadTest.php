@@ -49,6 +49,29 @@ EOF;
     /**
      * @return void
      */
+    public function testAllColumnsIncludesLazyLoadColumns()
+    {
+        $this->assertSame([
+            LazyLoadActiveRecord2TableMap::COL_ID,
+            LazyLoadActiveRecord2TableMap::COL_FOO,
+            LazyLoadActiveRecord2TableMap::COL_BAR,
+            LazyLoadActiveRecord2TableMap::COL_BAZ,
+        ], LazyLoadActiveRecord2TableMap::ALL_COLUMNS);
+    }
+
+    /**
+     * @return void
+     */
+    public function testLazyColumnsIncludesLazyLoadColumns()
+    {
+        $this->assertSame([
+            LazyLoadActiveRecord2TableMap::COL_BAR,
+        ], LazyLoadActiveRecord2TableMap::LAZY_COLUMNS);
+    }
+
+    /**
+     * @return void
+     */
     public function testPopulateObjectNotInPool()
     {
         LazyLoadActiveRecord2TableMap::clearInstancePool();

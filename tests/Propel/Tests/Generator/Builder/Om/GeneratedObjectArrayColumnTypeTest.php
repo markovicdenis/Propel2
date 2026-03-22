@@ -168,6 +168,19 @@ EOF;
     /**
      * @return void
      */
+    public function testBuildCriteriaUsesStoredArrayRepresentation()
+    {
+        $e = new ComplexColumnTypeEntity2();
+        $e->setTags(['foo', 1234]);
+
+        $criteria = $e->buildCriteria();
+
+        $this->assertSame('| foo | 1234 |', $criteria->get(ComplexColumnTypeEntity2TableMap::COL_TAGS));
+    }
+
+    /**
+     * @return void
+     */
     public function testGetterForArrayWithOnlyOneZeroValue()
     {
         $e = new ComplexColumnTypeEntity2();

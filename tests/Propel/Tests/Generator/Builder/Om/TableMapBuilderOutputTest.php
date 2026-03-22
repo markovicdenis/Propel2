@@ -77,6 +77,7 @@ XML;
         $selectMethodsDefinition = $tableMapBuilder->getSelectMethodsDefinition();
 
         $this->assertStringContainsString('foreach (self::ALL_COLUMNS as $column)', $selectMethodsDefinition);
+        $this->assertStringContainsString('if (!in_array($column, self::LAZY_COLUMNS, true)) {', $selectMethodsDefinition);
         $this->assertStringContainsString('self::alias($alias, $column)', $selectMethodsDefinition);
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->addSelectColumn('));
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->removeSelectColumn('));
@@ -124,12 +125,55 @@ XML;
         $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
         $classBodyDefinition = $tableMapBuilder->getConstantsAndAttributesDefinition();
 
-        $selectColumnsPosition = strpos($classBodyDefinition, 'public const array ALL_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
+        $allColumnsPosition = strpos($classBodyDefinition, 'public const array ALL_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
+        $lazyColumnsPosition = strpos($classBodyDefinition, 'public const array LAZY_COLUMNS = [];');
         $fieldNamesPosition = strpos($classBodyDefinition, 'protected static array $fieldNames = [');
 
-        $this->assertNotFalse($selectColumnsPosition);
+        $this->assertNotFalse($allColumnsPosition);
+        $this->assertNotFalse($lazyColumnsPosition);
         $this->assertNotFalse($fieldNamesPosition);
-        $this->assertLessThan($fieldNamesPosition, $selectColumnsPosition);
+        $this->assertLessThan($fieldNamesPosition, $allColumnsPosition);
+        $this->assertLessThan($fieldNamesPosition, $lazyColumnsPosition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAllColumnsConstantIncludesLazyLoadColumns()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+        <column name="body" type="longvarchar" lazyLoad="true"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new class ($table) extends TableMapBuilder {
+            public function getColumnConstantsDefinition(): string
+            {
+                $script = '';
+                $this->addSelectColumnsConstant($script);
+
+                return $script;
+            }
+        };
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $columnConstantsDefinition = $tableMapBuilder->getColumnConstantsDefinition();
+
+        $this->assertStringContainsString(
+            'public const array ALL_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS, self::COL_BODY];',
+            $columnConstantsDefinition
+        );
+        $this->assertStringContainsString(
+            'public const array LAZY_COLUMNS = [self::COL_BODY];',
+            $columnConstantsDefinition
+        );
     }
 
     /**

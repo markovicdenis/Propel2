@@ -104,6 +104,35 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringContainsString('default => null', $script);
         $this->assertStringNotContainsString('switch ($pos)', $script);
     }
+
+    /**
+     * @return void
+     */
+    public function testBuildCriteriaUsesAllColumnsLoop()
+    {
+        $table = new Table('Foo');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $table->addColumn($id);
+
+        $uuidBin = new Column('uuid_bin');
+        $uuidBin->setDomain(new Domain('UUID_BINARY'));
+        $table->addColumn($uuidBin);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addBuildCriteriaToScript($script);
+
+        $this->assertStringContainsString('foreach (FooTableMap::ALL_COLUMNS as $position => $columnConstant)', $script);
+        $this->assertStringContainsString('$criteria->add($columnConstant, match ($position) {', $script);
+        $this->assertStringContainsString('1 => ($this->uuid_bin) ? UuidConverter::uuidToBin($this->uuid_bin, true) : null,', $script);
+        $this->assertStringNotContainsString('private function getBuildCriteriaValueByPosition(int $pos)', $script);
+        $this->assertStringNotContainsString('if ($this->isColumnModified(FooTableMap::COL_ID)) {', $script);
+    }
+
 }
 
 class TestableObjectBuilder extends ObjectBuilder
@@ -113,8 +142,18 @@ class TestableObjectBuilder extends ObjectBuilder
         return parent::getDefaultValueString($col, $acceptNull);
     }
 
+    public function getTableMapClass(): string
+    {
+        return $this->getTable()->getPhpName() . 'TableMap';
+    }
+
     public function addSetByPositionToScript(string &$script): void
     {
         $this->addSetByPosition($script);
+    }
+
+    public function addBuildCriteriaToScript(string &$script): void
+    {
+        $this->addBuildCriteria($script);
     }
 }

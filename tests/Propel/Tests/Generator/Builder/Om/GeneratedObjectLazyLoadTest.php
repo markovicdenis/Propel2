@@ -91,4 +91,18 @@ EOF;
         $this->assertEquals('hello', $obj2->getBaz($con));
         $this->assertEquals($count + 1, $con->getQueryCount());
     }
+
+    /**
+     * @return void
+     */
+    public function testBuildCriteriaIncludesModifiedLazyLoadColumns()
+    {
+        $obj = new LazyLoadActiveRecord();
+        $obj->setBar('hello');
+
+        $criteria = $obj->buildCriteria();
+
+        $this->assertTrue($criteria->containsKey(LazyLoadActiveRecordTableMap::COL_BAR));
+        $this->assertSame('hello', $criteria->get(LazyLoadActiveRecordTableMap::COL_BAR));
+    }
 }

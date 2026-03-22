@@ -1282,7 +1282,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     }
 
     /**
-     * Adds the list of non-lazy columns used by addSelectColumns() and removeSelectColumns().
+     * Adds the full and lazy column lists used by addSelectColumns() and removeSelectColumns().
      *
      * @param string $script The script will be modified in this method.
      *
@@ -1290,20 +1290,29 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     protected function addSelectColumnsConstant(string &$script): void
     {
-        $columns = [];
+        $allColumns = [];
+        $lazyColumns = [];
         foreach ($this->getTable()->getColumns() as $col) {
-            if (!$col->isLazyLoad()) {
-                $columns[] = $this->getColumnConstant($col, 'self');
+            $columnConstant = $this->getColumnConstant($col, 'self');
+            $allColumns[] = $columnConstant;
+            if ($col->isLazyLoad()) {
+                $lazyColumns[] = $columnConstant;
             }
         }
 
-        $columnsString = implode(', ', $columns);
+        $allColumnsString = implode(', ', $allColumns);
+        $lazyColumnsString = implode(', ', $lazyColumns);
 
         $script .= "
     /**
-     * Non-lazy columns used to hydrate model objects.
+     * All columns in schema order.
      */
-    public const array ALL_COLUMNS = [$columnsString];
+    public const array ALL_COLUMNS = [$allColumnsString];
+
+    /**
+     * Lazy-load columns in schema order.
+     */
+    public const array LAZY_COLUMNS = [$lazyColumnsString];
 ";
     }
 
@@ -1332,7 +1341,9 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
         foreach (self::ALL_COLUMNS as \$column) {
-            \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
+            if (!in_array(\$column, self::LAZY_COLUMNS, true)) {
+                \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
+            }
         }
 ";
         $script .= "
@@ -1366,7 +1377,9 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
         foreach (self::ALL_COLUMNS as \$column) {
-            \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
+            if (!in_array(\$column, self::LAZY_COLUMNS, true)) {
+                \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
+            }
         }
 ";
         $script .= "
