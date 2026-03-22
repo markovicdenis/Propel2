@@ -11,6 +11,7 @@ namespace Propel\Tests\Generator\Builder\Om;
 use Propel\Generator\Builder\Om\TableMapBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
+use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\Map\TableMap;
 use Propel\Tests\TestCase;
@@ -195,6 +196,31 @@ XML;
 
         $this->assertSame('email_address', $tableMapClass::getPropertyName($tableMapClass::COL_EMAIL_ADDRESS));
         $this->assertSame('email_address', $tableMapClass::getPropertyName('EmailAddress', TableMap::TYPE_PHPNAME));
+    }
+
+    /**
+     * @return void
+     */
+    public function testTableMapDoesNotGenerateOwnPropertyNameHelper()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new TableMapBuilder($table);
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $tableMapBuilder->setPlatform(new MysqlPlatform());
+        $classDefinition = $tableMapBuilder->build();
+
+        $this->assertStringNotContainsString('public static function getPropertyName(', $classDefinition);
     }
 
     /**

@@ -9,6 +9,7 @@
 namespace Propel\Runtime\ActiveRecord\Persistence;
 
 use PDO;
+use PDOStatement;
 use Propel\Runtime\Connection\StatementInterface;
 
 final class InsertColumnBindingDto
@@ -21,7 +22,7 @@ final class InsertColumnBindingDto
     ) {
     }
 
-    public function bind(StatementInterface $stmt): void
+    public function bind(PDOStatement|StatementInterface $stmt): void
     {
         if (is_resource($this->value)) {
             rewind($this->value);

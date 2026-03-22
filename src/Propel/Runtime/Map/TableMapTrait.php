@@ -57,6 +57,31 @@ trait TableMapTrait
     }
 
     /**
+     * Gets the generated object property name for a field identifier.
+     *
+     * @param string|int $name One of the field names in the supported TableMap index types.
+     * @param string $type One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,
+     *                     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
+     *
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return string
+     */
+    public static function getPropertyName(string|int $name, string $type = TableMap::TYPE_COLNAME): string
+    {
+        if ($type === TableMap::TYPE_NUM) {
+            $fieldName = static::getFieldNames(TableMap::TYPE_FIELDNAME)[$name] ?? null;
+            if ($fieldName === null) {
+                throw new PropelException("'$name' could not be found in the field names of type '$type'.");
+            }
+
+            return strtolower($fieldName);
+        }
+
+        return strtolower((string)static::translateFieldName((string)$name, $type, TableMap::TYPE_FIELDNAME));
+    }
+
+    /**
      * @param array $row
      * @param string $fromType
      * @param string $toType
