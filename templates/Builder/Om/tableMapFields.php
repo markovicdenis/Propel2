@@ -7,7 +7,7 @@
      *
      * @var array<string, mixed>
      */
-    protected static $fieldNames = [
+    protected static array $fieldNames = [
         self::TYPE_PHPNAME       => [<?= $fieldNamesPhpName ?>],
         self::TYPE_CAMELNAME     => [<?= $fieldNamesCamelCaseName ?>],
         self::TYPE_COLNAME       => [<?= $fieldNamesColname ?>],
@@ -23,7 +23,7 @@
      *
      * @var array<string, mixed>
      */
-    protected static $fieldKeys = [
+    protected static array $fieldKeys = [
         self::TYPE_PHPNAME       => [<?= $fieldKeysPhpName ?>],
         self::TYPE_CAMELNAME     => [<?= $fieldKeysCamelCaseName ?>],
         self::TYPE_COLNAME       => [<?= $fieldKeysColname ?>],

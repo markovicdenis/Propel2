@@ -274,7 +274,13 @@ class TestCaseFixtures extends TestCase
             $db = 'mysql';
         }
 
-        $dsn = $db . ':host=' . (getenv('DB_HOSTNAME') ?: '127.0.0.1') . ';dbname=';
+        $dsn = $db . ':host=' . (getenv('DB_HOSTNAME') ?: '127.0.0.1');
+
+        if (getenv('DB_PORT')) {
+            $dsn .= ';port=' . getenv('DB_PORT');
+        }
+
+        $dsn .= ';dbname=';
         $dsn .= getenv('DB_NAME') ?: 'test';
 
         return $dsn;

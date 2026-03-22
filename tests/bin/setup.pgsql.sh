@@ -16,7 +16,7 @@ if [ "$DB_NAME" = "" ]; then
 fi
 
 DB_HOSTNAME=${DB_HOSTNAME-127.0.0.1};
-DB_PW=${DB_PW-$PGPASSWORD};.0.1};
+DB_PW=${DB_PW-$PGPASSWORD};
 DB_PORT=${DB_PORT-5432};
 
 if [ -z "$DB_PW" ]; then
@@ -35,7 +35,7 @@ fi
     createdb  --host="$DB_HOSTNAME" --port=$DB_PORT --username="$DB_USER" $NO_PWD "$DB_NAME" || exit 1;
     
     echo "Creating schemas"
-    psql --host="$DB_HOSTNAME" --username="$DB_USER" $NO_PWD -c '
+    psql --host="$DB_HOSTNAME" --port=$DB_PORT --username="$DB_USER" $NO_PWD -c '
     CREATE SCHEMA bookstore_schemas;
     CREATE SCHEMA contest;
     CREATE SCHEMA second_hand_books;

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use PHPUnit\Framework\Attributes\Group;
 use Propel\Generator\Builder\Om\TableMapBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
@@ -22,9 +23,8 @@ use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
  * Test class for TableMapBuilder.
  *
  * @author François Zaninotto
- *
- * @group database
  */
+#[Group('database')]
 class TableMapBuilderTest extends BookstoreTestBase
 {
     /**
@@ -37,6 +37,10 @@ class TableMapBuilderTest extends BookstoreTestBase
      */
     protected function setUp(): void
     {
+        if ($this->name() === 'testNormalizedColumnMapHasOnlyUniqueKeys') {
+            return;
+        }
+
         parent::setUp();
         $this->databaseMap = Propel::getServiceContainer()->getDatabaseMap('bookstore');
     }
@@ -396,14 +400,15 @@ class TableMapBuilderTest extends BookstoreTestBase
         $normalizedColumnMapDefinition = $tableMapBuilder->getNormalizedColumnNameMapDefinition();
 
         // extract inner part of the array
-        $this->assertEquals(1, preg_match('/= \[\n(.*)\n\s*\]/ms', $normalizedColumnMapDefinition, $matches));
+        $this->assertEquals(1, preg_match('/NORMALIZED_COLUMN_NAME_MAP = \[\n(.*?)\n\s*\];/ms', $normalizedColumnMapDefinition, $matches));
 
         // split, then check for number of lines -- so that we are sure nothing vanishes
         $list = explode(PHP_EOL, $matches[1]);
-        $this->assertCount(14, $list);
+        $this->assertCount(12, $list);
 
         // check for uniqueness -> unique list has to be the same size
-        $this->assertCount(14, array_unique($list));
+        $this->assertCount(12, array_unique($list));
+        $this->assertStringContainsString('parent::getNormalizedColumnName($columnName)', $normalizedColumnMapDefinition);
     }
 
     /**

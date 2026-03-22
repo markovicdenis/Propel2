@@ -187,6 +187,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     protected function addSelectMethods(string &$script): void
     {
+        $this->addSelectColumnsConstant($script);
         $this->addAddSelectColumns($script);
         $this->addRemoveSelectColumns($script);
     }
@@ -270,7 +271,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @var array<string, array<string>>
      */
-    protected static \$enumValueSets = [";
+    protected static array \$enumValueSets = [";
         foreach ($this->getTable()->getColumns() as $col) {
             if ($col->isValueSetType()) {
                 $script .= "
@@ -417,14 +418,14 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         foreach ($tableColumns as $num => $col) {
             $fieldNamesPhpName .= "'" . $col->getPhpName() . "', ";
             $fieldNamesCamelCaseName .= "'" . $col->getCamelCaseName() . "', ";
-            $fieldNamesColname .= $this->getColumnConstant($col, $this->getTableMapClass()) . ', ';
+            $fieldNamesColname .= $this->getColumnConstant($col, 'self') . ', ';
             $fieldNamesRawColname .= "'" . $col->getConstantName() . "', ";
             $fieldNamesFieldName .= "'" . $col->getName() . "', ";
             $fieldNamesNum .= "$num, ";
 
             $fieldKeysPhpName .= "'" . $col->getPhpName() . "' => $num, ";
             $fieldKeysCamelCaseName .= "'" . $col->getCamelCaseName() . "' => $num, ";
-            $fieldKeysColname .= $this->getColumnConstant($col, $this->getTableMapClass()) . " => $num, ";
+            $fieldKeysColname .= $this->getColumnConstant($col, 'self') . " => $num, ";
             $fieldKeysRawColname .= "'" . $col->getConstantName() . "' => $num, ";
             $fieldKeysFieldName .= "'" . $col->getName() . "' => $num, ";
             $fieldKeysNum .= "$num, ";
@@ -465,8 +466,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
                 $table->getCamelCaseName() . '.' . $column->getCamelCaseName(), // tableName.columnName => COLUMN_NAME
                 $this->getColumnConstant($column, $this->getTableMapClass()), // TableNameTableMap::COL_COLUMN_NAME => COLUMN_NAME
                 $column->getConstantName(), // COL_COLUMN_NAME => COLUMN_NAME
-                $column->getName(), // column_name => COLUMN_NAME
-                $table->getName() . '.' . $column->getName(), // table_name.column_name => COLUMN_NAME
             ];
 
             $variants = array_unique($variants);
@@ -479,12 +478,16 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         $script .= '
     /**
-     * Holds a list of column names and their normalized version.
-     *
-     * @var array<string>
+     * Holds the column-name variants that cannot be normalized generically.
      */
-    protected $normalizedColumnNameMap = [' . $arrayString . PHP_EOL
-            . '    ];' . PHP_EOL;
+    private const array NORMALIZED_COLUMN_NAME_MAP = [' . $arrayString . PHP_EOL
+            . '    ];' . PHP_EOL
+            . '
+    protected function getNormalizedColumnName(string $columnName): string
+    {
+        return self::NORMALIZED_COLUMN_NAME_MAP[$columnName] ?? parent::getNormalizedColumnName($columnName);
+    }
+' . PHP_EOL;
     }
 
     /**
@@ -958,7 +961,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $pks[] = ' . ($col->isPhpObjectType() ? 'new ' . $col->getPhpType() . '(' : '(' . $col->getPhpType() . ') ') . "\$row[
             \$indexType == TableMap::TYPE_NUM
                 ? $n + \$offset
-                : self::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)
+                : static::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)
         ]" . ($col->isPhpObjectType() ? ')' : '') . ';';
                     }
                     $n++;
@@ -976,7 +979,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
                         $pk = ($col->isPhpObjectType() ? 'new ' . $col->getPhpType() . '(' : '(' . $col->getPhpType() . ') ') . "\$row[
             \$indexType == TableMap::TYPE_NUM
                 ? $n + \$offset
-                : self::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)
+                : static::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)
         ]" . ($col->isPhpObjectType() ? ')' : '');
                     }
                     $n++;
@@ -1105,7 +1108,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function getOMClass(bool \$withPrefix = true): string
     {
-        return \$withPrefix ? " . $this->getTableMapClass() . '::CLASS_DEFAULT : ' . $this->getTableMapClass() . "::OM_CLASS;
+        return \$withPrefix ? self::CLASS_DEFAULT : self::OM_CLASS;
     }
 ";
     }
@@ -1164,25 +1167,25 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function populateObject(array \$row, int \$offset = 0, string \$indexType = TableMap::TYPE_NUM): array
     {
-        \$key = {$this->getTableMapClassName()}::getPrimaryKeyHashFromRow(\$row, \$offset, \$indexType);
-        if (null !== (\$obj = {$this->getTableMapClassName()}::getInstanceFromPool(\$key))) {
+        \$key = static::getPrimaryKeyHashFromRow(\$row, \$offset, \$indexType);
+        if (null !== (\$obj = static::getInstanceFromPool(\$key))) {
             // We no longer rehydrate the object, since this can cause data loss.
             // See http://www.propelorm.org/ticket/509
             // \$obj->hydrate(\$row, \$offset, true); // rehydrate
-            \$col = \$offset + " . $this->getTableMapClass() . '::NUM_HYDRATE_COLUMNS;';
+            \$col = \$offset + self::NUM_HYDRATE_COLUMNS;";
         if ($table->isAbstract()) {
             $script .= "
         } elseif (null == \$key) {
             // empty resultset, probably from a left join
             // since this table is abstract, we can't hydrate an empty object
             \$obj = null;
-            \$col = \$offset + " . $this->getTableMapClass() . '::NUM_HYDRATE_COLUMNS;';
+            \$col = \$offset + self::NUM_HYDRATE_COLUMNS;";
         }
         $script .= "
         } else {";
         if (!$table->getChildrenColumn()) {
             $script .= "
-            \$cls = " . $this->getTableMapClass() . '::OM_CLASS;';
+            \$cls = self::OM_CLASS;";
         } else {
             $script .= "
             \$cls = static::getOMClass(\$row, \$offset, false);";
@@ -1191,7 +1194,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             /** @var {$this->getObjectClassName()} \$obj */
             \$obj = new \$cls();
             \$col = \$obj->hydrate(\$row, \$offset, false, \$indexType);
-            {$this->getTableMapClassName()}::addInstanceToPool(\$obj, \$key);
+            static::addInstanceToPool(\$obj, \$key);
         }
 
         return [\$obj, \$col];
@@ -1233,8 +1236,8 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         // populate the object(s)
         while (\$row = \$dataFetcher->fetch()) {
             assert(is_array(\$row), 'DataFetcher->fetch() must return array or null, false given.');
-            \$key = {$this->getTableMapClassName()}::getPrimaryKeyHashFromRow(\$row, 0, \$dataFetcher->getIndexType());
-            if (null !== (\$obj = {$this->getTableMapClassName()}::getInstanceFromPool(\$key))) {
+            \$key = static::getPrimaryKeyHashFromRow(\$row, 0, \$dataFetcher->getIndexType());
+            if (null !== (\$obj = static::getInstanceFromPool(\$key))) {
                 // We no longer rehydrate the object, since this can cause data loss.
                 // See http://www.propelorm.org/ticket/509
                 // \$obj->hydrate(\$row, 0, true); // rehydrate
@@ -1250,14 +1253,14 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
                 " . $this->buildObjectInstanceCreationCode('$obj', '$cls') . "
                 \$obj->hydrate(\$row);
                 \$results[] = \$obj;
-                {$this->getTableMapClassName()}::addInstanceToPool(\$obj, \$key);";
+                static::addInstanceToPool(\$obj, \$key);";
         } else {
             $script .= "
                 /** @var {$this->getObjectClassName()} \$obj */
                 " . $this->buildObjectInstanceCreationCode('$obj', '$cls') . "
                 \$obj->hydrate(\$row);
                 \$results[] = \$obj;
-                {$this->getTableMapClassName()}::addInstanceToPool(\$obj, \$key);";
+                static::addInstanceToPool(\$obj, \$key);";
         }
         $script .= "
             } // if key exists
@@ -1265,6 +1268,32 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         return \$results;
     }";
+    }
+
+    /**
+     * Adds the list of non-lazy columns used by addSelectColumns() and removeSelectColumns().
+     *
+     * @param string $script The script will be modified in this method.
+     *
+     * @return void
+     */
+    protected function addSelectColumnsConstant(string &$script): void
+    {
+        $columns = [];
+        foreach ($this->getTable()->getColumns() as $col) {
+            if (!$col->isLazyLoad()) {
+                $columns[] = $this->getColumnConstant($col, 'self');
+            }
+        }
+
+        $columnsString = implode(', ', $columns);
+
+        $script .= "
+    /**
+     * Non-lazy columns used to hydrate model objects.
+     */
+    private const array SELECT_COLUMNS = [$columnsString];
+";
     }
 
     /**
@@ -1292,23 +1321,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
-        if (null === \$alias) {";
-        foreach ($this->getTable()->getColumns() as $col) {
-            if (!$col->isLazyLoad()) {
-                $script .= "
-            \$criteria->addSelectColumn({$col->getFQConstantName()});";
-            } // if !col->isLazyLoad
+        foreach (self::SELECT_COLUMNS as \$column) {
+            \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
         }
-        $script .= "
-        } else {";
-        foreach ($this->getTable()->getColumns() as $col) {
-            if (!$col->isLazyLoad()) {
-                $script .= "
-            \$criteria->addSelectColumn(\$alias . '." . $col->getName() . "');";
-            } // if !col->isLazyLoad
-        }
-        $script .= "
-        }";
+";
         $script .= "
     }
 ";
@@ -1340,23 +1356,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
-        if (null === \$alias) {";
-        foreach ($this->getTable()->getColumns() as $col) {
-            if (!$col->isLazyLoad()) {
-                $script .= "
-            \$criteria->removeSelectColumn({$col->getFQConstantName()});";
-            } // if !col->isLazyLoad
-        } // foreach
-        $script .= "
-        } else {";
-        foreach ($this->getTable()->getColumns() as $col) {
-            if (!$col->isLazyLoad()) {
-                $script .= "
-            \$criteria->removeSelectColumn(\$alias . '." . $col->getName() . "');";
-            } // if !col->isLazyLoad
-        } // foreach
-        $script .= "
-        }";
+        foreach (self::SELECT_COLUMNS as \$column) {
+            \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
+        }
+";
         $script .= "
     }
 ";
@@ -1383,7 +1386,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function getTableMap(): TableMap
     {
-        return Propel::getServiceContainer()->getDatabaseMap(" . $this->getTableMapClass() . '::DATABASE_NAME)->getTable(' . $this->getTableMapClass() . "::TABLE_NAME);
+        return Propel::getServiceContainer()->getDatabaseMap(self::DATABASE_NAME)->getTable(self::TABLE_NAME);
     }
 ";
     }
@@ -1434,7 +1437,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      public static function doDelete(\$values, ?ConnectionInterface \$con = null): int
      {
         if (null === \$con) {
-            \$con = Propel::getServiceContainer()->getWriteConnection(" . $this->getTableMapClass() . "::DATABASE_NAME);
+            \$con = Propel::getServiceContainer()->getWriteConnection(self::DATABASE_NAME);
         }
 
         if (\$values instanceof Criteria) {";
@@ -1462,7 +1465,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             throw new LogicException('The $class object has no primary key');";
         } else {
             $script .= "
-            \$criteria = new Criteria(" . $this->getTableMapClass() . '::DATABASE_NAME);';
+            \$criteria = new Criteria(self::DATABASE_NAME);";
 
             if (count($table->getPrimaryKey()) === 1) {
                 $pkey = $table->getPrimaryKey();
@@ -1502,10 +1505,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         \$query = " . $this->getQueryClassName() . "::create()->mergeWith(\$criteria);
 
         if (\$values instanceof Criteria) {
-            {$this->getTableMapClassName()}::clearInstancePool();
+            static::clearInstancePool();
         } elseif (!is_object(\$values)) { // it's a primary key, or an array of pks
             foreach ((array) \$values as \$singleval) {
-                {$this->getTableMapClassName()}::removeInstanceFromPool(\$singleval);
+                static::removeInstanceFromPool(\$singleval);
             }
         }
 
@@ -1524,7 +1527,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     protected function addDoInsert(string &$script): void
     {
         $table = $this->getTable();
-        $tableMapClass = $this->getTableMapClass();
 
         $script .= "
     /**
@@ -1539,7 +1541,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public static function doInsert(\$criteria, ?ConnectionInterface \$con = null)
     {
         if (null === \$con) {
-            \$con = Propel::getServiceContainer()->getWriteConnection(" . $tableMapClass . "::DATABASE_NAME);
+            \$con = Propel::getServiceContainer()->getWriteConnection(self::DATABASE_NAME);
         }
 
         if (\$criteria instanceof Criteria) {
