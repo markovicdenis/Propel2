@@ -478,11 +478,12 @@ class QueryBuilder extends AbstractOMBuilder
     {
         $classname = $this->getClassNameFromBuilder($this->getNewStubQueryBuilder($this->getTable()));
         $script .= "
-        \$queryClass = static::class;
+        \$queryClass = static::class === self::class ? $classname::class : static::class;
         if (\$criteria instanceof \$queryClass) {
             return \$criteria;
         }
-        \$query = new static();
+        /** @var $classname \$query */
+        \$query = new \$queryClass();
         if (null !== \$modelAlias) {
             \$query->setModelAlias(\$modelAlias);
         }

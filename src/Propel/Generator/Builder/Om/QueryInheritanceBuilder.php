@@ -208,11 +208,12 @@ class " . $this->getUnqualifiedClassName() . ' extends ' . $baseClassName . "
      */
     public static function create(?string \$modelAlias = null, ?Criteria \$criteria = null): " . $classname . "
     {
-        \$queryClass = static::class;
+        \$queryClass = static::class === self::class ? $classname::class : static::class;
         if (\$criteria instanceof \$queryClass) {
             return \$criteria;
         }
-        \$query = new static();
+        /** @var $classname \$query */
+        \$query = new \$queryClass();
         if (\$modelAlias !== null) {
             \$query->setModelAlias(\$modelAlias);
         }
