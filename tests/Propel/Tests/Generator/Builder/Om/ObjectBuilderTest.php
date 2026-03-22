@@ -116,9 +116,9 @@ class ObjectBuilderTest extends TestCase
         $id->setDomain(new Domain('INTEGER'));
         $table->addColumn($id);
 
-        $uuidBin = new Column('uuid_bin');
-        $uuidBin->setDomain(new Domain('UUID_BINARY'));
-        $table->addColumn($uuidBin);
+        $promotionName = new Column('promotion_name');
+        $promotionName->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($promotionName);
 
         $builder = new TestableObjectBuilder($table);
         $builder->setPlatform(new MysqlPlatform());
@@ -126,11 +126,11 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addBuildCriteriaToScript($script);
 
-        $this->assertStringContainsString('foreach (FooTableMap::ALL_COLUMNS as $position => $columnConstant)', $script);
-        $this->assertStringContainsString('$criteria->add($columnConstant, match ($position) {', $script);
-        $this->assertStringContainsString('1 => ($this->uuid_bin) ? UuidConverter::uuidToBin($this->uuid_bin, true) : null,', $script);
-        $this->assertStringNotContainsString('private function getBuildCriteriaValueByPosition(int $pos)', $script);
+        $this->assertStringContainsString('foreach (FooTableMap::ALL_COLUMNS as $columnConstant)', $script);
+        $this->assertStringContainsString('$propertyName = FooTableMap::getPropertyName($columnConstant);', $script);
+        $this->assertStringContainsString('$criteria->add($columnConstant, $this->{$propertyName});', $script);
         $this->assertStringNotContainsString('if ($this->isColumnModified(FooTableMap::COL_ID)) {', $script);
+        $this->assertStringNotContainsString('match ($position)', $script);
     }
 
     /**

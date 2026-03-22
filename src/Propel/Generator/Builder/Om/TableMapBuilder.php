@@ -149,6 +149,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         $script .= $this->addFieldsAttributes();
         $this->addNormalizedColumnNameMap($script);
+        $this->addGetPropertyNameMethod($script);
 
         if ($table->hasValueSetColumns()) {
             $this->addValueSetColumnAttributes($script);
@@ -519,6 +520,41 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 }
 ";
         $this->applyBehaviorModifier('tableMapFilter', $script, '');
+    }
+
+    /**
+     * Adds the helper that resolves generated object property names from field identifiers.
+     *
+     * @param string $script The script will be modified in this method.
+     *
+     * @return void
+     */
+    protected function addGetPropertyNameMethod(string &$script): void
+    {
+        $script .= "
+    /**
+     * Gets the generated object property name for a field identifier.
+     *
+     * @param string|int \$name One of the field names in the supported TableMap index types.
+     * @param string \$type One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,
+     *                      TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
+     *
+     * @return string
+     */
+    public static function getPropertyName(string|int \$name, string \$type = TableMap::TYPE_COLNAME): string
+    {
+        if (\$type === TableMap::TYPE_NUM) {
+            \$fieldName = static::getFieldNames(TableMap::TYPE_FIELDNAME)[\$name] ?? null;
+            if (\$fieldName === null) {
+                throw new PropelException(\"\$name could not be found in the field names of type '\$type'.\");
+            }
+
+            return strtolower(\$fieldName);
+        }
+
+        return strtolower((string)static::translateFieldName(\$name, \$type, TableMap::TYPE_FIELDNAME));
+    }
+";
     }
 
     /**

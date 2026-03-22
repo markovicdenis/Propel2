@@ -3015,17 +3015,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $script .= "
         \$criteria = new Criteria(" . $this->getTableMapClass() . "::DATABASE_NAME);
-        foreach (" . $this->getTableMapClass() . "::ALL_COLUMNS as \$position => \$columnConstant) {
+        foreach (" . $this->getTableMapClass() . "::ALL_COLUMNS as \$columnConstant) {
             if (\$this->isColumnModified(\$columnConstant)) {
-                \$criteria->add(\$columnConstant, match (\$position) {";
-        foreach ($this->getTable()->getColumns() as $position => $column) {
-            $accessValueStatement = $this->getAccessValueStatement($column);
-            $script .= "
-                    $position => $accessValueStatement,";
-        }
-        $script .= "
-                    default => null,
-                });
+                \$propertyName = " . $this->getTableMapClass() . "::getPropertyName(\$columnConstant);
+                \$criteria->add(\$columnConstant, \$this->{\$propertyName});
             }
         }";
     }

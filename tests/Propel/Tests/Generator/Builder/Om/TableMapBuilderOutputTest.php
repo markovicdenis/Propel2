@@ -12,6 +12,7 @@ use Propel\Generator\Builder\Om\TableMapBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Util\QuickBuilder;
+use Propel\Runtime\Map\TableMap;
 use Propel\Tests\TestCase;
 
 class TableMapBuilderOutputTest extends TestCase
@@ -134,6 +135,29 @@ XML;
         $this->assertNotFalse($fieldNamesPosition);
         $this->assertLessThan($fieldNamesPosition, $allColumnsPosition);
         $this->assertLessThan($fieldNamesPosition, $lazyColumnsPosition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testGeneratedTableMapCanResolvePropertyNames()
+    {
+        $databaseXml = <<<XML
+<database namespace="ExampleNamespace\PropertyNames" package="PropertyNames">
+    <table name="property_email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+    </table>
+</database>
+XML;
+        $builder = new QuickBuilder();
+        $builder->setSchema($databaseXml);
+        $builder->build();
+
+        $tableMapClass = '\\ExampleNamespace\\PropertyNames\\Map\\PropertyEmailTableMap';
+
+        $this->assertSame('email_address', $tableMapClass::getPropertyName($tableMapClass::COL_EMAIL_ADDRESS));
+        $this->assertSame('email_address', $tableMapClass::getPropertyName('EmailAddress', TableMap::TYPE_PHPNAME));
     }
 
     /**
