@@ -400,15 +400,16 @@ class TableMapBuilderTest extends BookstoreTestBase
         $normalizedColumnMapDefinition = $tableMapBuilder->getNormalizedColumnNameMapDefinition();
 
         // extract inner part of the array
-        $this->assertEquals(1, preg_match('/NORMALIZED_COLUMN_NAME_MAP = \[\n(.*?)\n\s*\];/ms', $normalizedColumnMapDefinition, $matches));
+        $this->assertEquals(1, preg_match('/normalizedColumnNameMap = \[\n(.*?)\n\s*\];/ms', $normalizedColumnMapDefinition, $matches));
 
         // split, then check for number of lines -- so that we are sure nothing vanishes
         $list = explode(PHP_EOL, $matches[1]);
-        $this->assertCount(12, $list);
+        $this->assertCount(14, $list);
 
         // check for uniqueness -> unique list has to be the same size
-        $this->assertCount(12, array_unique($list));
-        $this->assertStringContainsString('parent::getNormalizedColumnName($columnName)', $normalizedColumnMapDefinition);
+        $this->assertCount(14, array_unique($list));
+        $this->assertStringContainsString("'email.email_address' => 'EMAIL_ADDRESS'", $normalizedColumnMapDefinition);
+        $this->assertStringNotContainsString('parent::getNormalizedColumnName($columnName)', $normalizedColumnMapDefinition);
     }
 
     /**

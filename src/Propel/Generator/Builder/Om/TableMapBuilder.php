@@ -139,6 +139,9 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         // apply behaviors
         $this->applyBehaviorModifier('staticConstants', $script, '    ');
+        if (!$table->isAlias()) {
+            $this->addSelectColumnsConstant($script);
+        }
         $this->applyBehaviorModifier('staticAttributes', $script, '    ');
         $this->applyBehaviorModifier('staticMethods', $script, '    ');
 
@@ -187,7 +190,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     protected function addSelectMethods(string &$script): void
     {
-        $this->addSelectColumnsConstant($script);
         $this->addAddSelectColumns($script);
         $this->addRemoveSelectColumns($script);
     }
@@ -482,6 +484,8 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
                 $table->getCamelCaseName() . '.' . $column->getCamelCaseName(), // tableName.columnName => COLUMN_NAME
                 $this->getColumnConstant($column, $this->getTableMapClass()), // TableNameTableMap::COL_COLUMN_NAME => COLUMN_NAME
                 $column->getConstantName(), // COL_COLUMN_NAME => COLUMN_NAME
+                $column->getName(), // column_name => COLUMN_NAME
+                $table->getName() . '.' . $column->getName(), // table_name.column_name => COLUMN_NAME
             ];
 
             $variants = array_unique($variants);
@@ -494,16 +498,12 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         $script .= '
     /**
-     * Holds the column-name variants that cannot be normalized generically.
+     * Holds a list of column names and their normalized version.
+     *
+     * @var array<string>
      */
-    private const array NORMALIZED_COLUMN_NAME_MAP = [' . ($entries ? PHP_EOL . implode(PHP_EOL, $entries) . PHP_EOL : '')
-            . '    ];' . PHP_EOL
-            . '
-    protected function getNormalizedColumnName(string $columnName): string
-    {
-        return self::NORMALIZED_COLUMN_NAME_MAP[$columnName] ?? parent::getNormalizedColumnName($columnName);
-    }
-' . PHP_EOL;
+    protected $normalizedColumnNameMap = [' . ($entries ? PHP_EOL . implode(PHP_EOL, $entries) . PHP_EOL : '')
+            . '    ];' . PHP_EOL;
     }
 
     /**

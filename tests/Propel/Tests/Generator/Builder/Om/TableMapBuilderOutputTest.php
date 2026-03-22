@@ -72,11 +72,60 @@ XML;
         $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
         $selectMethodsDefinition = $tableMapBuilder->getSelectMethodsDefinition();
 
-        $this->assertStringContainsString('private const array SELECT_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];', $selectMethodsDefinition);
         $this->assertStringContainsString('foreach (self::SELECT_COLUMNS as $column)', $selectMethodsDefinition);
         $this->assertStringContainsString('self::alias($alias, $column)', $selectMethodsDefinition);
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->addSelectColumn('));
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->removeSelectColumn('));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSelectColumnsConstantIsPlacedWithOtherConstants()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new class ($table) extends TableMapBuilder {
+            public function getConstantsAndAttributesDefinition(): string
+            {
+                $script = '';
+                $table = $this->getTable();
+
+                $script .= $this->addConstants();
+                $this->addInheritanceColumnConstants($script);
+                if ($table->hasValueSetColumns()) {
+                    $this->addValueSetColumnConstants($script);
+                }
+
+                $this->applyBehaviorModifier('staticConstants', $script, '    ');
+                if (!$table->isAlias()) {
+                    $this->addSelectColumnsConstant($script);
+                }
+                $this->applyBehaviorModifier('staticAttributes', $script, '    ');
+                $script .= $this->addFieldsAttributes();
+
+                return $script;
+            }
+        };
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $classBodyDefinition = $tableMapBuilder->getConstantsAndAttributesDefinition();
+
+        $selectColumnsPosition = strpos($classBodyDefinition, 'private const array SELECT_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
+        $fieldNamesPosition = strpos($classBodyDefinition, 'protected static array $fieldNames = [');
+
+        $this->assertNotFalse($selectColumnsPosition);
+        $this->assertNotFalse($fieldNamesPosition);
+        $this->assertLessThan($fieldNamesPosition, $selectColumnsPosition);
     }
 
     /**
