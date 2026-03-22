@@ -33,7 +33,11 @@ XML;
         $builder->setSchema($databaseXml);
         $builder->build();
 
-        $tableMap = \ExampleNamespace\Emails\Map\EmailTableMap::getTableMap();
+        $tableMapClass = '\\ExampleNamespace\\Emails\\Map\\EmailTableMap';
+
+        $this->assertTrue(\class_exists($tableMapClass));
+
+        $tableMap = $tableMapClass::getTableMap();
 
         $this->assertSame('email_address', $tableMap->getColumn('email_address')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('email.email_address')->getName());

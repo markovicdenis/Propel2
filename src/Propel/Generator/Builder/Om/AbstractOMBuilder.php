@@ -124,6 +124,16 @@ abstract class AbstractOMBuilder extends DataModelBuilder
     }
 
     /**
+     * Returns the timestamp string used in generated class-level comments.
+     *
+     * @return string
+     */
+    protected function getGeneratedAtTimestamp(): string
+    {
+        return date(DATE_ATOM);
+    }
+
+    /**
      * Returns the qualified (prefixed) classname that is being built by the current class.
      * This method must be implemented by child classes.
      *

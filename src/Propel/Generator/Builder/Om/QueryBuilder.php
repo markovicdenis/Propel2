@@ -108,6 +108,7 @@ class QueryBuilder extends AbstractOMBuilder
 
             'addTimestamp' => $this->getBuildProperty('generator.objectModel.addTimeStamp'),
             'propelVersion' => $this->getBuildProperty('general.version'),
+            'generatedAt' => $this->getGeneratedAtTimestamp(),
 
             'columns' => $table->getColumns(),
 
@@ -168,6 +169,9 @@ class QueryBuilder extends AbstractOMBuilder
     protected function addClassBody(string &$script): void
     {
         $table = $this->getTable();
+        $columns = $table->getColumns();
+        $foreignKeys = $table->getForeignKeys();
+        $referrers = $table->getReferrers();
 
         // namespaces
         $this->declareClasses(
@@ -197,7 +201,7 @@ class QueryBuilder extends AbstractOMBuilder
         $this->addFindPks($script);
         $this->addFilterByPrimaryKey($script);
         $this->addFilterByPrimaryKeys($script);
-        foreach ($this->getTable()->getColumns() as $col) {
+        foreach ($columns as $col) {
             $this->addFilterByCol($script, $col);
             if ($col->isNamePlural()) {
                 if ($col->getType() === PropelTypes::PHP_ARRAY) {
@@ -207,12 +211,12 @@ class QueryBuilder extends AbstractOMBuilder
                 }
             }
         }
-        foreach ($this->getTable()->getForeignKeys() as $fk) {
+        foreach ($foreignKeys as $fk) {
             $this->addFilterByFK($script, $fk);
             $this->addJoinFk($script, $fk);
             $this->addUseFKQuery($script, $fk);
         }
-        foreach ($this->getTable()->getReferrers() as $refFK) {
+        foreach ($referrers as $refFK) {
             $this->addFilterByRefFK($script, $refFK);
             $this->addJoinRefFk($script, $refFK);
             $this->addUseRefFKQuery($script, $refFK);
@@ -474,10 +478,11 @@ class QueryBuilder extends AbstractOMBuilder
     {
         $classname = $this->getClassNameFromBuilder($this->getNewStubQueryBuilder($this->getTable()));
         $script .= "
-        if (\$criteria instanceof " . $classname . ") {
+        \$queryClass = static::class;
+        if (\$criteria instanceof \$queryClass) {
             return \$criteria;
         }
-        \$query = new " . $classname . "();
+        \$query = new static();
         if (null !== \$modelAlias) {
             \$query->setModelAlias(\$modelAlias);
         }
@@ -1468,6 +1473,7 @@ class QueryBuilder extends AbstractOMBuilder
         string $relationName,
         string $joinType
     ): void {
+        $tableMapClass = $this->getTableMapClassName();
         $script .= "
     /**
      * Adds a JOIN clause to the query using the " . $relationName . " relation
@@ -1480,8 +1486,8 @@ class QueryBuilder extends AbstractOMBuilder
     public function join" . $relationName . '(?string $relationAlias = null, ?string $joinType = ' . $joinType . ")
     {
         \$tableMap = \$this->getTableMap();
-        assert(\$tableMap instanceof " . $this->getTableMapClassName() . ");
-        \$relationMap = \$tableMap->getRelation('" . $relationName . "');
+        assert(\$tableMap instanceof $tableMapClass);
+        \$relationMap = \$tableMap->getRelation('$relationName');
 
         // create a ModelJoin object for this join
         \$join = new ModelJoin();
@@ -1497,7 +1503,7 @@ class QueryBuilder extends AbstractOMBuilder
             \$this->addAlias(\$relationAlias, \$relationMap->getRightTable()->getName() ?? '');
             \$this->addJoinObject(\$join, \$relationAlias);
         } else {
-            \$this->addJoinObject(\$join, '" . $relationName . "');
+            \$this->addJoinObject(\$join, '$relationName');
         }
 
         return \$this;
@@ -1579,7 +1585,7 @@ class QueryBuilder extends AbstractOMBuilder
         /** @var $queryClass */
         return \$this
             ->join" . $relationName . "(\$relationAlias, \$joinType)
-            ->useQuery(\$relationAlias ? \$relationAlias : '$relationName', '$queryClass');
+            ->useQuery(\$relationAlias ?: '$relationName', '$queryClass');
     }
 ";
     }

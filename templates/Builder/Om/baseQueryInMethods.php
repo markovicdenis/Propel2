@@ -4,7 +4,6 @@
      *
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useInQuery()
      *
-     * @phpstan-param \Propel\Runtime\ActiveQuery\Criteria::*IN $typeOfIn
      * @psalm-param \Propel\Runtime\ActiveQuery\Criteria::*IN $typeOfIn
      *
      * @param string|null $modelAlias sets an alias for the nested query

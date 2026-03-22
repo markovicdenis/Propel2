@@ -14,9 +14,53 @@ use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Platform\DefaultPlatform;
 use Propel\Tests\TestCase;
 
+class QueryBuilderOutputTestBuilder extends QueryBuilder
+{
+    public function getConstructorDefinition(): string
+    {
+        $script = '';
+        $this->addConstructor($script);
+
+        return $script;
+    }
+
+    public function getFactoryDefinition(): string
+    {
+        $script = '';
+        $this->addFactory($script);
+
+        return $script;
+    }
+
+    public function getHeaderDefinition(): string
+    {
+        $script = '';
+        $this->addClassOpen($script);
+
+        return $script;
+    }
+
+    public function getUseForeignKeyQueryDefinition(): string
+    {
+        $script = '';
+        $foreignKey = $this->getTable()->getForeignKeys()[0];
+        $this->addUseFKQuery($script, $foreignKey);
+
+        return $script;
+    }
+
+    public function getClassBodyDefinition(): string
+    {
+        $script = '';
+        $this->addClassBody($script);
+
+        return $script;
+    }
+}
+
 class QueryBuilderOutputTest extends TestCase
 {
-    private function createBuilder(string $tableName = 'book'): QueryBuilder
+    private function createBuilder(string $tableName = 'book'): QueryBuilderOutputTestBuilder
     {
         $databaseXml = <<<XML
 <database name="default" namespace="Example\Books" package="Books">
@@ -36,40 +80,7 @@ XML;
         $schema = $reader->parseString($databaseXml);
         $table = $schema->getDatabase()->getTable($tableName);
 
-        $builder = new class ($table) extends QueryBuilder {
-            public function getConstructorDefinition(): string
-            {
-                $script = '';
-                $this->addConstructor($script);
-
-                return $script;
-            }
-
-            public function getFactoryDefinition(): string
-            {
-                $script = '';
-                $this->addFactory($script);
-
-                return $script;
-            }
-
-            public function getHeaderDefinition(): string
-            {
-                $script = '';
-                $this->addClassOpen($script);
-
-                return $script;
-            }
-
-            public function getUseForeignKeyQueryDefinition(): string
-            {
-                $script = '';
-                $foreignKey = $this->getTable()->getForeignKeys()[0];
-                $this->addUseFKQuery($script, $foreignKey);
-
-                return $script;
-            }
-        };
+        $builder = new QueryBuilderOutputTestBuilder($table);
         $builder->setGeneratorConfig(new QuickGeneratorConfig());
         $builder->setPlatform(new DefaultPlatform());
 
@@ -108,6 +119,9 @@ XML;
             'public static function create(?string $modelAlias = null, ?Criteria $criteria = null): ChildBookQuery',
             $factoryDefinition
         );
+        $this->assertStringContainsString('$queryClass = static::class;', $factoryDefinition);
+        $this->assertStringContainsString('$query = new static();', $factoryDefinition);
+        $this->assertStringNotContainsString('new ChildBookQuery();', $factoryDefinition);
     }
 
     /**
@@ -124,11 +138,41 @@ XML;
             'public function useAuthorQuery(?string $relationAlias = null, ?string $joinType = Criteria::LEFT_JOIN): \Example\Books\AuthorQuery',
             $relatedQueryDefinition
         );
+        $this->assertStringContainsString(
+            "return \$this",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "->joinAuthor(\$relationAlias, \$joinType)",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "->useQuery(\$relationAlias ?: 'Author', '\\Example\\Books\\AuthorQuery');",
+            $relatedQueryDefinition
+        );
         $this->assertStringContainsString('@return static', $relatedQueryDefinition);
-        $this->assertStringContainsString('public function withAuthorQuery(', $relatedQueryDefinition);
-        $this->assertStringContainsString('    ): static {', $relatedQueryDefinition);
+        $this->assertStringContainsString(
+            "\$relatedQuery = \$this->useAuthorQuery(",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "\$joinType ?? Criteria::LEFT_JOIN",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "\$callable(\$relatedQuery);",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "\$relatedQuery->endUse();",
+            $relatedQueryDefinition
+        );
         $this->assertStringContainsString(
             'public function useAuthorExistsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfExists = \'EXISTS\'): \Example\Books\AuthorQuery',
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            "\$q = \$this->useExistsQuery('Author', \$modelAlias, \$queryClass, \$typeOfExists);",
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
@@ -140,6 +184,10 @@ XML;
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
+            "\$q = \$this->useInQuery('Author', \$modelAlias, \$queryClass, \$typeOfIn);",
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
             'public function useNotInAuthorQuery(?string $modelAlias = null, ?string $queryClass = null): \Example\Books\AuthorQuery',
             $relatedQueryDefinition
         );
@@ -148,22 +196,44 @@ XML;
     /**
      * @return void
      */
-    public function testHeaderAddsPhpstanMagicMethodsForCollections()
+    public function testHeaderKeepsPsalmMagicMethodsForCollections()
     {
         $builder = $this->createBuilder();
         $headerDefinition = $builder->getHeaderDefinition();
 
         $this->assertStringContainsString(
-            '@phpstan-method Collection&\Traversable<ChildBook> find(?ConnectionInterface $con = null)',
+            '@psalm-method Collection&\Traversable<ChildBook> find(?ConnectionInterface $con = null)',
             $headerDefinition
         );
         $this->assertStringContainsString(
-            '@phpstan-method Collection&\Traversable<ChildBook> findById(int|array<int> $id)',
+            '@psalm-method Collection&\Traversable<ChildBook> findById(int|array<int> $id)',
             $headerDefinition
         );
         $this->assertStringContainsString(
-            '@phpstan-method \Propel\Runtime\Util\PropelModelPager&\Traversable<ChildBook> paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null)',
+            '@psalm-method \Propel\Runtime\Util\PropelModelPager&\Traversable<ChildBook> paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null)',
             $headerDefinition
         );
+        $this->assertStringNotContainsString('@phpstan-method', $headerDefinition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testClassBodyInlinesIntervalsAndRelations()
+    {
+        $builder = $this->createBuilder();
+        $classBodyDefinition = $builder->getClassBodyDefinition();
+
+        $this->assertStringNotContainsString('private function applyIntervalFilter(', $classBodyDefinition);
+        $this->assertStringNotContainsString('private function addRelationJoin(', $classBodyDefinition);
+        $this->assertStringNotContainsString('private function useRelatedQueryObject(', $classBodyDefinition);
+        $this->assertStringNotContainsString('private function withRelatedQueryObject(', $classBodyDefinition);
+        $this->assertStringNotContainsString('private function useRelatedExistsQueryObject(', $classBodyDefinition);
+        $this->assertStringNotContainsString('private function useRelatedInQueryObject(', $classBodyDefinition);
+        $this->assertStringContainsString('if (is_array($id)) {', $classBodyDefinition);
+        $this->assertStringContainsString('$useMinMax = false;', $classBodyDefinition);
+        $this->assertStringContainsString('$tableMap = $this->getTableMap();', $classBodyDefinition);
+        $this->assertStringContainsString('assert($tableMap instanceof BookTableMap);', $classBodyDefinition);
+        $this->assertStringContainsString("\$relationMap = \$tableMap->getRelation('Author');", $classBodyDefinition);
     }
 }

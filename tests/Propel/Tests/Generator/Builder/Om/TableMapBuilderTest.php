@@ -483,10 +483,14 @@ XML;
         $builder->setSchema($databaseXml);
         $builder->build();
 
-        $this->assertTrue(\class_exists('\\ExampleNamespace\\Greens\\Map\\GreenThingTableMap'));
-        $this->assertTrue(\class_exists('\\ExampleNamespace\\Greens\\Grass'));
+        $tableMapClass = '\\ExampleNamespace\\Greens\\Map\\GreenThingTableMap';
+        $grassModelClass = '\\ExampleNamespace\\Greens\\Grass';
+        $greenModelClass = '\\ExampleNamespace\\Greens\\GreenThing';
 
-        $unexpectedClassName = \ExampleNamespace\Greens\Map\GreenThingTableMap::getOMClass(
+        $this->assertTrue(\class_exists($tableMapClass));
+        $this->assertTrue(\class_exists($grassModelClass));
+
+        $unexpectedClassName = $tableMapClass::getOMClass(
             array(
                 2, // random 'ID' value
                 'othervalue', // enable the 'default' case in getOMClass
@@ -494,29 +498,29 @@ XML;
             0, // somehow the offset is calculated within the getOMClass function (?)
             false
         );
-        $this->assertInstanceOf('\\ExampleNamespace\\Greens\\GreenThing', new $unexpectedClassName());
+        $this->assertInstanceOf($greenModelClass, new $unexpectedClassName());
 
 
-        $grassClass = \ExampleNamespace\Greens\Map\GreenThingTableMap::getOMClass(
+        $grassClass = $tableMapClass::getOMClass(
             array(
                 2, // random 'ID' value
                 // enable the 'grass' case
-                \ExampleNamespace\Greens\Map\GreenThingTableMap::COL_TYPE_GRASS,
+                \constant($tableMapClass . '::COL_TYPE_GRASS'),
             ),
             0, // somehow the offset is calculated within the getOMClass function (?)
             false
         );
-        $this->assertInstanceOf('\\ExampleNamespace\\Greens\\Grass', new $grassClass());
+        $this->assertInstanceOf($grassModelClass, new $grassClass());
 
-        $greenClass = \ExampleNamespace\Greens\Map\GreenThingTableMap::getOMClass(
+        $greenClass = $tableMapClass::getOMClass(
             array(
                 2, // random 'ID' value
                 // enable the 'default' case
-                \ExampleNamespace\Greens\Map\GreenThingTableMap::COL_TYPE_DEFAULT,
+                \constant($tableMapClass . '::COL_TYPE_DEFAULT'),
             ),
             0, // somehow the offset is calculated within the getOMClass function (?)
             false
         );
-        $this->assertInstanceOf('\\ExampleNamespace\\Greens\\GreenThing', new $greenClass());
+        $this->assertInstanceOf($greenModelClass, new $greenClass());
     }
 }

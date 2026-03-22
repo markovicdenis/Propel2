@@ -4,7 +4,6 @@
      *
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useExistsQuery()
      *
-     * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $typeOfExists
      * @psalm-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $typeOfExists
      *
      * @param string|null $modelAlias sets an alias for the nested query
