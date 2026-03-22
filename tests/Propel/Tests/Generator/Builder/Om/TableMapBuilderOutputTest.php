@@ -78,8 +78,45 @@ XML;
         $selectMethodsDefinition = $tableMapBuilder->getSelectMethodsDefinition();
 
         $this->assertStringContainsString('foreach (self::ALL_COLUMNS as $column)', $selectMethodsDefinition);
-        $this->assertStringContainsString('if (!in_array($column, self::LAZY_COLUMNS, true)) {', $selectMethodsDefinition);
+        $this->assertStringContainsString('$criteria->addSelectColumn($alias === null ? $column : self::alias($alias, $column));', $selectMethodsDefinition);
+        $this->assertStringContainsString('$criteria->removeSelectColumn($alias === null ? $column : self::alias($alias, $column));', $selectMethodsDefinition);
         $this->assertStringContainsString('self::alias($alias, $column)', $selectMethodsDefinition);
+        $this->assertStringNotContainsString('if (!in_array($column, self::LAZY_COLUMNS, true)) {', $selectMethodsDefinition);
+        $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->addSelectColumn('));
+        $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->removeSelectColumn('));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSelectMethodsSkipLazyColumnsWhenPresent()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+        <column name="body" type="longvarchar" lazyLoad="true"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new class ($table) extends TableMapBuilder {
+            public function getSelectMethodsDefinition(): string
+            {
+                $script = '';
+                $this->addSelectMethods($script);
+
+                return $script;
+            }
+        };
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $selectMethodsDefinition = $tableMapBuilder->getSelectMethodsDefinition();
+
+        $this->assertStringContainsString('if (!in_array($column, self::LAZY_COLUMNS, true)) {', $selectMethodsDefinition);
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->addSelectColumn('));
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->removeSelectColumn('));
     }

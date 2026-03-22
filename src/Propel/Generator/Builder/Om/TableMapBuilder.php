@@ -1377,12 +1377,18 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
         foreach (self::ALL_COLUMNS as \$column) {
+";
+        if ($this->getTable()->getNumLazyLoadColumns() > 0) {
+            $script .= "
             if (!in_array(\$column, self::LAZY_COLUMNS, true)) {
                 \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
-            }
+            }";
+        } else {
+            $script .= "
+            \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));";
         }
-";
         $script .= "
+        }
     }
 ";
     }
@@ -1413,12 +1419,18 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
         foreach (self::ALL_COLUMNS as \$column) {
+";
+        if ($this->getTable()->getNumLazyLoadColumns() > 0) {
+            $script .= "
             if (!in_array(\$column, self::LAZY_COLUMNS, true)) {
                 \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
-            }
+            }";
+        } else {
+            $script .= "
+            \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));";
         }
-";
         $script .= "
+        }
     }
 ";
     }
