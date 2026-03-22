@@ -136,7 +136,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testDoInsertUsesInlineMatchForSimpleBindingsAndClosureForComplexBindings()
+    public function testDoInsertUsesInsertColumnBindingDtos()
     {
         $table = new Table('Foo');
 
@@ -150,23 +150,23 @@ class ObjectBuilderTest extends TestCase
         $name->setDomain(new Domain('VARCHAR'));
         $table->addColumn($name);
 
-        $payload = new Column('payload');
-        $payload->setDomain(new Domain('BLOB'));
-        $table->addColumn($payload);
+        $createdAt = new Column('created_at');
+        $createdAt->setDomain(new Domain('TIMESTAMP'));
+        $table->addColumn($createdAt);
 
         $builder = new TestableObjectBuilder($table);
         $builder->setPlatform(new MysqlPlatform());
 
         $script = $builder->addDoInsertToScript();
 
-        $this->assertStringContainsString('match ($columnName)', $script);
-        $this->assertStringContainsString("'id' => \$stmt->bindValue(\$identifier, \$this->id, PDO::PARAM_INT),", $script);
-        $this->assertStringContainsString("'name' => \$stmt->bindValue(\$identifier, \$this->name, PDO::PARAM_STR),", $script);
-        $this->assertStringContainsString("'payload' => (function () use (\$identifier, \$stmt) {", $script);
-        $this->assertStringContainsString('rewind($this->payload);', $script);
-        $this->assertStringContainsString('default => null,', $script);
-        $this->assertStringNotContainsString('switch ($columnName)', $script);
-        $this->assertStringNotContainsString("'name' => (function () use (\$identifier, \$stmt) {", $script);
+        $this->assertStringContainsString('/** @var list<InsertColumnBindingDto> $modifiedColumns */', $script);
+        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'id\', $this->id, PDO::PARAM_INT);', $script);
+        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'name\', $this->name, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'created_at\', $this->created_at ? $this->created_at->format(\'Y-m-d H:i:s.u\') : null, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->quotedColumnName, $modifiedColumns)', $script);
+        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->identifier, $modifiedColumns)', $script);
+        $this->assertStringContainsString('$binding->bind($stmt);', $script);
+        $this->assertStringNotContainsString('match ($columnName)', $script);
     }
 
 }

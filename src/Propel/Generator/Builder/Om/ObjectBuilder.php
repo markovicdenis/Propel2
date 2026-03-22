@@ -6732,6 +6732,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $this->declareClasses(
             '\Propel\Runtime\Propel',
             '\PDO',
+            '\Propel\Runtime\ActiveRecord\Persistence\InsertColumnBindingDto',
         );
         $table = $this->getTable();
         /** @var \Propel\Generator\Platform\DefaultPlatform $platform */
@@ -6746,6 +6747,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $query = 'INSERT INTO ' . $this->quoteIdentifier($table->getName()) . ' (%s) VALUES (%s)';
         $script = "
+        /** @var list<InsertColumnBindingDto> \$modifiedColumns */
         \$modifiedColumns = [];
         \$index = 0;
 ";
@@ -6798,15 +6800,19 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
          // check the columns in natural order for more readable SQL queries";
         foreach ($table->getColumns() as $column) {
             $constantName = $this->getColumnConstant($column);
-            $identifier = var_export($this->quoteIdentifier($column->getName()), true);
+            $quotedColumnName = var_export($this->quoteIdentifier($column->getName()), true);
+            $valueStatement = $this->getInsertColumnValueStatement($column);
+            $pdoType = PropelTypes::getPdoTypeString($column->getType());
             $isRequired = $column->isNotNull() && $column->isPhpObjectType();
             if ($isRequired) {
                 $script .= "
-        \$modifiedColumns[':p' . \$index++] = $identifier;";
+        \$identifier = ':p' . \$index++;
+        \$modifiedColumns[] = new InsertColumnBindingDto(\$identifier, $quotedColumnName, $valueStatement, $pdoType);";
             } else {
                 $script .= "
         if (\$this->isColumnModified($constantName)) {
-            \$modifiedColumns[':p' . \$index++] = $identifier;
+            \$identifier = ':p' . \$index++;
+            \$modifiedColumns[] = new InsertColumnBindingDto(\$identifier, $quotedColumnName, $valueStatement, $pdoType);
         }";
             }
         }
@@ -6815,35 +6821,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         \$sql = sprintf(
             '$query',
-            implode(', ', \$modifiedColumns),
-            implode(', ', array_keys(\$modifiedColumns))
+            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->quotedColumnName, \$modifiedColumns)),
+            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->identifier, \$modifiedColumns))
         );
 
         try {
             \$stmt = \$con->prepare(\$sql) ?: throw new Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
-            foreach (\$modifiedColumns as \$identifier => \$columnName) {
-                match (\$columnName) {";
-
-        $tab = '                        ';
-        foreach ($table->getColumns() as $column) {
-            $columnNameCase = var_export($this->quoteIdentifier($column->getName()), true);
-            $accessValueStatement = $this->getAccessValueStatement($column);
-            $bindValueStatement = $platform->getColumnBindingPHP($column, '$identifier', $accessValueStatement, $tab);
-            $trimmedBindValueStatement = trim($bindValueStatement);
-            if ($this->isInlineBindableStatement($trimmedBindValueStatement)) {
-                $script .= "
-                    $columnNameCase => " . rtrim($trimmedBindValueStatement, ';') . ',';
-
-                continue;
-            }
-
-            $script .= "
-                    $columnNameCase => (function () use (\$identifier, \$stmt) {" . $bindValueStatement . "
-                    })(),";
-        }
-        $script .= "
-                    default => null,
-                };
+            foreach (\$modifiedColumns as \$binding) {
+                \$binding->bind(\$stmt);
             }
             \$stmt->execute();
         } catch (Exception \$e) {
@@ -6909,19 +6894,29 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     }
 
     /**
-     * Returns whether a generated PDO binding snippet can be used directly as a match expression arm.
+     * Returns the value expression used when constructing insert column bindings.
      *
-     * @param string $statement
+     * @param \Propel\Generator\Model\Column $column
      *
-     * @return bool
+     * @return string
      */
-    protected function isInlineBindableStatement(string $statement): bool
+    protected function getInsertColumnValueStatement(Column $column): string
     {
-        if (str_contains($statement, "\n")) {
-            return false;
+        $accessValueStatement = $this->getAccessValueStatement($column);
+
+        if ($column->getType() === PropelTypes::DATE) {
+            return $accessValueStatement . " ? " . $accessValueStatement . "->format('" . $this->getPlatform()->getDateFormatter() . "') : null";
         }
 
-        return (bool)preg_match('/^\$stmt->bind(?:Value|Param)\(.*\);$/', $statement);
+        if ($column->getType() === PropelTypes::TIME) {
+            return $accessValueStatement . " ? " . $accessValueStatement . "->format('" . $this->getPlatform()->getTimeFormatter() . "') : null";
+        }
+
+        if ($column->isTemporalType()) {
+            return $accessValueStatement . " ? " . $accessValueStatement . "->format('" . $this->getPlatform()->getTimeStampFormatter() . "') : null";
+        }
+
+        return $accessValueStatement;
     }
 
     /**
