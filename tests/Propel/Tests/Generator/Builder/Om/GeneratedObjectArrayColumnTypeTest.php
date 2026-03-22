@@ -157,6 +157,17 @@ EOF;
     /**
      * @return void
      */
+    public function testSetByPosition()
+    {
+        $e = new ComplexColumnTypeEntity2();
+
+        $this->assertSame($e, $e->setByPosition(1, '| foo | 1234 |'));
+        $this->assertSame(['foo', '1234'], $e->getTags());
+    }
+
+    /**
+     * @return void
+     */
     public function testGetterForArrayWithOnlyOneZeroValue()
     {
         $e = new ComplexColumnTypeEntity2();

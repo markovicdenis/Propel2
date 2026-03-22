@@ -108,6 +108,18 @@ EOF;
     /**
      * @return void
      */
+    public function testSetByPosition()
+    {
+        $e = new PublicComplexColumnTypeEntity3();
+
+        $this->assertSame($e, $e->setByPosition(1, 3));
+        $this->assertSame(3, $e->bar);
+        $this->assertSame('1', $e->getBar());
+    }
+
+    /**
+     * @return void
+     */
     public function testSetterThrowsExceptionOnUnknownValue()
     {
         $this->expectException(PropelException::class);

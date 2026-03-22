@@ -3427,13 +3427,23 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function setByPosition(int \$pos, \$value)
     {
-        switch (\$pos) {";
+        match (\$pos) {";
         $i = 0;
         foreach ($table->getColumns() as $col) {
             $cfc = $col->getPhpName();
 
-            $script .= "
-            case $i:";
+            $hasValuePreparation = $col->getType() === PropelTypes::ENUM || $col->isSetType() || $col->getType() === PropelTypes::PHP_ARRAY;
+
+            if ($hasValuePreparation) {
+                $script .= "
+            $i => (function () use (\$value) {";
+            } else {
+                $script .= "
+            $i => \$this->set$cfc(\$value),";
+                $i++;
+
+                continue;
+            }
 
             if ($col->getType() === PropelTypes::ENUM) {
                 $script .= "
@@ -3463,12 +3473,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
 
             $script .= "
-                \$this->set$cfc(\$value);
-                break;";
+                return \$this->set$cfc(\$value);
+            })(),";
             $i++;
         } /* foreach */
         $script .= "
-        } // switch()
+            default => null
+        };
 
         return \$this;
     }

@@ -1303,7 +1303,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     /**
      * Non-lazy columns used to hydrate model objects.
      */
-    private const array SELECT_COLUMNS = [$columnsString];
+    public const array ALL_COLUMNS = [$columnsString];
 ";
     }
 
@@ -1331,7 +1331,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
-        foreach (self::SELECT_COLUMNS as \$column) {
+        foreach (self::ALL_COLUMNS as \$column) {
             \$criteria->addSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
         }
 ";
@@ -1365,7 +1365,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
-        foreach (self::SELECT_COLUMNS as \$column) {
+        foreach (self::ALL_COLUMNS as \$column) {
             \$criteria->removeSelectColumn(\$alias === null ? \$column : self::alias(\$alias, \$column));
         }
 ";

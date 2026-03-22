@@ -49,7 +49,7 @@ class ObjectBuilderTest extends TestCase
         $col3 = new Column('Bar');
         $col3->setDomain(new Domain('DATE'));
         $col3->setDefaultValue(new ColumnDefaultValue('0000-00-00', ColumnDefaultValue::TYPE_VALUE));
-        $val3 = 'NULL';
+        $val3 = 'null';
 
         return [
             [$col1, $val1],
@@ -63,6 +63,7 @@ class ObjectBuilderTest extends TestCase
      *
      * @return void
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('getDefaultValueStringProvider')]
     public function testGetDefaultValueString($column, $value)
     {
         $this->assertEquals($value, $this->builder->getDefaultValueString($column));
@@ -75,12 +76,45 @@ class ObjectBuilderTest extends TestCase
     {
         $this->assertEquals('TYPE_PHPNAME', $this->builder->getDefaultKeyType());
     }
+
+    /**
+     * @return void
+     */
+    public function testAddSetByPositionUsesMatchExpression()
+    {
+        $table = new Table('Foo');
+
+        $firstName = new Column('first_name');
+        $firstName->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($firstName);
+
+        $lastName = new Column('last_name');
+        $lastName->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($lastName);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addSetByPositionToScript($script);
+
+        $this->assertStringContainsString('match ($pos)', $script);
+        $this->assertStringContainsString('0 => $this->setFirstName($value),', $script);
+        $this->assertStringContainsString('1 => $this->setLastName($value),', $script);
+        $this->assertStringContainsString('default => null', $script);
+        $this->assertStringNotContainsString('switch ($pos)', $script);
+    }
 }
 
 class TestableObjectBuilder extends ObjectBuilder
 {
-    public function getDefaultValueString(Column $col): string
+    public function getDefaultValueString(Column $col, bool $acceptNull = true): string
     {
-        return parent::getDefaultValueString($col);
+        return parent::getDefaultValueString($col, $acceptNull);
+    }
+
+    public function addSetByPositionToScript(string &$script): void
+    {
+        $this->addSetByPosition($script);
     }
 }

@@ -190,6 +190,18 @@ EOF;
     /**
      * @return void
      */
+    public function testSetByPosition()
+    {
+        $e = new PublicComplexColumnTypeEntitySet();
+
+        $this->assertSame($e, $e->setByPosition(1, 5));
+        $this->assertEquals(5, $e->tags);
+        $this->assertSame(['foo', 'baz'], $e->getTags());
+    }
+
+    /**
+     * @return void
+     */
     public function testSetterResetValue()
     {
         $e = new ComplexColumnTypeEntitySet();

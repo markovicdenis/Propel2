@@ -76,7 +76,7 @@ XML;
         $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
         $selectMethodsDefinition = $tableMapBuilder->getSelectMethodsDefinition();
 
-        $this->assertStringContainsString('foreach (self::SELECT_COLUMNS as $column)', $selectMethodsDefinition);
+        $this->assertStringContainsString('foreach (self::ALL_COLUMNS as $column)', $selectMethodsDefinition);
         $this->assertStringContainsString('self::alias($alias, $column)', $selectMethodsDefinition);
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->addSelectColumn('));
         $this->assertSame(1, substr_count($selectMethodsDefinition, '$criteria->removeSelectColumn('));
@@ -124,7 +124,7 @@ XML;
         $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
         $classBodyDefinition = $tableMapBuilder->getConstantsAndAttributesDefinition();
 
-        $selectColumnsPosition = strpos($classBodyDefinition, 'private const array SELECT_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
+        $selectColumnsPosition = strpos($classBodyDefinition, 'public const array ALL_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
         $fieldNamesPosition = strpos($classBodyDefinition, 'protected static array $fieldNames = [');
 
         $this->assertNotFalse($selectColumnsPosition);
