@@ -14,7 +14,7 @@ use Propel\Tests\Bookstore\BookQuery;
 
 class MyCustomBookQuery extends BookQuery
 {
-    public static function create(?string $modelAlias = null, ?Criteria $criteria = null): Criteria
+    public static function create(?string $modelAlias = null, ?Criteria $criteria = null): self
     {
         if ($criteria instanceof MyCustomBookQuery) {
             return $criteria;
@@ -35,7 +35,7 @@ class MySecondBookQuery extends BookQuery
 {
     public static $preSelectWasCalled = false;
 
-    public function __construct($dbName = 'bookstore', $modelName = '\Propel\Tests\Bookstore\Book', $modelAlias = null)
+    public function __construct(?string $dbName = 'bookstore', ?string $modelName = '\Propel\Tests\Bookstore\Book', ?string $modelAlias = null)
     {
         self::$preSelectWasCalled = false;
         parent::__construct($dbName, $modelName, $modelAlias);

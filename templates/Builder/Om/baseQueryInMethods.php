@@ -5,6 +5,7 @@
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useInQuery()
      *
      * @phpstan-param \Propel\Runtime\ActiveQuery\Criteria::*IN $typeOfIn
+     * @psalm-param \Propel\Runtime\ActiveQuery\Criteria::*IN $typeOfIn
      *
      * @param string|null $modelAlias sets an alias for the nested query
      * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the IN query, like ExtendedBookQuery::class
@@ -12,7 +13,7 @@
      *
      * @return <?= $queryClass ?> The inner query object of the IN statement
      */
-    public function useIn<?= $relationName ?>Query($modelAlias = null, $queryClass = null, $typeOfIn = '<?= $inType ?>')
+    public function useIn<?= $relationName ?>Query(?string $modelAlias = null, ?string $queryClass = null, string $typeOfIn = '<?= $inType ?>'): <?= $queryClass ?>
     {
         /** @var <?= $queryClass ?> $q */
         $q = $this->useInQuery('<?= $relationName ?>', $modelAlias, $queryClass, $typeOfIn);
@@ -29,7 +30,7 @@
      *
      * @return <?= $queryClass ?> The inner query object of the NOT IN statement
      */
-    public function useNotIn<?= $relationName ?>Query($modelAlias = null, $queryClass = null)
+    public function useNotIn<?= $relationName ?>Query(?string $modelAlias = null, ?string $queryClass = null): <?= $queryClass ?>
     {
         /** @var <?= $queryClass ?> $q */
         $q = $this->useInQuery('<?= $relationName ?>', $modelAlias, $queryClass, '<?= $notInType ?>');

@@ -364,9 +364,9 @@ class QueryBuilder extends AbstractOMBuilder
     /**
      * Initializes internal state of " . $this->getClassName() . " object.
      *
-     * @param string \$dbName The database name
-     * @param string \$modelName The phpName of a model, e.g. 'Book'
-     * @param string \$modelAlias The alias for the model in this query, e.g. 'b'
+     * @param string|null \$dbName The database name
+     * @param string|null \$modelName The phpName of a model, e.g. 'Book'
+     * @param string|null \$modelAlias The alias for the model in this query, e.g. 'b'
      */";
     }
 
@@ -381,7 +381,7 @@ class QueryBuilder extends AbstractOMBuilder
     {
         $table = $this->getTable();
         $script .= "
-    public function __construct(\$dbName = '" . $table->getDatabase()->getName() . "', \$modelName = '" . addslashes($this->getNewStubObjectBuilder($table)->getFullyQualifiedClassName()) . "', \$modelAlias = null)
+    public function __construct(?string \$dbName = '" . $table->getDatabase()->getName() . "', ?string \$modelName = '" . addslashes($this->getNewStubObjectBuilder($table)->getFullyQualifiedClassName()) . "', ?string \$modelAlias = null)
     {";
     }
 
@@ -441,8 +441,8 @@ class QueryBuilder extends AbstractOMBuilder
     /**
      * Returns a new " . $classname . " object.
      *
-     * @param string \$modelAlias The alias of a model in the query
-     * @param Criteria \$criteria Optional Criteria to build the query from
+     * @param string|null \$modelAlias The alias of a model in the query
+     * @param Criteria|null \$criteria Optional Criteria to build the query from
      *
      * @return " . $classname . "
      */";
@@ -457,8 +457,9 @@ class QueryBuilder extends AbstractOMBuilder
      */
     protected function addFactoryOpen(string &$script): void
     {
+        $classname = $this->getClassNameFromBuilder($this->getNewStubQueryBuilder($this->getTable()));
         $script .= "
-    public static function create(?string \$modelAlias = null, ?Criteria \$criteria = null): Criteria
+    public static function create(?string \$modelAlias = null, ?Criteria \$criteria = null): " . $classname . "
     {";
     }
 
@@ -1567,13 +1568,13 @@ class QueryBuilder extends AbstractOMBuilder
      *
      * @see useQuery()
      *
-     * @param string \$relationAlias optional alias for the relation,
+     * @param string|null \$relationAlias optional alias for the relation,
      *                                   to be used as main alias in the secondary query
-     * @param string \$joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     * @param string|null \$joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
      * @return $queryClass A secondary query class using the current class as primary query
      */
-    public function use" . $relationName . 'Query($relationAlias = null, $joinType = ' . $joinType . ")
+    public function use" . $relationName . 'Query(?string $relationAlias = null, ?string $joinType = ' . $joinType . '): ' . $queryClass . "
     {
         /** @var $queryClass */
         return \$this
@@ -1675,13 +1676,13 @@ class QueryBuilder extends AbstractOMBuilder
      *
      * @param string|null \$joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
-     * @return \$this
+     * @return static
      */
     public function with{$relationName}Query(
         callable \$callable,
         ?string \$relationAlias = null,
         ?string \$joinType = {$joinType}
-    ) {
+    ): static {
         \$relatedQuery = \$this->use{$relationName}Query(
             \$relationAlias,
             \$joinType ?? {$joinType}

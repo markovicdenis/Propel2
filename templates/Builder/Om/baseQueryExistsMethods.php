@@ -5,6 +5,7 @@
      * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useExistsQuery()
      *
      * @phpstan-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $typeOfExists
+     * @psalm-param \Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion::TYPE_* $typeOfExists
      *
      * @param string|null $modelAlias sets an alias for the nested query
      * @param class-string<ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
@@ -12,7 +13,7 @@
      *
      * @return <?= $queryClass ?> The inner query object of the EXISTS statement
      */
-    public function use<?= $relationName ?>ExistsQuery($modelAlias = null, $queryClass = null, $typeOfExists = '<?= $existsType ?>')
+    public function use<?= $relationName ?>ExistsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfExists = '<?= $existsType ?>'): <?= $queryClass ?>
     {
         /** @var <?= $queryClass ?> $q */
         $q = $this->useExistsQuery('<?= $relationName ?>', $modelAlias, $queryClass, $typeOfExists);
@@ -29,7 +30,7 @@
      *
      * @return <?= $queryClass ?> The inner query object of the NOT EXISTS statement
      */
-    public function use<?= $relationName ?>NotExistsQuery($modelAlias = null, $queryClass = null)
+    public function use<?= $relationName ?>NotExistsQuery(?string $modelAlias = null, ?string $queryClass = null): <?= $queryClass ?>
     {
         /** @var <?= $queryClass ?> $q */
         $q = $this->useExistsQuery('<?= $relationName ?>', $modelAlias, $queryClass, '<?= $notExistsType ?>');

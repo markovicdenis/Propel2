@@ -78,14 +78,17 @@
 <?php endforeach;?>
  *
  * @method     <?= $modelClass ?>[]|Collection find(?ConnectionInterface $con = null) Return <?= $modelClass ?> objects based on current ModelCriteria
+ * @phpstan-method Collection&\Traversable<<?= $modelClass ?>> find(?ConnectionInterface $con = null) Return <?= $modelClass ?> objects based on current ModelCriteria
  * @psalm-method Collection&\Traversable<<?= $modelClass ?>> find(?ConnectionInterface $con = null) Return <?= $modelClass ?> objects based on current ModelCriteria
  *
 <?php foreach($columns as $column):?>
  * @method     <?= $modelClass ?>[]|Collection findBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?>|array<<?= $column->getPhpType() ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
+ * @phpstan-method Collection&\Traversable<<?= $modelClass ?>> findBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?>|array<<?= $column->getPhpType() ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
  * @psalm-method Collection&\Traversable<<?= $modelClass ?>> findBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?>|array<<?= $column->getPhpType() ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
 <?php endforeach;?>
  *
  * @method     <?= $modelClass ?>[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
+ * @phpstan-method \Propel\Runtime\Util\PropelModelPager&\Traversable<<?= $modelClass ?>> paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  * @psalm-method \Propel\Runtime\Util\PropelModelPager&\Traversable<<?= $modelClass ?>> paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit
  */
 abstract class <?= $unqualifiedClassName ?> extends <?= $parentClass ?> 
