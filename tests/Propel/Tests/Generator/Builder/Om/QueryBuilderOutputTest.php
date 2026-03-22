@@ -12,7 +12,6 @@ use Propel\Generator\Builder\Om\QueryBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Platform\DefaultPlatform;
-use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
 
 class QueryBuilderOutputTestBuilder extends QueryBuilder
@@ -108,49 +107,23 @@ XML;
     /**
      * @return void
      */
-    public function testFactoryUsesConcreteQueryReturnType()
+    public function testFactoryUsesLegacyCriteriaReturnType()
     {
         $builder = $this->createBuilder();
         $factoryDefinition = $builder->getFactoryDefinition();
 
-        $this->assertStringContainsString('@param string|null $modelAlias The alias of a model in the query', $factoryDefinition);
-        $this->assertStringContainsString('@param Criteria|null $criteria Optional Criteria to build the query from', $factoryDefinition);
+        $this->assertStringContainsString('@param string $modelAlias The alias of a model in the query', $factoryDefinition);
+        $this->assertStringContainsString('@param Criteria $criteria Optional Criteria to build the query from', $factoryDefinition);
         $this->assertStringContainsString('@return ChildBookQuery', $factoryDefinition);
         $this->assertStringContainsString(
-            'public static function create(?string $modelAlias = null, ?Criteria $criteria = null): ChildBookQuery',
+            'public static function create(?string $modelAlias = null, ?Criteria $criteria = null): Criteria',
             $factoryDefinition
         );
-        $this->assertStringContainsString(
-            '$queryClass = static::class === self::class ? ChildBookQuery::class : static::class;',
-            $factoryDefinition
-        );
-        $this->assertStringContainsString('/** @var ChildBookQuery $query */', $factoryDefinition);
-        $this->assertStringContainsString('$query = new $queryClass();', $factoryDefinition);
-        $this->assertStringNotContainsString('new ChildBookQuery();', $factoryDefinition);
-    }
-
-    /**
-     * @return void
-     */
-    public function testBaseQueryFactoryFallsBackToConcreteChildQuery()
-    {
-        $databaseXml = <<<XML
-<database namespace="ExampleNamespace\Users" package="Users">
-    <table name="user">
-        <column name="id" type="integer" primaryKey="true"/>
-    </table>
-</database>
-XML;
-        $builder = new QuickBuilder();
-        $builder->setSchema($databaseXml);
-        $builder->build();
-
-        $baseQueryClass = '\\ExampleNamespace\\Users\\Base\\UserQuery';
-        $childQueryClass = '\\ExampleNamespace\\Users\\UserQuery';
-
-        $this->assertTrue(\class_exists($baseQueryClass));
-        $this->assertTrue(\class_exists($childQueryClass));
-        $this->assertInstanceOf($childQueryClass, $baseQueryClass::create());
+        $this->assertStringContainsString('if ($criteria instanceof ChildBookQuery) {', $factoryDefinition);
+        $this->assertStringContainsString('$query = new ChildBookQuery();', $factoryDefinition);
+        $this->assertStringNotContainsString('static::class', $factoryDefinition);
+        $this->assertStringNotContainsString('new static();', $factoryDefinition);
+        $this->assertStringNotContainsString('new $queryClass();', $factoryDefinition);
     }
 
     /**

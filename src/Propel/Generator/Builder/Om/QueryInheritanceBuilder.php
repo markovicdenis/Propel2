@@ -201,19 +201,17 @@ class " . $this->getUnqualifiedClassName() . ' extends ' . $baseClassName . "
     /**
      * Returns a new " . $classname . " object.
      *
-     * @param string|null \$modelAlias The alias of a model in the query
-     * @param Criteria|null \$criteria Optional Criteria to build the query from
+     * @param ?string \$modelAlias The alias of a model in the query
+     * @param ?Criteria \$criteria Optional Criteria to build the query from
      *
      * @return " . $classname . "
      */
-    public static function create(?string \$modelAlias = null, ?Criteria \$criteria = null): " . $classname . "
+    public static function create(?string \$modelAlias = null, ?Criteria \$criteria = null): Criteria
     {
-        \$queryClass = static::class === self::class ? $classname::class : static::class;
-        if (\$criteria instanceof \$queryClass) {
+        if (\$criteria instanceof $classname) {
             return \$criteria;
         }
-        /** @var $classname \$query */
-        \$query = new \$queryClass();
+        \$query = new $classname();
         if (\$modelAlias !== null) {
             \$query->setModelAlias(\$modelAlias);
         }
