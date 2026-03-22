@@ -133,6 +133,35 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringNotContainsString('if ($this->isColumnModified(FooTableMap::COL_ID)) {', $script);
     }
 
+    /**
+     * @return void
+     */
+    public function testDoInsertUsesMatchExpressionForColumnBinding()
+    {
+        $table = new Table('Foo');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setAutoIncrement(true);
+        $table->addColumn($id);
+
+        $name = new Column('name');
+        $name->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($name);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = $builder->addDoInsertToScript();
+
+        $this->assertStringContainsString('match ($columnName)', $script);
+        $this->assertStringContainsString("'id' => (function () use (\$identifier, \$stmt) {", $script);
+        $this->assertStringContainsString("'name' => (function () use (\$identifier, \$stmt) {", $script);
+        $this->assertStringContainsString('default => null,', $script);
+        $this->assertStringNotContainsString('switch ($columnName)', $script);
+    }
+
 }
 
 class TestableObjectBuilder extends ObjectBuilder
@@ -147,6 +176,16 @@ class TestableObjectBuilder extends ObjectBuilder
         return $this->getTable()->getPhpName() . 'TableMap';
     }
 
+    public function getUnprefixedClassName(): string
+    {
+        return $this->getTable()->getPhpName();
+    }
+
+    public function getObjectClassName(bool $fqcn = false): string
+    {
+        return $this->getTable()->getPhpName();
+    }
+
     public function addSetByPositionToScript(string &$script): void
     {
         $this->addSetByPosition($script);
@@ -155,5 +194,10 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addBuildCriteriaToScript(string &$script): void
     {
         $this->addBuildCriteria($script);
+    }
+
+    public function addDoInsertToScript(): string
+    {
+        return $this->addDoInsert();
     }
 }

@@ -6822,7 +6822,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         try {
             \$stmt = \$con->prepare(\$sql) ?: throw new Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
             foreach (\$modifiedColumns as \$identifier => \$columnName) {
-                switch (\$columnName) {";
+                match (\$columnName) {";
 
         $tab = '                        ';
         foreach ($table->getColumns() as $column) {
@@ -6830,12 +6830,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $accessValueStatement = $this->getAccessValueStatement($column);
             $bindValueStatement = $platform->getColumnBindingPHP($column, '$identifier', $accessValueStatement, $tab);
             $script .= "
-                    case $columnNameCase:$bindValueStatement
-
-                        break;";
+                    $columnNameCase => (function () use (\$identifier, \$stmt) {" . $bindValueStatement . "
+                    })(),";
         }
         $script .= "
-                }
+                    default => null,
+                };
             }
             \$stmt->execute();
         } catch (Exception \$e) {
