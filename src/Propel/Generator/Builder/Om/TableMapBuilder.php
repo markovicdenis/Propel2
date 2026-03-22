@@ -193,6 +193,28 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     }
 
     /**
+     * Returns the shared PropelException phpDoc tag for generated methods.
+     *
+     * @return string
+     */
+    protected function getPropelExceptionThrowsDocTag(): string
+    {
+        return '     * @throws \Propel\Runtime\Exception\PropelException';
+    }
+
+    /**
+     * Returns the wrapped phpDoc for the row index type parameter.
+     *
+     * @return string
+     */
+    protected function getRowIndexTypeParamDocTag(): string
+    {
+        return "     * @param string \$indexType The index type of \$row. Mostly DataFetcher->getIndexType().\n"
+            . "     *     One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,\n"
+            . "     *     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.";
+    }
+
+    /**
      * Adds any constants needed for this TableMap class.
      *
      * @return string
@@ -401,49 +423,43 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     {
         $tableColumns = $this->getTable()->getColumns();
 
-        $fieldNamesPhpName = '';
-        $fieldNamesCamelCaseName = '';
-        $fieldNamesColname = '';
-        $fieldNamesRawColname = '';
-        $fieldNamesFieldName = '';
-        $fieldNamesNum = '';
+        $fieldNamesPhpName = [];
+        $fieldNamesCamelCaseName = [];
+        $fieldNamesColname = [];
+        $fieldNamesFieldName = [];
+        $fieldNamesNum = [];
 
-        $fieldKeysPhpName = '';
-        $fieldKeysCamelCaseName = '';
-        $fieldKeysColname = '';
-        $fieldKeysRawColname = '';
-        $fieldKeysFieldName = '';
-        $fieldKeysNum = '';
+        $fieldKeysPhpName = [];
+        $fieldKeysCamelCaseName = [];
+        $fieldKeysColname = [];
+        $fieldKeysFieldName = [];
+        $fieldKeysNum = [];
 
         foreach ($tableColumns as $num => $col) {
-            $fieldNamesPhpName .= "'" . $col->getPhpName() . "', ";
-            $fieldNamesCamelCaseName .= "'" . $col->getCamelCaseName() . "', ";
-            $fieldNamesColname .= $this->getColumnConstant($col, 'self') . ', ';
-            $fieldNamesRawColname .= "'" . $col->getConstantName() . "', ";
-            $fieldNamesFieldName .= "'" . $col->getName() . "', ";
-            $fieldNamesNum .= "$num, ";
+            $fieldNamesPhpName[] = "'" . $col->getPhpName() . "'";
+            $fieldNamesCamelCaseName[] = "'" . $col->getCamelCaseName() . "'";
+            $fieldNamesColname[] = $this->getColumnConstant($col, 'self');
+            $fieldNamesFieldName[] = "'" . $col->getName() . "'";
+            $fieldNamesNum[] = (string)$num;
 
-            $fieldKeysPhpName .= "'" . $col->getPhpName() . "' => $num, ";
-            $fieldKeysCamelCaseName .= "'" . $col->getCamelCaseName() . "' => $num, ";
-            $fieldKeysColname .= $this->getColumnConstant($col, 'self') . " => $num, ";
-            $fieldKeysRawColname .= "'" . $col->getConstantName() . "' => $num, ";
-            $fieldKeysFieldName .= "'" . $col->getName() . "' => $num, ";
-            $fieldKeysNum .= "$num, ";
+            $fieldKeysPhpName[] = "'" . $col->getPhpName() . "' => $num";
+            $fieldKeysCamelCaseName[] = "'" . $col->getCamelCaseName() . "' => $num";
+            $fieldKeysColname[] = $this->getColumnConstant($col, 'self') . " => $num";
+            $fieldKeysFieldName[] = "'" . $col->getName() . "' => $num";
+            $fieldKeysNum[] = (string)$num;
         }
 
         return $this->renderTemplate('tableMapFields', [
-                'fieldNamesPhpName' => $fieldNamesPhpName,
-                'fieldNamesCamelCaseName' => $fieldNamesCamelCaseName,
-                'fieldNamesColname' => $fieldNamesColname,
-                'fieldNamesRawColname' => $fieldNamesRawColname,
-                'fieldNamesFieldName' => $fieldNamesFieldName,
-                'fieldNamesNum' => $fieldNamesNum,
-                'fieldKeysPhpName' => $fieldKeysPhpName,
-                'fieldKeysCamelCaseName' => $fieldKeysCamelCaseName,
-                'fieldKeysColname' => $fieldKeysColname,
-                'fieldKeysRawColname' => $fieldKeysRawColname,
-                'fieldKeysFieldName' => $fieldKeysFieldName,
-                'fieldKeysNum' => $fieldKeysNum,
+                'fieldNamesPhpName' => implode(', ', $fieldNamesPhpName),
+                'fieldNamesCamelCaseName' => implode(', ', $fieldNamesCamelCaseName),
+                'fieldNamesColname' => implode(', ', $fieldNamesColname),
+                'fieldNamesFieldName' => implode(', ', $fieldNamesFieldName),
+                'fieldNamesNum' => implode(', ', $fieldNamesNum),
+                'fieldKeysPhpName' => implode(', ', $fieldKeysPhpName),
+                'fieldKeysCamelCaseName' => implode(', ', $fieldKeysCamelCaseName),
+                'fieldKeysColname' => implode(', ', $fieldKeysColname),
+                'fieldKeysFieldName' => implode(', ', $fieldKeysFieldName),
+                'fieldKeysNum' => implode(', ', $fieldKeysNum),
         ]);
     }
 
@@ -457,7 +473,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $table = $this->getTable();
         $tableColumns = $table->getColumns();
 
-        $arrayString = '';
+        $entries = [];
         foreach ($tableColumns as $column) {
             $variants = [
                 $column->getPhpName(), // ColumnName => COLUMN_NAME
@@ -471,16 +487,16 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             $variants = array_unique($variants);
 
             $normalizedName = strtoupper($column->getName());
-            array_walk($variants, static function ($variant) use (&$arrayString, $normalizedName): void {
-                $arrayString .= PHP_EOL . "        '{$variant}' => '{$normalizedName}',";
-            });
+            foreach ($variants as $variant) {
+                $entries[] = "        '{$variant}' => '{$normalizedName}',";
+            }
         }
 
         $script .= '
     /**
      * Holds the column-name variants that cannot be normalized generically.
      */
-    private const array NORMALIZED_COLUMN_NAME_MAP = [' . $arrayString . PHP_EOL
+    private const array NORMALIZED_COLUMN_NAME_MAP = [' . ($entries ? PHP_EOL . implode(PHP_EOL, $entries) . PHP_EOL : '')
             . '    ];' . PHP_EOL
             . '
     protected function getNormalizedColumnName(string $columnName): string
@@ -1034,8 +1050,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * @param array \$row ConnectionInterface result row.
      * @param int \$colNum Column to examine for OM class information (first is 0).
      * @param bool \$withPrefix Whether to return the path with the class name
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      *
      * @return string The OM class
      */
@@ -1157,12 +1172,9 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @param array \$row Row returned by DataFetcher->fetch().
      * @param int \$offset The 0-based offset for reading from the resultset row.
-     * @param string \$indexType The index type of \$row. Mostly DataFetcher->getIndexType().
-                                 One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME
-     *                           TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
+" . $this->getRowIndexTypeParamDocTag() . "
      *
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      * @return array (" . $this->getObjectClassName() . " object, last column rank)
      */
     public static function populateObject(array \$row, int \$offset = 0, string \$indexType = TableMap::TYPE_NUM): array
@@ -1192,7 +1204,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         }
         $script .= "
             /** @var {$this->getObjectClassName()} \$obj */
-            \$obj = new \$cls();
+            " . $this->buildObjectInstanceCreationCode('$obj', '$cls') . "
             \$col = \$obj->hydrate(\$row, \$offset, false, \$indexType);
             static::addInstanceToPool(\$obj, \$key);
         }
@@ -1219,8 +1231,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @param DataFetcherInterface \$dataFetcher
      * @return array<object>
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      */
     public static function populateObjects(DataFetcherInterface \$dataFetcher): array
     {
@@ -1315,8 +1326,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @param Criteria \$criteria Object containing the columns to add.
      * @param string|null \$alias Optional table alias
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      * @return void
      */
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
@@ -1350,8 +1360,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * @param Criteria \$criteria Object containing the columns to remove.
      * @param string|null \$alias Optional table alias
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      * @return void
      */
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
@@ -1381,8 +1390,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * Returns the TableMap related to this object.
      * This method is not needed for general use but a specific application could have a need.
      * @return TableMap
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      */
     public static function getTableMap(): TableMap
     {
@@ -1432,7 +1440,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * @param mixed \$values Criteria or " . $this->getObjectClassName() . " object or primary key or array of primary keys which is used to create the DELETE statement
      * @param ?ConnectionInterface \$con the connection to use
      * @return int The number of affected rows (if supported by underlying database driver).  This includes CASCADE-related rows if supported by native driver or if emulated using Propel.
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      */
      public static function doDelete(\$values, ?ConnectionInterface \$con = null): int
      {
@@ -1535,8 +1543,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * @param mixed \$criteria Criteria or " . $this->getObjectClassName() . " object containing data that is used to create the INSERT statement.
      * @param ?ConnectionInterface \$con the ConnectionInterface connection to use
      * @return mixed The new primary key.
-     * @throws \Propel\Runtime\Exception\PropelException Any exceptions caught during processing will be
-     *                         rethrown wrapped into a PropelException.
+" . $this->getPropelExceptionThrowsDocTag() . "
      */
     public static function doInsert(\$criteria, ?ConnectionInterface \$con = null)
     {

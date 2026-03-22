@@ -46,6 +46,7 @@ use Relation6UserQuery;
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class GeneratedObjectM2MRelationThreePKsTest extends PlatformDatabaseBuildTimeBase
 {
     protected $databaseName = 'migration';

@@ -49,6 +49,7 @@ use ReflectionMethod;
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class QueryBuilderTest extends BookstoreTestBase
 {
     /**

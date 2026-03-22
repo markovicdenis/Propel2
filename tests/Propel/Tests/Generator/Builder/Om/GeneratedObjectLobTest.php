@@ -37,6 +37,7 @@ if (!defined('TESTS_BASE_DIR')) {
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class GeneratedObjectLobTest extends BookstoreEmptyTestBase
 {
     /**

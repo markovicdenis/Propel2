@@ -30,6 +30,7 @@ use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class QueryBuilderInheritanceTest extends BookstoreTestBase
 {
     public function constructProvider()

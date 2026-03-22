@@ -82,6 +82,7 @@ use ReflectionMethod;
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class GeneratedObjectTest extends BookstoreTestBase
 {
     /**

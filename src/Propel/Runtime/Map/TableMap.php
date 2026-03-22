@@ -29,7 +29,7 @@ use function sprintf;
  * @author William Durand <william.durand1@gmail.com>
  *
  * @method static string getOMClass(array $row, int $column, bool $withPrefix = true)
- * @method static string|null getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = \Propel\Runtime\Map\TableMap::TYPE_NUM): ?string;getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = TableMap::TYPE_NUM)
+ * @method static string|null getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = \Propel\Runtime\Map\TableMap::TYPE_NUM)
  */
 class TableMap
 {
@@ -369,7 +369,12 @@ class TableMap
      */
     public function getCollectionClassName(): string
     {
-        $collectionClassName = $this->getClassName() . 'Collection';
+        $className = $this->getClassName();
+        if (!$className) {
+            return ObjectCollection::class;
+        }
+
+        $collectionClassName = $className . 'Collection';
         if (class_exists($collectionClassName) && is_subclass_of($collectionClassName, Collection::class)) {
             return $collectionClassName;
         }
@@ -476,6 +481,33 @@ class TableMap
     }
 
     /**
+     * Keeps the table's lookup maps in sync for a configured column.
+     *
+     * @param \Propel\Runtime\Map\ColumnMap $column
+     *
+     * @return void
+     */
+    protected function indexColumn(ColumnMap $column): void
+    {
+        $columnName = $column->getName();
+
+        $this->columns[$this->getNormalizedColumnName($columnName)] = $column;
+        $this->columnsByPhpName[$column->getPhpName()] = $column;
+
+        if ($column->isPrimaryKey()) {
+            $this->primaryKeys[$columnName] = $column;
+        } else {
+            unset($this->primaryKeys[$columnName]);
+        }
+
+        if ($column->isForeignKey()) {
+            $this->foreignKeys[$columnName] = $column;
+        } else {
+            unset($this->foreignKeys[$columnName]);
+        }
+    }
+
+    /**
      * Add a column to the table.
      *
      * @param string $name A String with the column name.
@@ -508,16 +540,13 @@ class TableMap
 
         if ($pk) {
             $col->setPrimaryKey(true);
-            $this->primaryKeys[$name] = $col;
         }
 
         if ($fkTable && $fkColumn) {
             $col->setForeignKey($fkTable, $fkColumn);
-            $this->foreignKeys[$name] = $col;
         }
 
-        $this->columns[$this->getNormalizedColumnName($name)] = $col;
-        $this->columnsByPhpName[$phpName] = $col;
+        $this->indexColumn($col);
 
         return $col;
     }
@@ -532,7 +561,7 @@ class TableMap
      */
     public function addConfiguredColumn(ColumnMap $cmap): ColumnMap
     {
-        $this->columns[$cmap->getName()] = $cmap;
+        $this->indexColumn($cmap);
 
         return $cmap;
     }
@@ -618,16 +647,10 @@ class TableMap
     public function findColumnByName(string $name): ?ColumnMap
     {
         if (isset($this->columnsByPhpName[$name])) {
-            return $this->getColumnByPhpName($name);
-        }
-        if ($this->hasColumn($name, false)) {
-            return $this->getColumn($name, false);
-        }
-        if ($this->hasColumn($name, true)) {
-            return $this->getColumn($name, true);
+            return $this->columnsByPhpName[$name];
         }
 
-        return null;
+        return $this->columns[$this->getNormalizedColumnName($name)] ?? null;
     }
 
     /**

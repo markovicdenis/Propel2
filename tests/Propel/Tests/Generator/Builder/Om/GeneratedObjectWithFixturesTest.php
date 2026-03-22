@@ -45,6 +45,7 @@ use Propel\Tests\Helpers\Bookstore\BookstoreEmptyTestBase;
  *
  * @group database
  */
+#[\PHPUnit\Framework\Attributes\Group('database')]
 class GeneratedObjectWithFixturesTest extends BookstoreEmptyTestBase
 {
     /**

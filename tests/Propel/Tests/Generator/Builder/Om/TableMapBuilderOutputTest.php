@@ -109,4 +109,94 @@ XML;
         $this->assertStringContainsString('protected static array $fieldKeys = [', $fieldAttributesDefinition);
         $this->assertStringContainsString('self::COL_EMAIL_ADDRESS', $fieldAttributesDefinition);
     }
+
+    /**
+     * @return void
+     */
+    public function testGeneratedPhpDocUsesValidWrappedTags()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new class ($table) extends TableMapBuilder {
+            public function getPopulateObjectDefinition(): string
+            {
+                $script = '';
+                $this->addPopulateObject($script);
+
+                return $script;
+            }
+
+            public function getGetTableMapDefinition(): string
+            {
+                $script = '';
+                $this->addGetTableMap($script);
+
+                return $script;
+            }
+        };
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+
+        $populateObjectDefinition = $tableMapBuilder->getPopulateObjectDefinition();
+        $getTableMapDefinition = $tableMapBuilder->getGetTableMapDefinition();
+
+        $this->assertStringContainsString(
+            "     * @param string \$indexType The index type of \$row. Mostly DataFetcher->getIndexType().\n"
+            . "     *     One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,\n"
+            . "     *     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.",
+            $populateObjectDefinition
+        );
+        $this->assertStringContainsString('     * @throws \Propel\Runtime\Exception\PropelException', $populateObjectDefinition);
+        $this->assertStringContainsString('     * @throws \Propel\Runtime\Exception\PropelException', $getTableMapDefinition);
+        $this->assertStringNotContainsString('Any exceptions caught during processing will be', $populateObjectDefinition);
+        $this->assertStringNotContainsString('rethrown wrapped into a PropelException.', $populateObjectDefinition);
+        $this->assertStringNotContainsString("\n                                 One of the class type constants", $populateObjectDefinition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testPopulateObjectUsesSharedInstanceCreationHook()
+    {
+        $databaseXml = '
+<database>
+    <table name="email">
+        <column name="id" type="integer"/>
+        <column name="email_address" type="varchar"/>
+    </table>
+</database>
+';
+        $reader = new SchemaReader();
+        $schema = $reader->parseString($databaseXml);
+        $table = $schema->getDatabase()->getTable('email');
+
+        $tableMapBuilder = new class ($table) extends TableMapBuilder {
+            public function getPopulateObjectDefinition(): string
+            {
+                $script = '';
+                $this->addPopulateObject($script);
+
+                return $script;
+            }
+
+            public function buildObjectInstanceCreationCode(string $objName, string $clsName): string
+            {
+                return "$objName = self::customInstantiate($clsName);";
+            }
+        };
+        $tableMapBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+
+        $populateObjectDefinition = $tableMapBuilder->getPopulateObjectDefinition();
+
+        $this->assertStringContainsString('$obj = self::customInstantiate($cls);', $populateObjectDefinition);
+    }
 }

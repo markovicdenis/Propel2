@@ -295,6 +295,39 @@ class TableMapTest extends TestCase
     /**
      * @return void
      */
+    public function testAddConfiguredColumnIndexesNormalizedAndPhpNames()
+    {
+        $column = new ColumnMap('bar_baz', $this->tmap, 'BarBaz', 'VARCHAR');
+
+        $this->tmap->addConfiguredColumn($column);
+
+        $this->assertSame($column, $this->tmap->getColumn('bar_baz'));
+        $this->assertSame($column, $this->tmap->getColumn('foo.bar_baz'));
+        $this->assertSame($column, $this->tmap->getColumnByPhpName('BarBaz'));
+        $this->assertSame($column, $this->tmap->findColumnByName('foo.bar_baz'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddConfiguredColumnTracksPrimaryAndForeignKeys()
+    {
+        $primaryKeyColumn = new ColumnMap('id', $this->tmap, 'Id', 'INTEGER');
+        $primaryKeyColumn->setPrimaryKey(true);
+
+        $foreignKeyColumn = new ColumnMap('author_id', $this->tmap, 'AuthorId', 'INTEGER');
+        $foreignKeyColumn->setForeignKey('author', 'id');
+
+        $this->tmap->addConfiguredColumn($primaryKeyColumn);
+        $this->tmap->addConfiguredColumn($foreignKeyColumn);
+
+        $this->assertSame(['id' => $primaryKeyColumn], $this->tmap->getPrimaryKeys());
+        $this->assertSame(['author_id' => $foreignKeyColumn], $this->tmap->getForeignKeys());
+    }
+
+    /**
+     * @return void
+     */
     public function testGetCollectionClassNameReturnsObjectCollection()
     {
         $this->assertEquals(ObjectCollection::class, $this->tmap->getCollectionClassName());
