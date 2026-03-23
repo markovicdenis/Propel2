@@ -86,6 +86,7 @@ class ObjectBuilderTest extends TestCase
         $this->builder->addCommonTraitUsesToScript($classBodyStart);
 
         $this->assertStringContainsString('use ActiveRecordCommonTrait;', $classBodyStart);
+        $this->assertStringContainsString('use ActiveRecordHydrationTrait;', $classBodyStart);
         $this->assertStringStartsWith('use ActiveRecordCommonTrait;', ltrim($classBodyStart));
 
         $baseObjectMethods = '';
@@ -97,6 +98,31 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringNotContainsString('public function getVirtualColumns(): array', $baseObjectMethods);
         $this->assertStringNotContainsString('public function exportTo($parser, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string', $baseObjectMethods);
         $this->assertStringContainsString('public function __sleep(): array', $baseObjectMethods);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHydrateUsesResolveFromRowForSimpleColumnsOnly()
+    {
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+
+        $title = new Column('title');
+        $title->setDomain(new Domain('VARCHAR'));
+
+        $createdAt = new Column('created_at');
+        $createdAt->setDomain(new Domain('TIMESTAMP'));
+
+        $this->assertSame(
+            '$this->resolveFromRow($row, 0, $startcol, $indexType, static fn ($v) => (int) $v)',
+            $this->builder->getResolveFromRowExpressionForColumn($id, 0)
+        );
+        $this->assertSame(
+            '$this->resolveFromRow($row, 1, $startcol, $indexType, static fn ($v) => (string) $v)',
+            $this->builder->getResolveFromRowExpressionForColumn($title, 1)
+        );
+        $this->assertNull($this->builder->getResolveFromRowExpressionForColumn($createdAt, 2));
     }
 
     /**
@@ -239,5 +265,10 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addCommonTraitUsesToScript(string &$script): void
     {
         $this->addCommonTraitUses($script);
+    }
+
+    public function getResolveFromRowExpressionForColumn(Column $column, int $position): ?string
+    {
+        return $this->getResolveFromRowExpression($column, $position);
     }
 }

@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\ActiveRecord;
 
 use Propel\Runtime\Exception\PropelException;
+use Propel\Runtime\Map\TableMap;
 use Propel\Tests\TestCase;
 
 /**
@@ -126,5 +127,17 @@ class ActiveRecordTest extends TestCase
         $record = new TestableActiveRecord();
 
         $this->assertSame('{"foo":"bar"}', $record->exportTo('JSON'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testResolveFromRow()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->assertSame(7, $record->resolveFromTestRow([7, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn ($v) => (int) $v));
+        $this->assertSame('nick', $record->resolveFromTestRow(['Id' => 7, 'Nick' => 'nick'], 1, 0, TableMap::TYPE_PHPNAME, static fn ($v) => (string) $v));
+        $this->assertNull($record->resolveFromTestRow([null, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn () => throw new \RuntimeException('should not run')));
     }
 }

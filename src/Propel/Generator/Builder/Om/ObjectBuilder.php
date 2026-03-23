@@ -777,10 +777,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addCommonTraitUses(string &$script): void
     {
-        $this->declareClasses('\Propel\Runtime\ActiveRecord\ActiveRecordCommonTrait');
+        $this->declareClasses(
+            '\Propel\Runtime\ActiveRecord\ActiveRecordCommonTrait',
+            '\Propel\Runtime\ActiveRecord\ActiveRecordHydrationTrait',
+        );
 
         $script .= "
-    use ActiveRecordCommonTrait;
+    use ActiveRecordCommonTrait, ActiveRecordHydrationTrait;
 ";
     }
 
@@ -2749,6 +2752,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $n = 0;
         foreach ($table->getColumns() as $col) {
             if (!$col->isLazyLoad()) {
+                $resolveFromRowExpression = $this->getResolveFromRowExpression($col, $n);
+                if ($resolveFromRowExpression !== null) {
+                    $clo = $col->getLowercasedName();
+                    $script .= "
+
+            \$this->$clo = $resolveFromRowExpression;";
+                    $n++;
+
+                    continue;
+                }
+
                 $indexName = "TableMap::TYPE_NUM == \$indexType ? $n + \$startcol : $tableMap::translateFieldName('{$col->getPhpName()}', TableMap::TYPE_PHPNAME, \$indexType)";
 
                 $script .= "
@@ -2850,6 +2864,38 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } catch (Exception \$e) {
             throw new PropelException(sprintf('Error populating %s object', " . var_export($this->getStubObjectBuilder()->getClassName(), true) . "), 0, \$e);
         }";
+    }
+
+    /**
+     * Returns a resolveFromRow() expression for simple hydration scenarios.
+     *
+     * @param \Propel\Generator\Model\Column $column
+     * @param int $position
+     *
+     * @return string|null
+     */
+    protected function getResolveFromRowExpression(Column $column, int $position): ?string
+    {
+        if ($column->isPhpPrimitiveType()) {
+            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, static fn (\$v) => (" . $column->getPhpType() . ") \$v)";
+        }
+
+        if ($column->isPhpObjectType()) {
+            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, static fn (\$v) => new " . $column->getPhpType() . "(\$v))";
+        }
+
+        if (
+            $column->getType() === PropelTypes::CLOB_EMU
+            || $column->isLobType()
+            || $column->isTemporalType()
+            || $column->isUuidBinaryType()
+            || $column->getType() === PropelTypes::PHP_ARRAY
+            || $column->isSetType()
+        ) {
+            return null;
+        }
+
+        return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType)";
     }
 
     /**
