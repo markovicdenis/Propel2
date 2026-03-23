@@ -2876,13 +2876,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function getResolveFromRowExpression(Column $column, int $position): ?string
     {
-        if ($column->isPhpPrimitiveType()) {
-            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, static fn (\$v) => (" . $column->getPhpType() . ") \$v)";
-        }
-
-        if ($column->isPhpObjectType()) {
-            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, static fn (\$v) => new " . $column->getPhpType() . "(\$v))";
-        }
 
         if (
             $column->getType() === PropelTypes::CLOB_EMU
@@ -2893,6 +2886,22 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             || $column->isSetType()
         ) {
             return null;
+        }
+
+        if ($column->isPhpPrimitiveType()) {
+            $transformer = $column->isNotNull()
+                ? "static fn (\$v) => (" . $column->getPhpType() . ") \$v"
+                : "static fn (\$v) => null !== \$v ? (" . $column->getPhpType() . ") \$v : null";
+
+            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, $transformer)";
+        }
+
+        if ($column->isPhpObjectType()) {
+            $transformer = $column->isNotNull()
+                ? "static fn (\$v) => new " . $column->getPhpType() . "(\$v)"
+                : "static fn (\$v) => null !== \$v ? new " . $column->getPhpType() . "(\$v) : null";
+
+            return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, $transformer)";
         }
 
         return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType)";

@@ -85,9 +85,8 @@ class ObjectBuilderTest extends TestCase
         $classBodyStart = '';
         $this->builder->addCommonTraitUsesToScript($classBodyStart);
 
-        $this->assertStringContainsString('use ActiveRecordCommonTrait;', $classBodyStart);
-        $this->assertStringContainsString('use ActiveRecordHydrationTrait;', $classBodyStart);
-        $this->assertStringStartsWith('use ActiveRecordCommonTrait;', ltrim($classBodyStart));
+        $this->assertStringContainsString('use ActiveRecordCommonTrait, ActiveRecordHydrationTrait;', $classBodyStart);
+        $this->assertStringStartsWith('use ActiveRecordCommonTrait, ActiveRecordHydrationTrait;', ltrim($classBodyStart));
 
         $baseObjectMethods = '';
         $this->builder->addBaseObjectMethodsToScript($baseObjectMethods);
@@ -107,6 +106,7 @@ class ObjectBuilderTest extends TestCase
     {
         $id = new Column('id');
         $id->setDomain(new Domain('INTEGER'));
+        $id->setNotNull(true);
 
         $title = new Column('title');
         $title->setDomain(new Domain('VARCHAR'));
@@ -119,7 +119,7 @@ class ObjectBuilderTest extends TestCase
             $this->builder->getResolveFromRowExpressionForColumn($id, 0)
         );
         $this->assertSame(
-            '$this->resolveFromRow($row, 1, $startcol, $indexType, static fn ($v) => (string) $v)',
+            '$this->resolveFromRow($row, 1, $startcol, $indexType, static fn ($v) => null !== $v ? (string) $v : null)',
             $this->builder->getResolveFromRowExpressionForColumn($title, 1)
         );
         $this->assertNull($this->builder->getResolveFromRowExpressionForColumn($createdAt, 2));
