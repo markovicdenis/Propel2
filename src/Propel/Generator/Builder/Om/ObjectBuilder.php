@@ -6876,11 +6876,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $isRequired = $column->isNotNull() && $column->isPhpObjectType();
             if ($isRequired) {
                 $script .= "
-        \$columnBindings[] = new InsertColumnBindingDto(\":p{\$index++}\", $quotedColumnName, $valueStatement, $pdoType);";
+        \$columnBindings[] = new InsertColumnBindingDto(':p'.\$index++, $quotedColumnName, $valueStatement, $pdoType);";
             } else {
                 $script .= "
         if (\$this->isColumnModified($constantName)) {
-            \$columnBindings[] = new InsertColumnBindingDto(\":p{\$index++}\", $quotedColumnName, $valueStatement, $pdoType);
+            \$columnBindings[] = new InsertColumnBindingDto(':p'.\$index++, $quotedColumnName, $valueStatement, $pdoType);
         }";
             }
         }
