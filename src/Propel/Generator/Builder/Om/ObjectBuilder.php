@@ -763,6 +763,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addBaseObjectMethods(string &$script): void
     {
+        $this->declareClasses('\Propel\Runtime\ActiveRecord\ActiveRecordCommonTrait');
+
+        $script .= "
+    use ActiveRecordCommonTrait;
+";
         $script .= $this->renderTemplate('baseObjectMethods', ['className' => $this->getUnqualifiedClassName()]);
     }
 
@@ -6740,8 +6745,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $query = 'INSERT INTO ' . $this->quoteIdentifier($table->getName()) . ' (%s) VALUES (%s)';
         $script = "
-        /** @var list<InsertColumnBindingDto> \$modifiedColumns */
-        \$modifiedColumns = [];
+        /** @var list<InsertColumnBindingDto> \$columnBindings */
+        \$columnBindings = [];
         \$index = 0;
 ";
 
@@ -6799,13 +6804,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $isRequired = $column->isNotNull() && $column->isPhpObjectType();
             if ($isRequired) {
                 $script .= "
-        \$identifier = ':p' . \$index++;
-        \$modifiedColumns[] = new InsertColumnBindingDto(\$identifier, $quotedColumnName, $valueStatement, $pdoType);";
+        \$columnBindings[] = new InsertColumnBindingDto(\":p{\$index++}\", $quotedColumnName, $valueStatement, $pdoType);";
             } else {
                 $script .= "
         if (\$this->isColumnModified($constantName)) {
-            \$identifier = ':p' . \$index++;
-            \$modifiedColumns[] = new InsertColumnBindingDto(\$identifier, $quotedColumnName, $valueStatement, $pdoType);
+            \$columnBindings[] = new InsertColumnBindingDto(\":p{\$index++}\", $quotedColumnName, $valueStatement, $pdoType);
         }";
             }
         }
@@ -6814,13 +6817,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         \$sql = sprintf(
             '$query',
-            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->quotedColumnName, \$modifiedColumns)),
-            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->identifier, \$modifiedColumns))
+            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->quotedColumnName, \$columnBindings)),
+            implode(', ', array_map(static fn (InsertColumnBindingDto \$binding): string => \$binding->identifier, \$columnBindings))
         );
 
         try {
             \$stmt = \$con->prepare(\$sql) ?: throw new Exception(sprintf('Unable to prepare SELECT statement [%s]', \$sql));
-            foreach (\$modifiedColumns as \$binding) {
+            foreach (\$columnBindings as \$binding) {
                 \$binding->bind(\$stmt);
             }
             \$stmt->execute();

@@ -8,9 +8,39 @@
 
 namespace Propel\Tests\Runtime\ActiveRecord;
 
-use Propel\Tests\Bookstore\Book;
+use Propel\Runtime\ActiveRecord\ActiveRecordCommonTrait;
+use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 
-class TestableActiveRecord extends Book
+class TestableActiveRecord implements ActiveRecordInterface
 {
+    use ActiveRecordCommonTrait;
+
+    protected $modifiedColumns = [];
+
+    protected $new = true;
+
+    protected $deleted = false;
+
     public $virtualColumns = [];
+
+    public $primaryKey;
+
+    public function isPrimaryKeyNull(): bool
+    {
+        return $this->primaryKey === null;
+    }
+
+    public function getPrimaryKey()
+    {
+        return $this->primaryKey;
+    }
+
+    public function toArray(string $keyType = 'phpName', bool $includeLazyLoadColumns = true, array $alreadyDumpedObjects = []): array
+    {
+        return ['foo' => 'bar'];
+    }
+
+    public function clearAllReferences(): void
+    {
+    }
 }

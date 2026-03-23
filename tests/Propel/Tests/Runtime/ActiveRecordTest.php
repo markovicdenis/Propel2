@@ -84,4 +84,47 @@ class ActiveRecordTest extends TestCase
         $this->assertEquals('baz', $b->getVirtualColumn('foo'), 'setVirtualColumn() can modify the value of an existing virtual column');
         $this->assertEquals($b, $b->setVirtualColumn('foo', 'bar'), 'setVirtualColumn() returns the current object');
     }
+
+    /**
+     * @return void
+     */
+    public function testEquals()
+    {
+        $left = new TestableActiveRecord();
+        $right = new TestableActiveRecord();
+
+        $left->primaryKey = 7;
+        $right->primaryKey = 7;
+
+        $this->assertTrue($left->equals($right));
+        $this->assertFalse($left->equals(new \stdClass()));
+    }
+
+    /**
+     * @return void
+     */
+    public function testResetModified()
+    {
+        $record = new TestableActiveRecord();
+        $record->setVirtualColumn('x', 1);
+
+        $reflection = new \ReflectionProperty($record, 'modifiedColumns');
+        $reflection->setValue($record, ['foo' => true, 'bar' => true]);
+
+        $record->resetModified('foo');
+        $this->assertSame(['bar'], $record->getModifiedColumns());
+
+        $record->resetModified();
+        $this->assertSame([], $record->getModifiedColumns());
+    }
+
+    /**
+     * @return void
+     */
+    public function testExportTo()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->assertSame('{"foo":"bar"}', $record->exportTo('JSON'));
+    }
 }

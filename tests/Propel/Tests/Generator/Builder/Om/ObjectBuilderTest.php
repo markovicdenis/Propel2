@@ -80,6 +80,22 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testBaseObjectMethodsUseSharedTrait()
+    {
+        $script = '';
+        $this->builder->addBaseObjectMethodsToScript($script);
+
+        $this->assertStringContainsString('use ActiveRecordCommonTrait;', $script);
+        $this->assertStringNotContainsString('public function resetModified(?string $col = null): void', $script);
+        $this->assertStringNotContainsString('public function equals($obj): bool', $script);
+        $this->assertStringNotContainsString('public function getVirtualColumns(): array', $script);
+        $this->assertStringNotContainsString('public function exportTo($parser, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string', $script);
+        $this->assertStringContainsString('public function __sleep(): array', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testAddSetByPositionUsesMatchExpression()
     {
         $table = new Table('Foo');
@@ -159,13 +175,14 @@ class ObjectBuilderTest extends TestCase
 
         $script = $builder->addDoInsertToScript();
 
-        $this->assertStringContainsString('/** @var list<InsertColumnBindingDto> $modifiedColumns */', $script);
-        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'id\', $this->id, PDO::PARAM_INT);', $script);
-        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'name\', $this->name, PDO::PARAM_STR);', $script);
-        $this->assertStringContainsString('$modifiedColumns[] = new InsertColumnBindingDto($identifier, \'created_at\', $this->created_at ? $this->created_at->format(\'Y-m-d H:i:s.u\') : null, PDO::PARAM_STR);', $script);
-        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->quotedColumnName, $modifiedColumns)', $script);
-        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->identifier, $modifiedColumns)', $script);
+        $this->assertStringContainsString('/** @var list<InsertColumnBindingDto> $columnBindings */', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'id\', $this->id, PDO::PARAM_INT);', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'name\', $this->name, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'created_at\', $this->created_at ? $this->created_at->format(\'Y-m-d H:i:s.u\') : null, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->quotedColumnName, $columnBindings)', $script);
+        $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->identifier, $columnBindings)', $script);
         $this->assertStringContainsString('$binding->bind($stmt);', $script);
+        $this->assertStringNotContainsString('$identifier = \':p\' . $index++;', $script);
         $this->assertStringNotContainsString('match ($columnName)', $script);
     }
 
@@ -206,5 +223,10 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addDoInsertToScript(): string
     {
         return $this->addDoInsert();
+    }
+
+    public function addBaseObjectMethodsToScript(string &$script): void
+    {
+        $this->addBaseObjectMethods($script);
     }
 }
