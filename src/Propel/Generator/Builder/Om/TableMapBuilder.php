@@ -213,7 +213,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     {
         return "     * @param string \$indexType The index type of \$row. Mostly DataFetcher->getIndexType().\n"
             . "     *     One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,\n"
-            . "     *     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.";
+            . '     *     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.';
     }
 
     /**
@@ -423,45 +423,30 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     protected function addFieldsAttributes(): string
     {
+        $table = $this->getTable();
         $tableColumns = $this->getTable()->getColumns();
 
         $fieldNamesPhpName = [];
         $fieldNamesCamelCaseName = [];
         $fieldNamesColname = [];
         $fieldNamesFieldName = [];
-        $fieldNamesNum = [];
 
-        $fieldKeysPhpName = [];
-        $fieldKeysCamelCaseName = [];
-        $fieldKeysColname = [];
-        $fieldKeysFieldName = [];
-        $fieldKeysNum = [];
-
-        foreach ($tableColumns as $num => $col) {
+        foreach ($tableColumns as $col) {
             $fieldNamesPhpName[] = "'" . $col->getPhpName() . "'";
             $fieldNamesCamelCaseName[] = "'" . $col->getCamelCaseName() . "'";
             $fieldNamesColname[] = $this->getColumnConstant($col, 'self');
             $fieldNamesFieldName[] = "'" . $col->getName() . "'";
-            $fieldNamesNum[] = (string)$num;
-
-            $fieldKeysPhpName[] = "'" . $col->getPhpName() . "' => $num";
-            $fieldKeysCamelCaseName[] = "'" . $col->getCamelCaseName() . "' => $num";
-            $fieldKeysColname[] = $this->getColumnConstant($col, 'self') . " => $num";
-            $fieldKeysFieldName[] = "'" . $col->getName() . "' => $num";
-            $fieldKeysNum[] = (string)$num;
         }
+
+        $fieldNamesColnameDefinition = $table->isAlias()
+            ? '[' . implode(', ', $fieldNamesColname) . ']'
+            : 'self::ALL_COLUMNS';
 
         return $this->renderTemplate('tableMapFields', [
                 'fieldNamesPhpName' => implode(', ', $fieldNamesPhpName),
                 'fieldNamesCamelCaseName' => implode(', ', $fieldNamesCamelCaseName),
-                'fieldNamesColname' => implode(', ', $fieldNamesColname),
+                'fieldNamesColname' => $fieldNamesColnameDefinition,
                 'fieldNamesFieldName' => implode(', ', $fieldNamesFieldName),
-                'fieldNamesNum' => implode(', ', $fieldNamesNum),
-                'fieldKeysPhpName' => implode(', ', $fieldKeysPhpName),
-                'fieldKeysCamelCaseName' => implode(', ', $fieldKeysCamelCaseName),
-                'fieldKeysColname' => implode(', ', $fieldKeysColname),
-                'fieldKeysFieldName' => implode(', ', $fieldKeysFieldName),
-                'fieldKeysNum' => implode(', ', $fieldKeysNum),
         ]);
     }
 
@@ -472,38 +457,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      */
     protected function addNormalizedColumnNameMap(string &$script): void
     {
-        $table = $this->getTable();
-        $tableColumns = $table->getColumns();
-
-        $entries = [];
-        foreach ($tableColumns as $column) {
-            $variants = [
-                $column->getPhpName(), // ColumnName => COLUMN_NAME
-                $table->getPhpName() . '.' . $column->getPhpName(), // TableName.ColumnName => COLUMN_NAME
-                $column->getCamelCaseName(), // columnName => COLUMN_NAME
-                $table->getCamelCaseName() . '.' . $column->getCamelCaseName(), // tableName.columnName => COLUMN_NAME
-                $this->getColumnConstant($column, $this->getTableMapClass()), // TableNameTableMap::COL_COLUMN_NAME => COLUMN_NAME
-                $column->getConstantName(), // COL_COLUMN_NAME => COLUMN_NAME
-                $column->getName(), // column_name => COLUMN_NAME
-                $table->getName() . '.' . $column->getName(), // table_name.column_name => COLUMN_NAME
-            ];
-
-            $variants = array_unique($variants);
-
-            $normalizedName = strtoupper($column->getName());
-            foreach ($variants as $variant) {
-                $entries[] = "        '{$variant}' => '{$normalizedName}',";
-            }
-        }
-
-        $script .= '
-    /**
-     * Holds a list of column names and their normalized version.
-     *
-     * @var array<string>
-     */
-    protected $normalizedColumnNameMap = [' . ($entries ? PHP_EOL . implode(PHP_EOL, $entries) . PHP_EOL : '')
-            . '    ];' . PHP_EOL;
+        // Column name normalization is resolved dynamically by TableMap at runtime.
     }
 
     /**

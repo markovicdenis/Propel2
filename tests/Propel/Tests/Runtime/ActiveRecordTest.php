@@ -140,4 +140,14 @@ class ActiveRecordTest extends TestCase
         $this->assertSame('nick', $record->resolveFromTestRow(['Id' => 7, 'Nick' => 'nick'], 1, 0, TableMap::TYPE_PHPNAME, static fn ($v) => (string) $v));
         $this->assertNull($record->resolveFromTestRow([null, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn () => throw new \RuntimeException('should not run')));
     }
+
+    /**
+     * @return void
+     */
+    public function testFieldNameTranslationWorksWithoutGeneratedReverseMaps()
+    {
+        $this->assertSame([0, 1], TestableActiveRecordTableMap::getFieldNames(TableMap::TYPE_NUM));
+        $this->assertSame(1, TestableActiveRecordTableMap::translateFieldName('Nick', TableMap::TYPE_PHPNAME, TableMap::TYPE_NUM));
+        $this->assertSame('nick', TestableActiveRecordTableMap::translateFieldName(1, TableMap::TYPE_NUM, TableMap::TYPE_FIELDNAME));
+    }
 }

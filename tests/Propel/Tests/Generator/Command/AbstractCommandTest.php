@@ -83,13 +83,13 @@ class TestableAbstractCommand extends AbstractCommand
     /**
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         parent::configure();
         $this->setName('testable-command');
     }
 
-    public function parseConnection($connection): array
+    public function parseConnection(string $connection): array
     {
         return parent::parseConnection($connection);
     }

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use ReflectionProperty;
 use Propel\Generator\Builder\Om\TableMapBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
@@ -43,10 +44,15 @@ XML;
 
         $this->assertSame('email_address', $tableMap->getColumn('email_address')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('email.email_address')->getName());
+        $this->assertSame('email_address', $tableMap->getColumn('EmailAddress')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('emailAddress')->getName());
+        $this->assertSame('email_address', $tableMap->getColumn('email.emailAddress')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('Email.EmailAddress')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('COL_EMAIL_ADDRESS')->getName());
         $this->assertSame('email_address', $tableMap->getColumn('EmailTableMap::COL_EMAIL_ADDRESS')->getName());
+
+        $reflectionProperty = new ReflectionProperty($tableMap, 'normalizedColumnNameMap');
+        $this->assertSame(TableMap::class, $reflectionProperty->getDeclaringClass()->getName());
     }
 
     /**
@@ -290,8 +296,10 @@ XML;
         $fieldAttributesDefinition = $tableMapBuilder->getFieldAttributesDefinition();
 
         $this->assertStringContainsString('protected static array $fieldNames = [', $fieldAttributesDefinition);
-        $this->assertStringContainsString('protected static array $fieldKeys = [', $fieldAttributesDefinition);
-        $this->assertStringContainsString('self::COL_EMAIL_ADDRESS', $fieldAttributesDefinition);
+        $this->assertStringContainsString('self::TYPE_COLNAME       => self::ALL_COLUMNS,', $fieldAttributesDefinition);
+        $this->assertStringContainsString("self::TYPE_FIELDNAME     => ['id', 'email_address']", $fieldAttributesDefinition);
+        $this->assertStringNotContainsString('protected static array $fieldKeys = [', $fieldAttributesDefinition);
+        $this->assertStringNotContainsString('self::TYPE_NUM', $fieldAttributesDefinition);
     }
 
     /**

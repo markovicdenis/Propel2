@@ -154,6 +154,21 @@ class TableMapTest extends TestCase
     /**
      * @return void
      */
+    public function testGetColumnResolvesPhpNameCamelCaseAndConstantVariants()
+    {
+        $column = $this->tmap->addColumn('BAR_BAZ', 'BarBaz', 'INTEGER');
+
+        $this->assertSame($column, $this->tmap->getColumn('BarBaz'));
+        $this->assertSame($column, $this->tmap->getColumn('barBaz'));
+        $this->assertSame($column, $this->tmap->getColumn('Foo.BarBaz'));
+        $this->assertSame($column, $this->tmap->getColumn('foo.barBaz'));
+        $this->assertSame($column, $this->tmap->getColumn('COL_BAR_BAZ'));
+        $this->assertSame($column, $this->tmap->getColumn('FooTableMap::COL_BAR_BAZ'));
+    }
+
+    /**
+     * @return void
+     */
     public function testAddPrimaryKey()
     {
         $column1 = $this->tmap->addPrimaryKey('BAR', 'Bar', 'INTEGER');
@@ -305,6 +320,20 @@ class TableMapTest extends TestCase
         $this->assertSame($column, $this->tmap->getColumn('foo.bar_baz'));
         $this->assertSame($column, $this->tmap->getColumnByPhpName('BarBaz'));
         $this->assertSame($column, $this->tmap->findColumnByName('foo.bar_baz'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddConfiguredColumnClearsNormalizedColumnNameCache()
+    {
+        $this->assertNull($this->tmap->findColumnByName('BarBaz'));
+
+        $column = new ColumnMap('bar_baz', $this->tmap, 'BarBaz', 'VARCHAR');
+        $this->tmap->addConfiguredColumn($column);
+
+        $this->assertSame($column, $this->tmap->getColumn('barBaz'));
+        $this->assertSame($column, $this->tmap->getColumn('FooTableMap::COL_BAR_BAZ'));
     }
 
     /**

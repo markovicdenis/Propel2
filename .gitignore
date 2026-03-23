@@ -5,6 +5,7 @@ composer.phar
 /composer.lock
 autoload.php
 phpunit.xml
+.private-pgsql-tests.md
 .phpunit.result.cache
 pom.xml
 php-cs-fixer.phar

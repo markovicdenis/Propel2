@@ -49,34 +49,19 @@ class SqlBuildCommand extends AbstractCommand
         $configOptions = [];
 
         foreach ($input->getOptions() as $key => $option) {
-            if ($option !== null) {
-                switch ($key) {
-                    case 'schema-dir':
-                        $configOptions['propel']['paths']['schemaDir'] = $option;
-
-                        break;
-                    case 'output-dir':
-                        $configOptions['propel']['paths']['sqlDir'] = $option;
-
-                        break;
-                    case 'schema-name':
-                        $configOptions['propel']['generator']['schema']['basename'] = $option;
-
-                        break;
-                    case 'table-prefix':
-                        $configOptions['propel']['generator']['tablePrefix'] = $option;
-
-                        break;
-                    case 'mysql-engine':
-                        $configOptions['propel']['database']['adapters']['mysql']['tableType'] = $option;
-
-                        break;
-                    case 'composer-dir':
-                        $configOptions['propel']['paths']['composerDir'] = $option;
-
-                        break;
-                }
+            if (!is_string($option)) {
+                continue;
             }
+
+            match ($key) {
+                'schema-dir' => $configOptions['propel']['paths']['schemaDir'] = $option,
+                'output-dir' => $configOptions['propel']['paths']['sqlDir'] = $option,
+                'schema-name' => $configOptions['propel']['generator']['schema']['basename'] = $option,
+                'table-prefix' => $configOptions['propel']['generator']['tablePrefix'] = $option,
+                'mysql-engine' => $configOptions['propel']['database']['adapters']['mysql']['tableType'] = $option,
+                'composer-dir' => $configOptions['propel']['paths']['composerDir'] = $option,
+                default => null,
+            };
         }
 
         $generatorConfig = $this->getGeneratorConfig($configOptions, $input);

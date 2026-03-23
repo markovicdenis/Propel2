@@ -15,7 +15,6 @@ use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Map\Exception\ColumnNotFoundException;
 use Propel\Runtime\Map\Exception\RelationNotFoundException;
 use Propel\Runtime\Traits\ParsePKTrait;
-
 use function array_key_exists;
 use function count;
 use function sprintf;
@@ -95,6 +94,13 @@ class TableMap
      * @var array<string>
      */
     protected $normalizedColumnNameMap = [];
+
+    /**
+     * Cache of resolved normalized column names.
+     *
+     * @var array<string>
+     */
+    protected $normalizedColumnNameCache = [];
 
     /**
      * The database this table belongs to
@@ -477,7 +483,70 @@ class TableMap
      */
     protected function getNormalizedColumnName(string $columnName): string
     {
-        return $this->normalizedColumnNameMap[$columnName] ?? ColumnMap::normalizeName($columnName);
+        if (isset($this->normalizedColumnNameMap[$columnName])) {
+            return $this->normalizedColumnNameMap[$columnName];
+        }
+
+        return $this->normalizedColumnNameCache[$columnName] ??= $this->resolveNormalizedColumnName($columnName);
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return string
+     */
+    protected function resolveNormalizedColumnName(string $columnName): string
+    {
+        $lookupName = $this->extractColumnLookupName($columnName);
+
+        if (str_starts_with($lookupName, 'COL_')) {
+            return substr($lookupName, 4);
+        }
+
+        $normalizedPhpName = $this->resolveNormalizedPhpName($lookupName);
+        if ($normalizedPhpName !== null) {
+            return $normalizedPhpName;
+        }
+
+        return ColumnMap::normalizeName($lookupName);
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return string
+     */
+    protected function extractColumnLookupName(string $columnName): string
+    {
+        $separatorPosition = strrpos($columnName, '::');
+        if ($separatorPosition !== false) {
+            $columnName = substr($columnName, $separatorPosition + 2);
+        }
+
+        $separatorPosition = strrpos($columnName, '.');
+        if ($separatorPosition !== false) {
+            $columnName = substr($columnName, $separatorPosition + 1);
+        }
+
+        return trim($columnName, " \t\n\r\0\x0B`'()\"[]~!-{}%^&.");
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return string|null
+     */
+    protected function resolveNormalizedPhpName(string $columnName): ?string
+    {
+        $column = $this->columnsByPhpName[$columnName]
+            ?? $this->columnsByPhpName[ucfirst($columnName)]
+            ?? null;
+
+        if ($column === null) {
+            return null;
+        }
+
+        return ColumnMap::normalizeName($column->getName());
     }
 
     /**
@@ -490,6 +559,9 @@ class TableMap
     protected function indexColumn(ColumnMap $column): void
     {
         $columnName = $column->getName();
+
+        // New columns can change how aliases resolve, so clear the lookup cache.
+        $this->normalizedColumnNameCache = [];
 
         $this->columns[$this->getNormalizedColumnName($columnName)] = $column;
         $this->columnsByPhpName[$column->getPhpName()] = $column;
@@ -515,7 +587,7 @@ class TableMap
      * @param string $type A string specifying the Propel type.
      * @param bool $isNotNull Whether column does not allow NULL values.
      * @param int|null $size An int specifying the size.
-     * @param string|bool|int|null $defaultValue
+     * @param string|int|bool|null $defaultValue
      * @param bool $pk True if column is a primary key.
      * @param string|null $fkTable A String with the foreign key table name.
      * @param string|null $fkColumn A String with the foreign key column name.
@@ -1023,10 +1095,11 @@ class TableMap
 
     /**
      * @param string $columnName
+     *
      * @return string
      */
     public function getPhpTypeForColumn($columnName)
     {
-        return "";
+        return '';
     }
 }

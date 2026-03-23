@@ -468,8 +468,7 @@ EOT;
                     foreach (array_keys($fkactions) as $fkaction) {
                         $result = null;
                         $regex = sprintf('/ %s (%s)/', $fkaction, $pipedActionsString);
-                        preg_match($regex, $fkey, $result);
-                        if ($result && isset($result[1])) {
+                        if (preg_match($regex, $fkey, $result) === 1) {
                             $fkactions[$fkaction] = $result[1];
                         }
                     }

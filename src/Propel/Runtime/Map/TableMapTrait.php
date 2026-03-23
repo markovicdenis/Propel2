@@ -13,6 +13,13 @@ use Propel\Runtime\Exception\PropelException;
 trait TableMapTrait
 {
     /**
+     * Lazily built reverse field-name lookup tables.
+     *
+     * @var array<string, array<string|int, int>>
+     */
+    protected static array $fieldKeysCache = [];
+
+    /**
      * Returns an array of field names.
      *
      * @param string $type The type of fieldnames to return:
@@ -25,6 +32,12 @@ trait TableMapTrait
      */
     public static function getFieldNames(string $type = TableMap::TYPE_PHPNAME): array
     {
+        if ($type === TableMap::TYPE_NUM) {
+            $count = count(static::$fieldNames[TableMap::TYPE_FIELDNAME]);
+
+            return $count ? range(0, $count - 1) : [];
+        }
+
         if (!array_key_exists($type, static::$fieldNames)) {
             throw new PropelException('Method getFieldNames() expects the parameter \$type to be one of the class constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM. ' . $type . ' was given.');
         }
@@ -43,14 +56,13 @@ trait TableMapTrait
      * @throws \Propel\Runtime\Exception\PropelException - if the specified name could not be found in the fieldname mappings.
      *
      * @return string|int translated name of the field.
-     * @psalm-return ($toType is TableMap::TYPE_NUM ? int : string)
      */
     public static function translateFieldName(string $name, string $fromType, string $toType): string|int
     {
         $toNames = static::getFieldNames($toType);
-        $key = static::$fieldKeys[$fromType][$name] ?? null;
+        $key = static::getFieldKeys($fromType)[$name] ?? null;
         if ($key === null) {
-            throw new PropelException("'$name' could not be found in the field names of type '$fromType'. These are: " . print_r(static::$fieldKeys[$fromType], true));
+            throw new PropelException("'$name' could not be found in the field names of type '$fromType'. These are: " . print_r(static::getFieldKeys($fromType), true));
         }
 
         return $toNames[$key];
@@ -91,16 +103,37 @@ trait TableMapTrait
     public static function translateFieldNames(array $row, string $fromType, string $toType): array
     {
         $toNames = static::getFieldNames($toType);
+        $fieldKeys = static::getFieldKeys($fromType);
         $newRow = [];
         foreach ($row as $name => $field) {
-            if (isset(static::$fieldKeys[$fromType][$name])) {
-                $newRow[$toNames[static::$fieldKeys[$fromType][$name]]] = $field;
+            if (isset($fieldKeys[$name])) {
+                $newRow[$toNames[$fieldKeys[$name]]] = $field;
             } else {
                 $newRow[$name] = $field;
             }
         }
 
         return $newRow;
+    }
+
+    /**
+     * @param string $type
+     *
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return array<string|int, int>
+     */
+    protected static function getFieldKeys(string $type): array
+    {
+        if ($type === TableMap::TYPE_NUM) {
+            return static::$fieldKeysCache[$type] ??= static::getFieldNames($type);
+        }
+
+        if (!array_key_exists($type, static::$fieldNames)) {
+            throw new PropelException('Method getFieldNames() expects the parameter \$type to be one of the class constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM. ' . $type . ' was given.');
+        }
+
+        return static::$fieldKeysCache[$type] ??= array_flip(static::$fieldNames[$type]);
     }
 
     /**
