@@ -22,6 +22,11 @@ use Propel\Runtime\Adapter\AdapterFactory;
 use Propel\Runtime\Connection\ConnectionFactory;
 use Propel\Runtime\Connection\ConnectionInterface;
 
+use function array_key_exists;
+use function in_array;
+use function is_array;
+use function sprintf;
+
 /**
  * A class that holds build properties and provide a class loading mechanism for
  * the generator.

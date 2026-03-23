@@ -11,6 +11,8 @@ namespace Propel\Generator\Model\Diff;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Table;
 
+use function in_array;
+
 /**
  * Service class for comparing Database objects
  * Heavily inspired by Doctrine2's Migrations

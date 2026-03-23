@@ -8,6 +8,10 @@
 
 namespace Propel\Generator\Util;
 
+use function define;
+use function defined;
+use function is_string;
+
 if (!defined('T_ML_COMMENT')) {
     define('T_ML_COMMENT', T_COMMENT);
 } else {

@@ -8,6 +8,9 @@
 
 namespace Propel\Generator\Config;
 
+use function count;
+use function is_array;
+
 /**
  * Runtime configuration converter
  * From array to PHP string

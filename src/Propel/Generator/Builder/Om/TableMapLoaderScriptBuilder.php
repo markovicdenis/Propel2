@@ -17,6 +17,8 @@ use Propel\Generator\Model\Table;
 use Propel\Runtime\Map\DatabaseMap;
 use SplFileInfo;
 
+use function is_array;
+
 /**
  * Generates a database loader file, which is used to register all table maps with the DatabaseMap.
  */
@@ -135,7 +137,7 @@ class TableMapLoaderScriptBuilder
     /**
      * Return file info object pointing to the designated script location. The file does not necessarily exist.
      *
-     * @return \SplFileInfo
+     * @return SplFileInfo
      */
     public function getFile(): SplFileInfo
     {

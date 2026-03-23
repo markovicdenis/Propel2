@@ -18,6 +18,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function dirname;
+use function sprintf;
+
 class ConfigConvertCommand extends AbstractCommand
 {
     /**
@@ -48,7 +51,7 @@ class ConfigConvertCommand extends AbstractCommand
     /**
      * @inheritDoc
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -115,7 +118,7 @@ require_once __DIR__ . '$loaderScriptLocation';
      * @param string $loaderDir
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return string Name of the generated file
      */

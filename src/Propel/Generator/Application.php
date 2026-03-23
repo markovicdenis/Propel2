@@ -12,6 +12,8 @@ use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function extension_loaded;
+
 class Application extends SymfonyApplication
 {
     /**

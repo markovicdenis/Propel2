@@ -12,6 +12,10 @@ use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Schema;
 use Propel\Generator\Model\Table;
 
+use function count;
+use function in_array;
+use function sprintf;
+
 /**
  * Service class for validating XML schemas.
  * Only implements validation rules that cannot be implemented in XSD.

@@ -11,6 +11,8 @@ namespace Propel\Generator\Behavior\NestedSet;
 use Propel\Generator\Builder\Om\QueryBuilder;
 use Propel\Generator\Model\Column;
 
+use function count;
+
 /**
  * Behavior to adds nested set tree structure columns and abilities
  *

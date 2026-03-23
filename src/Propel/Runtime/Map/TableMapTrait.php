@@ -10,6 +10,9 @@ namespace Propel\Runtime\Map;
 
 use Propel\Runtime\Exception\PropelException;
 
+use function array_key_exists;
+use function count;
+
 trait TableMapTrait
 {
     /**

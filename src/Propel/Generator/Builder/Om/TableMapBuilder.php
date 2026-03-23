@@ -12,6 +12,9 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Platform\PlatformInterface;
 
+use function count;
+use function is_array;
+
 /**
  * Generates the table map class for user object model (OM).
  *

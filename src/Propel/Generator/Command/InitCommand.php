@@ -19,6 +19,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 
+use function dirname;
+use function sprintf;
+
 /**
  * @author Marc Scholten <marcphilipscholten@gmail.com>
  */
@@ -270,7 +273,7 @@ class InitCommand extends AbstractCommand
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @param array<string, mixed> $options
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

@@ -10,6 +10,8 @@ namespace Propel\Runtime\Connection;
 
 use PDO;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
+use PDOStatement;
+use Throwable;
 
 /**
  * Interface for Propel Connection class.
@@ -137,7 +139,7 @@ interface ConnectionInterface
      *
      * @param callable $callable A callable to be wrapped in a transaction.
      *
-     * @throws \Throwable Re-throws a possible <code>Throwable</code> triggered by the callable.
+     * @throws Throwable Re-throws a possible <code>Throwable</code> triggered by the callable.
      *
      * @return mixed Returns the result of the callable.
      */
@@ -169,7 +171,7 @@ interface ConnectionInterface
      *
      * @throws \Propel\Runtime\Connection\Exception\ConnectionException depending on error handling.
      *
-     * @return \Propel\Runtime\Connection\StatementInterface|\PDOStatement|false
+     * @return \Propel\Runtime\Connection\StatementInterface|PDOStatement|false
      */
     public function prepare(string $statement, array $driverOptions = []);
 
@@ -181,7 +183,7 @@ interface ConnectionInterface
      *
      * @throws \Propel\Runtime\Connection\Exception\ConnectionException depending on error handling.
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface|\PDOStatement|false
+     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface|PDOStatement|false
      */
     public function query(string $statement);
 

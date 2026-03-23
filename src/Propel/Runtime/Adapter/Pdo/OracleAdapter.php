@@ -19,6 +19,11 @@ use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Map\ColumnMap;
 use RuntimeException;
 
+use function is_array;
+use function is_resource;
+use function sprintf;
+use function strlen;
+
 /**
  * Oracle adapter.
  *
@@ -128,7 +133,7 @@ class OracleAdapter extends PdoAdapter implements SqlAdapterInterface
         if ($offset > 0) {
             $sql .= ' B.PROPEL_ROWNUM > ' . $offset;
             if ($limit > 0) {
-                $sql .= ' AND B.PROPEL_ROWNUM <= ' . ( $offset + $limit );
+                $sql .= ' AND B.PROPEL_ROWNUM <= ' . ($offset + $limit);
             }
         } else {
             $sql .= ' B.PROPEL_ROWNUM <= ' . $limit;
@@ -148,7 +153,7 @@ class OracleAdapter extends PdoAdapter implements SqlAdapterInterface
      * @param string|null $name
      *
      * @throws \Propel\Runtime\Exception\InvalidArgumentException
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return int
      */

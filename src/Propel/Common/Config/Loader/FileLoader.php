@@ -288,7 +288,7 @@ abstract class FileLoader extends BaseFileLoader
      * @param string $propertyKey The array key
      * @param array $config The array to scan
      *
-     * @return \Generator The value or null if not found
+     * @return Generator The value or null if not found
      */
     private function findValue(string $propertyKey, array $config): Generator
     {

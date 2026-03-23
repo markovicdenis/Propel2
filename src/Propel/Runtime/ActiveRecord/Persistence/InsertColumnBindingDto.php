@@ -12,6 +12,8 @@ use PDO;
 use PDOStatement;
 use Propel\Runtime\Connection\StatementInterface;
 
+use function is_resource;
+
 final class InsertColumnBindingDto
 {
     public function __construct(

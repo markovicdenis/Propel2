@@ -14,6 +14,9 @@ use Propel\Generator\Model\Behavior;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Table;
 
+use function get_class;
+use function sprintf;
+
 /**
  * Makes a model inherit another one. The model with this behavior gets a copy
  * of the structure of the parent model. In addition, both the ActiveRecord and

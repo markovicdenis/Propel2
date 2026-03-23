@@ -8,6 +8,8 @@
 
 namespace Propel\Common\Pluralizer;
 
+use function in_array;
+
 /**
  * Standard replacement English pluralizer class. Based on the links below
  *

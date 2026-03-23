@@ -53,6 +53,7 @@
         "testsuite": "composer run test && composer run cs-check && composer run stan && composer run psalm",
         "cs-check": "phpcs",
         "cs-fix": "phpcbf",
+        "fix": "php-cs-fixer fix --allow-risky=yes src",
         "stan": "vendor/bin/phpstan analyze",
         "stan-baseline": "vendor/bin/phpstan analyze --generate-baseline",
         "psalm": "vendor/bin/psalm.phar --config=psalm.xml",

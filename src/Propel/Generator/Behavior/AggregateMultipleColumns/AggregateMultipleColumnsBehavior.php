@@ -15,6 +15,10 @@ use Propel\Generator\Model\Behavior;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Table;
 
+use function array_key_exists;
+use function in_array;
+use function sprintf;
+
 /**
  * Keeps an aggregate column updated with related table
  *
@@ -229,7 +233,7 @@ class AggregateMultipleColumnsBehavior extends Behavior
     /**
      * @param \Propel\Generator\Builder\Om\ObjectBuilder $builder
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string
      */
@@ -291,12 +295,14 @@ class AggregateMultipleColumnsBehavior extends Behavior
     protected function addObjectUpdate(): string
     {
         $table = $this->getTable();
-        $columnPhpNames = array_map(function (array $columnParameters) use ($table) {
-            $columName = $columnParameters[self::PARAMETER_KEY_COLUMN_NAME];
+        $columnPhpNames = array_map(
+            function (array $columnParameters) use ($table) {
+                $columName = $columnParameters[self::PARAMETER_KEY_COLUMN_NAME];
 
-            return $table->getColumn($columName)->getPhpName();
-        },
-        $this->getParameter(static::PARAMETER_KEY_COLUMNS));
+                return $table->getColumn($columName)->getPhpName();
+            },
+            $this->getParameter(static::PARAMETER_KEY_COLUMNS)
+        );
 
         return $this->renderTemplate('objectUpdate', [
             'aggregationName' => $this->getAggregationName(),
@@ -352,7 +358,7 @@ class AggregateMultipleColumnsBehavior extends Behavior
      * @param string $format
      * @param mixed ...$args
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */

@@ -8,6 +8,8 @@
 
 namespace Propel\Common\Config\Exception;
 
+use function function_exists;
+
 class JsonParseException extends RuntimeException implements ExceptionInterface
 {
     /**

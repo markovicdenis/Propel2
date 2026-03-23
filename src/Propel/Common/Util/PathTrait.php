@@ -10,6 +10,8 @@ namespace Propel\Common\Util;
 
 use RuntimeException;
 
+use function sprintf;
+
 trait PathTrait
 {
     /**
@@ -28,7 +30,7 @@ trait PathTrait
      *
      * @param string $path
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return string
      */

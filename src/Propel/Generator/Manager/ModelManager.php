@@ -13,6 +13,9 @@ use Propel\Generator\Builder\Om\TableMapLoaderScriptBuilder;
 use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 
+use function get_class;
+use function sprintf;
+
 /**
  * This manager creates the Object Model classes based on the XML schema file.
  *

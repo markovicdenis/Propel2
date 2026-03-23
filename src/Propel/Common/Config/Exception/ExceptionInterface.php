@@ -8,6 +8,8 @@
 
 namespace Propel\Common\Config\Exception;
 
-interface ExceptionInterface extends \Throwable
+use Throwable;
+
+interface ExceptionInterface extends Throwable
 {
 }

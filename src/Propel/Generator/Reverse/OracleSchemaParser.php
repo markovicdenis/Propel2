@@ -17,6 +17,9 @@ use Propel\Generator\Model\IdMethodParameter;
 use Propel\Generator\Model\Index;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
+use PDOStatement;
+
+use function count;
 
 /**
  * Oracle database schema parser.
@@ -83,7 +86,7 @@ class OracleSchemaParser extends AbstractSchemaParser
     public function parse(Database $database, array $additionalTables = []): int
     {
         $tables = [];
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SELECT OBJECT_NAME FROM USER_OBJECTS WHERE OBJECT_TYPE = 'TABLE'");
 
         $seqPattern = $this->getGeneratorConfig()->get()['database']['adapters']['oracle']['autoincrementSequencePattern'];
@@ -110,7 +113,7 @@ class OracleSchemaParser extends AbstractSchemaParser
                 $seqName = str_replace('${table}', $table->getName(), $seqPattern);
                 $seqName = strtoupper($seqName);
 
-                /** @var \PDOStatement $stmt2 */
+                /** @var PDOStatement $stmt2 */
                 $stmt2 = $this->dbh->query("SELECT * FROM USER_SEQUENCES WHERE SEQUENCE_NAME = '" . $seqName . "'");
                 $hasSeq = $stmt2->fetch(PDO::FETCH_ASSOC);
 
@@ -141,7 +144,7 @@ class OracleSchemaParser extends AbstractSchemaParser
      */
     protected function addColumns(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SELECT COLUMN_NAME, DATA_TYPE, NULLABLE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, DATA_DEFAULT FROM USER_TAB_COLS WHERE TABLE_NAME = '" . $table->getName() . "'");
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             if (strpos($row['COLUMN_NAME'], '$') !== false) {
@@ -231,7 +234,7 @@ class OracleSchemaParser extends AbstractSchemaParser
      */
     protected function getColumnNamesIndexedByIndexName(Table $table): array
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SELECT INDEX_NAME, COLUMN_NAME FROM USER_IND_COLUMNS WHERE TABLE_NAME = '" . $table->getName() . "' ORDER BY COLUMN_NAME");
 
         $columnNamesIndexedByIndexName = [];
@@ -254,16 +257,16 @@ class OracleSchemaParser extends AbstractSchemaParser
         // local store to avoid duplicates
         $foreignKeys = [];
 
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SELECT CONSTRAINT_NAME, DELETE_RULE, R_CONSTRAINT_NAME FROM USER_CONSTRAINTS WHERE CONSTRAINT_TYPE = 'R' AND TABLE_NAME = '" . $table->getName() . "'");
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Local reference
-            /** @var \PDOStatement $stmt2 */
+            /** @var PDOStatement $stmt2 */
             $stmt2 = $this->dbh->query("SELECT COLUMN_NAME FROM USER_CONS_COLUMNS WHERE CONSTRAINT_NAME = '" . $row['CONSTRAINT_NAME'] . "' AND TABLE_NAME = '" . $table->getName() . "'");
             $localReferenceInfo = $stmt2->fetch(PDO::FETCH_ASSOC);
 
             // Foreign reference
-            /** @var \PDOStatement $stmt3 */
+            /** @var PDOStatement $stmt3 */
             $stmt3 = $this->dbh->query("SELECT TABLE_NAME, COLUMN_NAME FROM USER_CONS_COLUMNS WHERE CONSTRAINT_NAME = '" . $row['R_CONSTRAINT_NAME'] . "'");
             $foreignReferenceInfo = $stmt3->fetch(PDO::FETCH_ASSOC);
 
@@ -289,7 +292,7 @@ class OracleSchemaParser extends AbstractSchemaParser
      */
     protected function addPrimaryKey(Table $table): void
     {
-        /** @var \PDOStatement $stmt */
+        /** @var PDOStatement $stmt */
         $stmt = $this->dbh->query("SELECT COLS.COLUMN_NAME FROM USER_CONSTRAINTS CONS, USER_CONS_COLUMNS COLS WHERE CONS.CONSTRAINT_NAME = COLS.CONSTRAINT_NAME AND CONS.TABLE_NAME = '" . $table->getName() . "' AND CONS.CONSTRAINT_TYPE = 'P'");
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // This fixes a strange behavior by PDO. Sometimes the

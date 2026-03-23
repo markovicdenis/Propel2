@@ -27,7 +27,7 @@ class SetColumnConverterException extends InvalidArgumentException
      * @param string $message
      * @param mixed $value
      * @param int $code
-     * @param \Exception|null $previous
+     * @param Exception|null $previous
      */
     public function __construct(string $message, $value, int $code = 0, ?Exception $previous = null)
     {

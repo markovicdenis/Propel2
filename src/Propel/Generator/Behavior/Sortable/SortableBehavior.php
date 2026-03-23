@@ -11,6 +11,9 @@ namespace Propel\Generator\Behavior\Sortable;
 use InvalidArgumentException;
 use Propel\Generator\Model\Behavior;
 
+use function count;
+use function sprintf;
+
 /**
  * Gives a model class the ability to be ordered
  * Uses one additional column storing the rank
@@ -49,7 +52,7 @@ class SortableBehavior extends Behavior
     /**
      * Add the rank_column to the current table
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */

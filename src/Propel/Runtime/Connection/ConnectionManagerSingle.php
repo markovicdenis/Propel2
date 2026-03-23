@@ -90,7 +90,7 @@ class ConnectionManagerSingle implements ConnectionManagerInterface
     /**
      * @param \Propel\Runtime\Adapter\AdapterInterface|null $adapter
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return \Propel\Runtime\Connection\ConnectionInterface
      */

@@ -14,6 +14,12 @@ use Propel\Generator\Model\Database;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Schema\Dumper\DumperInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
+use DOMDocument;
+
+use function count;
+use function get_class;
+use function in_array;
+use function sprintf;
 
 /**
  * @author William Durand <william.durand1@gmail.com>
@@ -33,7 +39,7 @@ class ReverseManager extends AbstractManager
     /**
      * DOM document produced.
      *
-     * @var \DOMDocument
+     * @var DOMDocument
      */
     protected $xml;
 

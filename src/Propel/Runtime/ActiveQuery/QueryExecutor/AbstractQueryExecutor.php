@@ -17,6 +17,7 @@ use Propel\Runtime\Propel;
 use Propel\Runtime\ServiceContainer\ServiceContainerInterface;
 use RuntimeException;
 use Throwable;
+use PDOStatement;
 
 abstract class AbstractQueryExecutor
 {
@@ -87,9 +88,9 @@ abstract class AbstractQueryExecutor
     /**
      * @param \Propel\Runtime\ActiveQuery\SqlBuilder\PreparedStatementDto $preparedStatementDto
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
-     * @return \PDOStatement|\Propel\Runtime\Connection\StatementInterface|bool|null
+     * @return PDOStatement|\Propel\Runtime\Connection\StatementInterface|bool|null
      */
     protected function executeStatement(PreparedStatementDto $preparedStatementDto)
     {
@@ -120,9 +121,9 @@ abstract class AbstractQueryExecutor
     /**
      * Logs an exception and adds the complete SQL statement to the exception.
      *
-     * @param \Throwable $e The initial exception.
+     * @param Throwable $e The initial exception.
      * @param string|null $sql The SQL statement which triggered the exception.
-     * @param \Propel\Runtime\Connection\StatementInterface|\PDOStatement|null $stmt The prepared statement.
+     * @param \Propel\Runtime\Connection\StatementInterface|PDOStatement|null $stmt The prepared statement.
      *
      * @throws \Propel\Runtime\ActiveQuery\QueryExecutor\QueryExecutionException
      *

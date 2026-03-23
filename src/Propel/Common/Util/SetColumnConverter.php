@@ -10,6 +10,11 @@ namespace Propel\Common\Util;
 
 use Propel\Common\Exception\SetColumnConverterException;
 
+use function count;
+use function is_array;
+use function sprintf;
+use function strlen;
+
 /**
  * Class converts SET column values between integer and string/array representation.
  *

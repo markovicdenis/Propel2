@@ -14,6 +14,10 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 
+use function function_exists;
+use function is_array;
+use function is_string;
+
 /**
  * XML parser. Converts data between associative array and XML formats
  *
@@ -59,7 +63,7 @@ class XmlParser extends AbstractParser
      *
      * @param string $rootElementName The Root Element Name
      *
-     * @return \DOMElement The root DOMNode
+     * @return DOMElement The root DOMNode
      */
     protected function getRootNode(string $rootElementName): DOMElement
     {
@@ -102,10 +106,10 @@ class XmlParser extends AbstractParser
 
     /**
      * @param array $array
-     * @param \DOMElement $rootElement
+     * @param DOMElement $rootElement
      * @param string|null $charset
      *
-     * @return \DOMElement
+     * @return DOMElement
      */
     protected function arrayToDOM(array $array, DOMElement $rootElement, ?string $charset = null): DOMElement
     {
@@ -178,7 +182,7 @@ class XmlParser extends AbstractParser
     }
 
     /**
-     * @param \DOMNode $data
+     * @param DOMNode $data
      *
      * @return array
      */
@@ -186,7 +190,7 @@ class XmlParser extends AbstractParser
     {
         $array = [];
         $elementNames = [];
-        /** @var \DOMElement $element */
+        /** @var DOMElement $element */
         foreach ($data->childNodes as $element) {
             if ($element->nodeType == XML_TEXT_NODE) {
                 continue;
@@ -222,7 +226,7 @@ class XmlParser extends AbstractParser
     }
 
     /**
-     * @param \DOMNode $node
+     * @param DOMNode $node
      *
      * @return bool
      */

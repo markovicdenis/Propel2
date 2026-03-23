@@ -20,6 +20,13 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\VendorInfo;
 
+use function count;
+use function func_get_args;
+use function in_array;
+use function is_array;
+use function sprintf;
+use function strlen;
+
 /**
  * Baseclass for OM-building classes.
  *

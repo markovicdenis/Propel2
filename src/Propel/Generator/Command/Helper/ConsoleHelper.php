@@ -15,6 +15,8 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
+use function sprintf;
+
 class ConsoleHelper extends QuestionHelper
 {
     /**

@@ -20,6 +20,11 @@ use Propel\Generator\Model\Schema;
 use RuntimeException;
 use XSLTProcessor;
 
+use function count;
+use function dirname;
+use function in_array;
+use function sprintf;
+
 /**
  * An abstract base Propel manager to perform work related to the XML schema
  * file.
@@ -95,7 +100,7 @@ abstract class AbstractManager
     protected $workingDirectory;
 
     /**
-     * @var \Closure|null
+     * @var Closure|null
      */
     private $loggerClosure;
 
@@ -279,7 +284,7 @@ abstract class AbstractManager
     /**
      * Sets a logger closure.
      *
-     * @param \Closure $logger
+     * @param Closure $logger
      *
      * @return void
      */
@@ -293,7 +298,7 @@ abstract class AbstractManager
      * class.
      *
      * @throws \Propel\Generator\Exception\EngineException
-     * @throws \RuntimeException
+     * @throws RuntimeException
      * @throws \Propel\Generator\Exception\BuildException
      *
      * @return void
@@ -388,7 +393,7 @@ abstract class AbstractManager
      * Note: this function very much assumes at least a reasonable XML schema, maybe it'll proof
      * users don't have those and adding some more informative exceptions would be better
      *
-     * @param \DOMDocument $dom
+     * @param DOMDocument $dom
      * @param string $srcDir
      *
      * @throws \Propel\Generator\Exception\BuildException
@@ -505,7 +510,7 @@ abstract class AbstractManager
      *
      * @param string $file
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return array<string>
      */

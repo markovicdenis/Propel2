@@ -10,6 +10,8 @@ namespace Propel\Runtime\Connection;
 
 use Propel\Runtime\Adapter\AdapterInterface;
 
+use function count;
+
 /**
  * Manager for primary/replica connection to a datasource.
  */

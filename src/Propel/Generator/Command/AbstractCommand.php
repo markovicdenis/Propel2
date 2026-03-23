@@ -17,6 +17,10 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
+use function count;
+use function sprintf;
+use function strlen;
+
 /**
  * @author William Durand <william.durand1@gmail.com>
  */
@@ -120,7 +124,7 @@ abstract class AbstractCommand extends Command
     /**
      * @param string $directory
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

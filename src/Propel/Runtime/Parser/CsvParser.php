@@ -8,6 +8,9 @@
 
 namespace Propel\Runtime\Parser;
 
+use function count;
+use function is_scalar;
+
 /**
  * CSV parser. Converts data between associative array and CSV formats.
  * CSV parsing code borrowed from php-csv-utils by Luke Visinoni

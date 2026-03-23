@@ -10,11 +10,12 @@ namespace Propel\Runtime\DataFetcher;
 
 use Countable;
 use Iterator;
+use ReturnTypeWillChange;
 
 /**
  * Interface class for DataFetcher.
  *
- * @extends \Iterator<int|string, mixed>
+ * @extends Iterator<int|string, mixed>
  */
 interface DataFetcherInterface extends Iterator, Countable
 {
@@ -43,7 +44,7 @@ interface DataFetcherInterface extends Iterator, Countable
      *
      * @return mixed Can return any type.
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function current();
 
     /**
@@ -64,7 +65,7 @@ interface DataFetcherInterface extends Iterator, Countable
      *
      * @return mixed scalar on success, or null on failure.
      */
-    #[\ReturnTypeWillChange]
+    #[ReturnTypeWillChange]
     public function key();
 
     /**

@@ -12,6 +12,9 @@ use Propel\Common\Config\Exception\InputOutputException;
 use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
 
+use function is_array;
+use function sprintf;
+
 /**
  * YamlFileLoader loads configuration parameters from yaml file.
  *

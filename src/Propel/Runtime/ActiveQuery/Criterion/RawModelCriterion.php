@@ -12,6 +12,9 @@ use PDO;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\Exception\InvalidClauseException;
 
+use function count;
+use function sprintf;
+
 /**
  * Specialized ModelCriterion used for custom expressions with a typed binding,
  * e.g. 'foobar = ?'

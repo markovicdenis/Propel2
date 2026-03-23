@@ -16,6 +16,13 @@ use Propel\Runtime\Propel;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 
+use function constant;
+use function count;
+use function defined;
+use function in_array;
+use function is_string;
+use function sprintf;
+
 /**
  * Wraps a Connection class, providing nested transactions, statement cache, and logging.
  *
@@ -466,7 +473,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
      * @param array|null $args
      * @param string $sqlForLog Logged SQL query
      *
-     * @throws \PDOException
+     * @throws PDOException
      *
      * @return mixed
      */

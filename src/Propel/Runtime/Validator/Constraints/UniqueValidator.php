@@ -12,6 +12,9 @@ use Propel\Runtime\Map\TableMap;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
+use function in_array;
+use function sprintf;
+
 class UniqueValidator extends ConstraintValidator
 {
     /**

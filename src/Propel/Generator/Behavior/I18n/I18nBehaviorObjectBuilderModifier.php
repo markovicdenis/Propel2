@@ -12,6 +12,8 @@ use Propel\Generator\Builder\Om\ObjectBuilder;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\PropelTypes;
 
+use function in_array;
+
 /**
  * Allows translation of text columns through transparent one-to-many relationship.
  * Modifier for the object builder.

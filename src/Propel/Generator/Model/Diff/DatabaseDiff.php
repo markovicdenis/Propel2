@@ -11,6 +11,9 @@ namespace Propel\Generator\Model\Diff;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\Table;
 
+use function count;
+use function sprintf;
+
 /**
  * Value object for storing Database object diffs
  * Heavily inspired by Doctrine2's Migrations

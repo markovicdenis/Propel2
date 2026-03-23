@@ -14,6 +14,11 @@ use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Model\Behavior;
 use Symfony\Component\Yaml\Parser;
 
+use function count;
+use function is_array;
+use function is_string;
+use function sprintf;
+
 /**
  * Validate a model object using Symfony2 Validator component
  *

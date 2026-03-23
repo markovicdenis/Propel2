@@ -24,6 +24,13 @@ use Propel\Runtime\Connection\ConnectionFactory;
 use Propel\Runtime\Connection\ConnectionInterface;
 use RuntimeException;
 
+use function array_key_exists;
+use function array_slice;
+use function function_exists;
+use function in_array;
+use function sprintf;
+use function strlen;
+
 /**
  * Service class for preparing and executing migrations
  *
@@ -157,7 +164,7 @@ class MigrationManager extends AbstractManager
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      *
      * @return list<int>
      */
@@ -194,7 +201,7 @@ class MigrationManager extends AbstractManager
     /**
      * @param string $datasource
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return bool
      */
@@ -220,7 +227,7 @@ class MigrationManager extends AbstractManager
     /**
      * @param string $datasource
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return void
      */
@@ -279,7 +286,7 @@ class MigrationManager extends AbstractManager
      * @param string $datasource
      * @param int $timestamp
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -600,7 +607,7 @@ class MigrationManager extends AbstractManager
     /**
      * @param string $datasource
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */
@@ -642,7 +649,7 @@ class MigrationManager extends AbstractManager
     /**
      * @param string $connectionName
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return array
      */
@@ -705,7 +712,7 @@ class MigrationManager extends AbstractManager
      * @param \Propel\Runtime\Connection\ConnectionInterface $connection
      * @param string $columnName
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return bool
      */

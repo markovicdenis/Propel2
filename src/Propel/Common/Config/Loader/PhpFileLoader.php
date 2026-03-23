@@ -10,6 +10,8 @@ namespace Propel\Common\Config\Loader;
 
 use Propel\Common\Config\Exception\InvalidArgumentException;
 
+use function is_array;
+
 /**
  * PhpFileLoader loads configuration values from a PHP file.
  *

@@ -15,6 +15,11 @@ use Propel\Generator\Model\PhpNameGenerator;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
+use function array_key_exists;
+use function count;
+use function dirname;
+use function sprintf;
+
 /**
  * Service class to find composer and installed packages
  *

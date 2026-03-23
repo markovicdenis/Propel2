@@ -19,6 +19,9 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Util\PhpParser;
 use RuntimeException;
 
+use function in_array;
+use function sprintf;
+
 /**
  * Gives a model class the ability to delegate methods to a relationship.
  *
@@ -59,7 +62,7 @@ class DelegateBehavior extends Behavior
      * Lists the delegates and checks that the behavior can use them,
      * And adds a fk from the delegate to the main table if not already set
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */
@@ -167,7 +170,7 @@ class DelegateBehavior extends Behavior
                 $ARFQCN = $builder->getNewStubObjectBuilder($delegateTable)->getFullyQualifiedClassName();
                 $relationName = $builder->getFKPhpNameAffix($fk);
             }
-                $script .= "
+            $script .= "
 if (method_exists({$ARFQCN}::class, \$name)) {
     \$delegate = \$this->get$relationName();
     if (!\$delegate) {
@@ -185,7 +188,7 @@ if (method_exists({$ARFQCN}::class, \$name)) {
     /**
      * @param string $script
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return void
      */

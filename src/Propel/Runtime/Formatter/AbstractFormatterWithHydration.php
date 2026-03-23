@@ -12,6 +12,8 @@ use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Collection\ArrayCollection;
 use ReflectionClass;
 
+use function in_array;
+
 abstract class AbstractFormatterWithHydration extends AbstractFormatter
 {
     /**

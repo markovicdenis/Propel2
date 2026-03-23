@@ -8,6 +8,8 @@
 
 namespace Propel\Common\Config\Exception;
 
+use function count;
+
 class XmlParseException extends RuntimeException implements ExceptionInterface
 {
     /**

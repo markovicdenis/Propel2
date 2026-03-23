@@ -16,6 +16,9 @@ use Propel\Runtime\Connection\ConnectionFactory;
 use Propel\Runtime\Connection\ConnectionInterface;
 use RuntimeException;
 
+use function count;
+use function sprintf;
+
 /**
  * Service class for managing SQL.
  *

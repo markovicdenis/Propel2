@@ -10,6 +10,8 @@ namespace Propel\Generator\Manager;
 
 use Propel\Generator\Model\Column;
 
+use function count;
+
 /**
  * Manager for Graphviz representation.
  *

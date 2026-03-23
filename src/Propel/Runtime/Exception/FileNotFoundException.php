@@ -8,6 +8,8 @@
 
 namespace Propel\Runtime\Exception;
 
+use function sprintf;
+
 /**
  * @author William Durand <william.durand1@gmail.com>
  */

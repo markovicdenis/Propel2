@@ -12,6 +12,11 @@ use Propel\Common\Config\Exception\InvalidArgumentException;
 use Propel\Common\Config\Exception\XmlParseException;
 use SimpleXMLElement;
 
+use function array_key_exists;
+use function count;
+use function is_array;
+use function strlen;
+
 /**
  * Class to convert an xml string to array
  */
@@ -74,7 +79,7 @@ class XmlToArrayConverter
      *
      * @author Christophe VG (based on code form php.net manual comment)
      *
-     * @param \SimpleXMLElement $xml SimpleXML object.
+     * @param SimpleXMLElement $xml SimpleXML object.
      *
      * @return array Array representation of SimpleXML object.
      */
@@ -134,7 +139,7 @@ class XmlToArrayConverter
     /**
      * Process XML value, handling boolean, if appropriate.
      *
-     * @param \SimpleXMLElement $valueElement The simplexml value object.
+     * @param SimpleXMLElement $valueElement The simplexml value object.
      *
      * @return string|float|int|bool string or boolean value
      */

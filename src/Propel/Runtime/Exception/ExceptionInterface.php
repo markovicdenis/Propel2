@@ -8,9 +8,11 @@
 
 namespace Propel\Runtime\Exception;
 
+use Throwable;
+
 /**
  * @author William Durand <william.durand1@gmail.com>
  */
-interface ExceptionInterface extends \Throwable
+interface ExceptionInterface extends Throwable
 {
 }

@@ -12,6 +12,8 @@ use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\LogicException;
 
+use function count;
+
 /**
  * Array formatter for Propel select query
  * format() returns a ArrayCollection of associative arrays, a string,

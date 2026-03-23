@@ -14,6 +14,8 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Table;
 
+use function sprintf;
+
 /**
  * Value object for storing Table object diffs
  * Heavily inspired by Doctrine2's Migrations

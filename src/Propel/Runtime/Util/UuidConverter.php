@@ -8,6 +8,8 @@
 
 namespace Propel\Runtime\Util;
 
+use function is_string;
+
 /**
  * Helps to manually convert UUIDs to byte types
  */

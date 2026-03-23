@@ -24,6 +24,9 @@ use Propel\Runtime\Connection\PdoConnection;
 use RuntimeException;
 use SQLite3;
 
+use function in_array;
+use function sprintf;
+
 /**
  * SQLite PlatformInterface implementation.
  *
@@ -631,7 +634,7 @@ PRAGMA foreign_keys = ON;
     }
 
     /**
-     * @throws \RuntimeException
+     * @throws RuntimeException
      *
      * @return string
      */

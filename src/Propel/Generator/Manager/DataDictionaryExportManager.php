@@ -12,6 +12,9 @@ use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Table;
 
+use function count;
+use function sprintf;
+
 /**
  * Manager for Markdown Data Dictionary
  *
@@ -74,7 +77,7 @@ EOT;
             return strcmp($a->getName(), $b->getName());
         });
 
-            return $tables;
+        return $tables;
     }
 
     /**

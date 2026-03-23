@@ -12,7 +12,7 @@ use Countable;
 use Iterator;
 
 /**
- * @extends \Iterator<(int|string), mixed>
+ * @extends Iterator<(int|string), mixed>
  */
 interface IteratorInterface extends Iterator, Countable
 {

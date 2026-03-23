@@ -23,7 +23,7 @@ trait TransactionTrait
      *
      * @param callable $callable A callable to be wrapped in a transaction
      *
-     * @throws \Throwable Re-throws a possible <code>Throwable</code> triggered by the callable.
+     * @throws Throwable Re-throws a possible <code>Throwable</code> triggered by the callable.
      *
      * @return mixed Returns the result of the callable.
      */

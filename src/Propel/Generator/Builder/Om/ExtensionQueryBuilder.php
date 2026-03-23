@@ -111,7 +111,7 @@ class $className extends $baseClassName
      */
     public function hasBehaviorModifier(string $hookName, string $modifier = ''): bool
     {
-         return parent::hasBehaviorModifier($hookName, 'QueryBuilderModifier');
+        return parent::hasBehaviorModifier($hookName, 'QueryBuilderModifier');
     }
 
     /**

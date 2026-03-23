@@ -15,6 +15,8 @@ use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\Table;
 
+use function sprintf;
+
 /**
  * Keeps an aggregate column updated with related table
  *
@@ -48,7 +50,7 @@ class AggregateColumnBehavior extends Behavior
     /**
      * Add the aggregate key to the current table
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */
@@ -84,7 +86,7 @@ class AggregateColumnBehavior extends Behavior
     /**
      * @param \Propel\Generator\Builder\Om\ObjectBuilder $builder
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string
      */
@@ -102,7 +104,7 @@ class AggregateColumnBehavior extends Behavior
     /**
      * @param \Propel\Generator\Builder\Om\ObjectBuilder $builder
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string
      */
@@ -171,7 +173,7 @@ class AggregateColumnBehavior extends Behavior
     }
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return \Propel\Generator\Model\ForeignKey
      */

@@ -461,7 +461,7 @@ public function addVersion(?ConnectionInterface \$con = null)
                 ";
             }
         }
-            $script .= "
+        $script .= "
     \$version->save(\$con);
 
     return \$version;

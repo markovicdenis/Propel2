@@ -17,6 +17,10 @@ use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
 
+use function count;
+use function in_array;
+use function sprintf;
+
 /**
  * Allows translation of text columns through transparent one-to-many
  * relationship.

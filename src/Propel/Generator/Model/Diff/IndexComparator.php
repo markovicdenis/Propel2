@@ -10,6 +10,8 @@ namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Index;
 
+use function count;
+
 /**
  * Service class for comparing Index objects
  * Heavily inspired by Doctrine2's Migrations
