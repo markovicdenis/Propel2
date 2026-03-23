@@ -13,7 +13,6 @@ use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Propel;
-use ReturnTypeWillChange;
 
 use function is_array;
 
@@ -25,34 +24,34 @@ use function is_array;
 class OnDemandIterator implements IteratorInterface
 {
     /**
-     * @var \Propel\Runtime\Formatter\ObjectFormatter|null
+     * @var \Propel\Runtime\Formatter\AbstractFormatter
      */
-    protected $formatter;
+    protected AbstractFormatter $formatter;
 
     /**
-     * @var \Propel\Runtime\DataFetcher\DataFetcherInterface|null
+     * @var \Propel\Runtime\DataFetcher\DataFetcherInterface
      */
-    protected $dataFetcher;
+    protected DataFetcherInterface $dataFetcher;
 
     /**
      * @var array|bool|null
      */
-    protected $currentRow;
+    protected array|bool|null $currentRow = null;
 
     /**
      * @var int
      */
-    protected $currentKey;
+    protected int $currentKey = -1;
 
     /**
      * @var bool|null
      */
-    protected $isValid;
+    protected ?bool $isValid = null;
 
     /**
      * @var bool
      */
-    protected $enableInstancePoolingOnFinish;
+    protected bool $enableInstancePoolingOnFinish;
 
     /**
      * @param \Propel\Runtime\Formatter\ObjectFormatter $formatter
@@ -60,7 +59,6 @@ class OnDemandIterator implements IteratorInterface
      */
     public function __construct(AbstractFormatter $formatter, DataFetcherInterface $dataFetcher)
     {
-        $this->currentKey = -1;
         $this->formatter = $formatter;
         $this->dataFetcher = $dataFetcher;
         $this->enableInstancePoolingOnFinish = Propel::disableInstancePooling();
@@ -100,7 +98,6 @@ class OnDemandIterator implements IteratorInterface
      *
      * @return \Propel\Runtime\ActiveRecord\ActiveRecordInterface
      */
-    #[ReturnTypeWillChange]
     public function current(): ActiveRecordInterface
     {
         if (!is_array($this->currentRow)) {
@@ -117,7 +114,6 @@ class OnDemandIterator implements IteratorInterface
      *
      * @return int
      */
-    #[ReturnTypeWillChange]
     public function key(): int
     {
         return $this->currentKey;
@@ -149,13 +145,6 @@ class OnDemandIterator implements IteratorInterface
      */
     public function rewind(): void
     {
-        // check that the hydration can begin
-        if ($this->formatter === null) {
-            throw new PropelException('The On Demand collection requires a formatter. Add it by calling setFormatter()');
-        }
-        if ($this->dataFetcher === null) {
-            throw new PropelException('The On Demand collection requires a dataFetcher. Add it by calling setDataFetcher()');
-        }
         if ($this->isValid !== null) {
             throw new PropelException('The On Demand collection can only be iterated once');
         }
@@ -169,6 +158,6 @@ class OnDemandIterator implements IteratorInterface
      */
     public function valid(): bool
     {
-        return $this->isValid;
+        return $this->isValid ?? false;
     }
 }

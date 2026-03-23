@@ -31,12 +31,12 @@ class ObjectCollection extends Collection
     /**
      * @var array
      */
-    protected $index = [];
+    protected array $index = [];
 
     /**
      * @var array
      */
-    protected $indexSplHash = [];
+    protected array $indexSplHash = [];
 
     /**
      * @param array $data

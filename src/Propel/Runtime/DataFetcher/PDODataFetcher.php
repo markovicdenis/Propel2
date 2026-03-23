@@ -10,7 +10,6 @@ namespace Propel\Runtime\DataFetcher;
 
 use PDO;
 use Propel\Runtime\Map\TableMap;
-use ReturnTypeWillChange;
 
 use function sprintf;
 
@@ -26,26 +25,26 @@ class PDODataFetcher extends AbstractDataFetcher
     /**
      * @var array|boolean|null
      */
-    private $current;
+    private array|bool|null $current = null;
 
     /**
      * @var int
      */
-    private $index = 0;
+    private int $index = 0;
 
     /**
      * For SQLITE rowCount emulation.
      *
      * @var int|null
      */
-    private $cachedCount;
+    private ?int $cachedCount = null;
 
     /**
      * fetch style (default FETCH_NUM)
      *
      * @var int
      */
-    private $style = PDO::FETCH_NUM;
+    private int $style = PDO::FETCH_NUM;
 
     /**
      * Sets a new fetch style (FETCH_NUM, FETCH_ASSOC or FETCH_BOTH). Returns previous fetch style.
@@ -128,8 +127,7 @@ class PDODataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         return $this->current;
     }
@@ -139,8 +137,7 @@ class PDODataFetcher extends AbstractDataFetcher
      *
      * @inheritDoc
      */
-    #[ReturnTypeWillChange]
-    public function key()
+    public function key(): int
     {
         return $this->index;
     }

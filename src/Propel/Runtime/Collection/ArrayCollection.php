@@ -23,7 +23,7 @@ class ArrayCollection extends Collection
     /**
      * @var \Propel\Runtime\ActiveRecord\ActiveRecordInterface|null
      */
-    protected $workerObject;
+    protected ?ActiveRecordInterface $workerObject = null;
 
     /**
      * Save all the elements in the collection

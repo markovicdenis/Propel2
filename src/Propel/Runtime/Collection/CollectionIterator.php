@@ -9,7 +9,6 @@
 namespace Propel\Runtime\Collection;
 
 use ArrayIterator;
-use ReturnTypeWillChange;
 
 use function count;
 
@@ -86,8 +85,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function getFirst()
+    public function getFirst(): mixed
     {
         if ($this->isEmpty()) {
             return null;
@@ -115,8 +113,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function getPrevious()
+    public function getPrevious(): mixed
     {
         if ($this->isFirst()) {
             return null;
@@ -134,8 +131,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function getCurrent()
+    public function getCurrent(): mixed
     {
         return $this->current();
     }
@@ -148,8 +144,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function getNext()
+    public function getNext(): mixed
     {
         $this->next();
 
@@ -164,8 +159,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function getLast()
+    public function getLast(): mixed
     {
         if ($this->isEmpty()) {
             return null;
@@ -253,7 +247,6 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return true
      */
-    #[ReturnTypeWillChange]
     public function asort(int $flags = SORT_REGULAR): bool
     {
         parent::asort();
@@ -267,7 +260,6 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return true
      */
-    #[ReturnTypeWillChange]
     public function ksort(int $flags = SORT_REGULAR): bool
     {
         parent::ksort();
@@ -281,8 +273,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return true
      */
-    #[ReturnTypeWillChange]
-    public function uasort($callback): bool
+    public function uasort(callable $callback): bool
     {
         parent::uasort($callback);
         $this->refreshPositions();
@@ -295,8 +286,7 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
      *
      * @return true
      */
-    #[ReturnTypeWillChange]
-    public function uksort($callback): bool
+    public function uksort(callable $callback): bool
     {
         parent::uksort($callback);
         $this->refreshPositions();
@@ -307,7 +297,6 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     /**
      * @return true
      */
-    #[ReturnTypeWillChange]
     public function natsort(): bool
     {
         parent::natsort();
@@ -319,7 +308,6 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
     /**
      * @return true
      */
-    #[ReturnTypeWillChange]
     public function natcasesort(): bool
     {
         parent::natcasesort();

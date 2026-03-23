@@ -23,7 +23,6 @@ use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
 use Serializable;
 use Traversable;
-use ReturnTypeWillChange;
 
 use function count;
 use function in_array;
@@ -54,29 +53,29 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     /**
      * @var string
      */
-    protected $model = '';
+    protected string $model = '';
 
     /**
      * The fully qualified classname of the model
      *
      * @var string
      */
-    protected $fullyQualifiedModel = '';
+    protected string $fullyQualifiedModel = '';
 
     /**
      * @var \Propel\Runtime\Formatter\AbstractFormatter
      */
-    protected $formatter;
+    protected ?AbstractFormatter $formatter = null;
 
     /**
      * @var array
      */
-    protected $data = [];
+    protected array $data = [];
 
     /**
      * @var \Propel\Common\Pluralizer\PluralizerInterface|null
      */
-    private $pluralizer;
+    private ?PluralizerInterface $pluralizer = null;
 
     /**
      * @param array $data
@@ -91,7 +90,11 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function __serialize(): array
     {
-        return [$this->serialize()];
+        return [
+            'data' => $this->getArrayCopy(),
+            'model' => $this->model,
+            'fullyQualifiedModel' => $this->fullyQualifiedModel,
+        ];
     }
 
     /**
@@ -101,7 +104,9 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function __unserialize(array $data): void
     {
-        $this->unserialize($data[0]);
+        $this->exchangeArray($data['data'] ?? []);
+        $this->model = $data['model'] ?? '';
+        $this->fullyQualifiedModel = $data['fullyQualifiedModel'] ?? '';
     }
 
     /**
@@ -131,8 +136,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function &offsetGet($offset)
+    public function &offsetGet($offset): mixed
     {
         if (isset($this->data[$offset])) {
             return $this->data[$offset];
@@ -440,18 +444,11 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     // Serializable interface
 
     /**
-     * @return string|null
+     * @return string
      */
-    #[ReturnTypeWillChange]
-    public function serialize(): ?string
+    public function serialize(): string
     {
-        $repr = [
-            'data' => $this->getArrayCopy(),
-            'model' => $this->model,
-            'fullyQualifiedModel' => $this->fullyQualifiedModel,
-        ];
-
-        return serialize($repr);
+        return \serialize($this->__serialize());
     }
 
     /**
@@ -459,13 +456,11 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * @return void
      */
-    #[ReturnTypeWillChange]
-    public function unserialize($data): void
+    public function unserialize(string $data): void
     {
-        $repr = unserialize($data);
-        $this->exchangeArray($repr['data']);
-        $this->model = $repr['model'];
-        $this->fullyQualifiedModel = $repr['fullyQualifiedModel'];
+        /** @var array{data?: array, model?: string, fullyQualifiedModel?: string} $repr */
+        $repr = \unserialize($data);
+        $this->__unserialize($repr);
     }
 
     // Propel collection methods

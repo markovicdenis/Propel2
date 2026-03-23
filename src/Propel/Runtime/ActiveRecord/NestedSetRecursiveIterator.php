@@ -9,7 +9,6 @@
 namespace Propel\Runtime\ActiveRecord;
 
 use RecursiveIterator;
-use ReturnTypeWillChange;
 
 /**
  * Pre-order node iterator for Node objects.
@@ -23,12 +22,12 @@ class NestedSetRecursiveIterator implements RecursiveIterator
     /**
      * @var object
      */
-    protected $topNode;
+    protected object $topNode;
 
     /**
-     * @var object
+     * @var object|null
      */
-    protected $curNode;
+    protected ?object $curNode;
 
     /**
      * @param object $node
@@ -60,8 +59,7 @@ class NestedSetRecursiveIterator implements RecursiveIterator
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         return $this->curNode;
     }
@@ -71,7 +69,6 @@ class NestedSetRecursiveIterator implements RecursiveIterator
      *
      * @return string
      */
-    #[ReturnTypeWillChange]
     public function key(): string
     {
         $method = method_exists($this->curNode, 'getPath') ? 'getPath' : 'getAncestors';

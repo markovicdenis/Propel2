@@ -14,7 +14,6 @@ use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Map\TableMap;
 use Traversable;
-use ReturnTypeWillChange;
 
 /**
  * Class for iterating over a statement and returning one Propel object at a time
@@ -24,9 +23,9 @@ use ReturnTypeWillChange;
 class OnDemandCollection extends Collection
 {
     /**
-     * @var \Propel\Runtime\Collection\OnDemandIterator
+     * @var \Propel\Runtime\Collection\OnDemandIterator|null
      */
-    private $lastIterator;
+    private ?OnDemandIterator $lastIterator = null;
 
     /**
      * @param \Propel\Runtime\Formatter\ObjectFormatter $formatter
@@ -114,6 +113,10 @@ class OnDemandCollection extends Collection
      */
     public function getIterator(): Traversable
     {
+        if ($this->lastIterator === null) {
+            throw new PropelException('The On Demand Collection requires an iterator. Add it by calling initIterator().');
+        }
+
         return $this->lastIterator;
     }
 
@@ -140,8 +143,7 @@ class OnDemandCollection extends Collection
      *
      * @return mixed
      */
-    #[ReturnTypeWillChange]
-    public function &offsetGet($offset)
+    public function &offsetGet($offset): mixed
     {
         throw new PropelException('The On Demand Collection does not allow access by offset');
     }
@@ -176,10 +178,31 @@ class OnDemandCollection extends Collection
     /**
      * @throws \Propel\Runtime\Exception\PropelException
      *
-     * @return string|null
+     * @return string
      */
-    #[ReturnTypeWillChange]
-    public function serialize(): ?string
+    public function __serialize(): array
+    {
+        throw new PropelException('The On Demand Collection cannot be serialized');
+    }
+
+    /**
+     * @param array $data
+     *
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return void
+     */
+    public function __unserialize(array $data): void
+    {
+        throw new PropelException('The On Demand Collection cannot be serialized');
+    }
+
+    /**
+     * @throws \Propel\Runtime\Exception\PropelException
+     *
+     * @return string
+     */
+    public function serialize(): string
     {
         throw new PropelException('The On Demand Collection cannot be serialized');
     }
@@ -191,8 +214,7 @@ class OnDemandCollection extends Collection
      *
      * @return void
      */
-    #[ReturnTypeWillChange]
-    public function unserialize($data): void
+    public function unserialize(string $data): void
     {
         throw new PropelException('The On Demand Collection cannot be serialized');
     }
