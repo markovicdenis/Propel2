@@ -48,7 +48,26 @@ class SqlBuildCommand extends AbstractCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $configOptions = [];
+        /** @var array{
+         *     propel: array{
+         *         paths: array{schemaDir?: string, sqlDir?: string, composerDir?: string },
+         *         generator: array{ schema: array{basename?: string }, tablePrefix?: string },
+         *         database: array{
+         *             adapters: array{ mysql: array{ tableType?: string } }
+         *         }
+         *     }
+         * } $configOptions */
+        $configOptions = [
+            'propel' => [
+                'paths' => [],
+                'generator' => ['schema' => []],
+                'database' => [
+                    'adapters' => [
+                        'mysql' => [],
+                    ],
+                ],
+            ],
+        ];
 
         foreach ($input->getOptions() as $key => $option) {
             if (!is_string($option)) {

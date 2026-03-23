@@ -52,13 +52,12 @@ trait TableMapTrait
      * Translates a fieldname to another type
      *
      * @param string $name field name
-     * @param string $fromType One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME
-     *                                   TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM
+     * @param string $fromType One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM
      * @param string $toType One of the class type constants
      *
      * @throws \Propel\Runtime\Exception\PropelException - if the specified name could not be found in the fieldname mappings.
      *
-     * @return string|int translated name of the field.
+     * @return ($toType is TableMap::TYPE_NUM ? int : string) translated name of the field.
      */
     public static function translateFieldName(string $name, string $fromType, string $toType): string|int
     {
@@ -75,8 +74,7 @@ trait TableMapTrait
      * Gets the generated object property name for a field identifier.
      *
      * @param string|int $name One of the field names in the supported TableMap index types.
-     * @param string $type One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME,
-     *                     TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
+     * @param string $type One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM
      *
      * @throws \Propel\Runtime\Exception\PropelException
      *
