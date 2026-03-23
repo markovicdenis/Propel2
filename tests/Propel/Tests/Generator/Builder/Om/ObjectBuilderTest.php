@@ -82,15 +82,21 @@ class ObjectBuilderTest extends TestCase
      */
     public function testBaseObjectMethodsUseSharedTrait()
     {
-        $script = '';
-        $this->builder->addBaseObjectMethodsToScript($script);
+        $classBodyStart = '';
+        $this->builder->addCommonTraitUsesToScript($classBodyStart);
 
-        $this->assertStringContainsString('use ActiveRecordCommonTrait;', $script);
-        $this->assertStringNotContainsString('public function resetModified(?string $col = null): void', $script);
-        $this->assertStringNotContainsString('public function equals($obj): bool', $script);
-        $this->assertStringNotContainsString('public function getVirtualColumns(): array', $script);
-        $this->assertStringNotContainsString('public function exportTo($parser, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string', $script);
-        $this->assertStringContainsString('public function __sleep(): array', $script);
+        $this->assertStringContainsString('use ActiveRecordCommonTrait;', $classBodyStart);
+        $this->assertStringStartsWith('use ActiveRecordCommonTrait;', ltrim($classBodyStart));
+
+        $baseObjectMethods = '';
+        $this->builder->addBaseObjectMethodsToScript($baseObjectMethods);
+
+        $this->assertStringNotContainsString('use ActiveRecordCommonTrait;', $baseObjectMethods);
+        $this->assertStringNotContainsString('public function resetModified(?string $col = null): void', $baseObjectMethods);
+        $this->assertStringNotContainsString('public function equals($obj): bool', $baseObjectMethods);
+        $this->assertStringNotContainsString('public function getVirtualColumns(): array', $baseObjectMethods);
+        $this->assertStringNotContainsString('public function exportTo($parser, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string', $baseObjectMethods);
+        $this->assertStringContainsString('public function __sleep(): array', $baseObjectMethods);
     }
 
     /**
@@ -228,5 +234,10 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addBaseObjectMethodsToScript(string &$script): void
     {
         $this->addBaseObjectMethods($script);
+    }
+
+    public function addCommonTraitUsesToScript(string &$script): void
+    {
+        $this->addCommonTraitUses($script);
     }
 }

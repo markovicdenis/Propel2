@@ -353,6 +353,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $this->declareClasses(...$additionalModelClasses);
         }
 
+        $this->addCommonTraitUses($script);
+
         if (!$table->isAlias()) {
             $this->addConstants($script);
             $this->addAttributes($script);
@@ -763,12 +765,23 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addBaseObjectMethods(string &$script): void
     {
+        $script .= $this->renderTemplate('baseObjectMethods', ['className' => $this->getUnqualifiedClassName()]);
+    }
+
+    /**
+     * Adds shared trait uses at the top of the generated class body.
+     *
+     * @param string $script
+     *
+     * @return void
+     */
+    protected function addCommonTraitUses(string &$script): void
+    {
         $this->declareClasses('\Propel\Runtime\ActiveRecord\ActiveRecordCommonTrait');
 
         $script .= "
     use ActiveRecordCommonTrait;
 ";
-        $script .= $this->renderTemplate('baseObjectMethods', ['className' => $this->getUnqualifiedClassName()]);
     }
 
     /**
