@@ -39,6 +39,8 @@ use function sprintf;
  */
 class ObjectBuilder extends AbstractObjectBuilder
 {
+    private bool $castToNull = false;
+
     /**
      * Returns the package for the base object classes.
      *
@@ -2888,8 +2890,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             return null;
         }
 
+        $castToNull = $this->castToNull && !$column->isNotNull();
+
         if ($column->isPhpPrimitiveType()) {
-            $transformer = $column->isNotNull()
+            $transformer = $castToNull
                 ? "static fn (\$v) => (" . $column->getPhpType() . ") \$v"
                 : "static fn (\$v) => null !== \$v ? (" . $column->getPhpType() . ") \$v : null";
 
@@ -2897,7 +2901,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         if ($column->isPhpObjectType()) {
-            $transformer = $column->isNotNull()
+            $transformer = $castToNull
                 ? "static fn (\$v) => new " . $column->getPhpType() . "(\$v)"
                 : "static fn (\$v) => null !== \$v ? new " . $column->getPhpType() . "(\$v) : null";
 
