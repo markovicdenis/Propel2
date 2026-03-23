@@ -2894,16 +2894,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if ($column->isPhpPrimitiveType()) {
             $transformer = $castToNull
-                ? "static fn (\$v) => (" . $column->getPhpType() . ") \$v"
-                : "static fn (\$v) => null !== \$v ? (" . $column->getPhpType() . ") \$v : null";
+                ? "fn (\$v) => (" . $column->getPhpType() . ") \$v"
+                : "fn (\$v) => null !== \$v ? (" . $column->getPhpType() . ") \$v : null";
 
             return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, $transformer)";
         }
 
         if ($column->isPhpObjectType()) {
             $transformer = $castToNull
-                ? "static fn (\$v) => new " . $column->getPhpType() . "(\$v)"
-                : "static fn (\$v) => null !== \$v ? new " . $column->getPhpType() . "(\$v) : null";
+                ? "fn (\$v) => new " . $column->getPhpType() . "(\$v)"
+                : "fn (\$v) => null !== \$v ? new " . $column->getPhpType() . "(\$v) : null";
 
             return "\$this->resolveFromRow(\$row, $position, \$startcol, \$indexType, $transformer)";
         }
