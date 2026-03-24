@@ -196,7 +196,7 @@ EOF;
         $this->assertEquals([], $table->getRelations());
     }
 
-    public function invalidFkTestDataProvider(): array
+    public static function invalidFkTestDataProvider(): array
     {
         return [
             [
@@ -244,7 +244,7 @@ EOF;
         $builder->getDatabase();
     }
 
-    public function addFkTestDataProvider(): array
+    public static function addFkTestDataProvider(): array
     {
         return [
             // description, behavior parameters, local fk, foreign table name, foreign column name
@@ -425,7 +425,7 @@ EOF;
     /**
      * @return array
      */
-    public function tablePrefixDataProvider()
+    public static function tablePrefixDataProvider()
     {
         $schema = <<<XML
 <database name="archivable_behavior_test_0" tablePrefix="foo_">

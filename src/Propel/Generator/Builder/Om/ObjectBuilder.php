@@ -399,7 +399,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $this->addToArray($script);
         }
 
-        if ($this->isAddGenericMutators()) {
+        if (!$table->isReadOnly() && $this->isAddGenericMutators()) {
             $this->addSetByName($script);
             $this->addSetByPosition($script);
             $this->addFromArray($script);
@@ -1642,7 +1642,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        $fallback = $column->isNotNull() ? " ?? {$this->getDefaultValueForColumn($column)}" : '';
+        $fallback = '';
+        if ($column->isNotNull() && !($column->isPrimaryKey() && $column->isAutoIncrement() && !$column->hasDefaultValue())) {
+            $fallback = " ?? {$this->getDefaultValueForColumn($column)}";
+        }
 
         $script .= "
         return \$this->$clo$fallback;";
@@ -4300,11 +4303,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             [$column, $rightValueOrColumn] = $map;
 
             if ($rightValueOrColumn instanceof Column) {
-                $prefix = $orNull ? "\$v{$mod}->isNew() ? null : " : '';
                 $suffix = $rightValueOrColumn->isNotNull() ? '' : " ?? " . $this->getDefaultValueForColumn($column, false);
-                $script .= "
-        \$this->set" . $column->getPhpName() . "($prefix\$v{$mod}->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
+                if ($orNull) {
+                    $nullValue = $column->hasDefaultValue() ? $this->getDefaultValueString($column, false) : 'null';
+                    $script .= "
+        \$this->set" . $column->getPhpName() . "(\$v === null ? $nullValue : (\$v->isNew() ? null : \$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix));
+    ";
+                } else {
+                    $script .= "
+        \$this->set" . $column->getPhpName() . "(\$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
 ";
+                }
             } else {
                 $val = var_export($rightValueOrColumn, true);
                 $script .= "

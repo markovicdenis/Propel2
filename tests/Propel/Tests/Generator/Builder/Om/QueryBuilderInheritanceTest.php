@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookstoreCashier;
 use Propel\Tests\Bookstore\BookstoreCashierQuery;
@@ -16,6 +17,7 @@ use Propel\Tests\Bookstore\BookstoreEmployeeQuery;
 use Propel\Tests\Bookstore\BookstoreManager;
 use Propel\Tests\Bookstore\BookstoreManagerQuery;
 use Propel\Tests\Bookstore\DistributionManager;
+use Propel\Tests\Bookstore\DistributionManagerQuery;
 use Propel\Tests\Bookstore\DistributionQuery;
 use Propel\Tests\Bookstore\DistributionStore;
 use Propel\Tests\Bookstore\DistributionVirtualStore;
@@ -33,7 +35,7 @@ use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 #[\PHPUnit\Framework\Attributes\Group('database')]
 class QueryBuilderInheritanceTest extends BookstoreTestBase
 {
-    public function constructProvider()
+    public static function constructProvider()
     {
         return [
             ['BookstoreCashierQuery'],
@@ -46,11 +48,7 @@ class QueryBuilderInheritanceTest extends BookstoreTestBase
         ];
     }
 
-    /**
-     * @dataProvider constructProvider
-     *
-     * @return void
-     */
+    #[DataProvider('constructProvider')]
     public function testConstruct($class)
     {
         $class = 'Propel\\Tests\\Bookstore\\' . $class;
@@ -186,8 +184,6 @@ class QueryBuilderInheritanceTest extends BookstoreTestBase
     /**
      * This test prove failure with propel.emulateForeignKeyConstraints = true
      *
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testDeleteCascadeWithAbstractSingleTableInheritance()
@@ -195,7 +191,11 @@ class QueryBuilderInheritanceTest extends BookstoreTestBase
         $manager = new DistributionManager();
         $manager->setName('test');
         $manager->save();
+
+        $managerId = $manager->getId();
         $manager->delete();
+
+        $this->assertNull(DistributionManagerQuery::create()->findPk($managerId));
     }
 
     /**

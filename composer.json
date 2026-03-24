@@ -60,11 +60,14 @@
         "psalm-update-baseline": "vendor/bin/psalm.phar --update-baseline",
         "psalm-set-baseline": "vendor/bin/psalm.phar --set-baseline=psalm-baseline.xml",
         "psalm-update-report": "vendor/bin/psalm.phar --report=psalm-report.xml",
-        "test": "phpunit --colors=always",
-        "test:agnostic": "@test -c tests/agnostic.phpunit.xml",
-        "test:mysql": "@test -c tests/mysql.phpunit.xml",
-        "test:sqlite": "@test -c tests/sqlite.phpunit.xml",
-        "test:pgsql": "@test -c tests/pgsql.phpunit.xml"
+        "test": [
+            "@test:agnostic",
+            "@test:sqlite"
+        ],
+        "test:agnostic": "phpunit --colors=always -c tests/agnostic.phpunit.xml",
+        "test:mysql": "phpunit --colors=always -c tests/mysql.phpunit.xml",
+        "test:sqlite": "phpunit --colors=always -c tests/sqlite.phpunit.xml",
+        "test:pgsql": "phpunit --colors=always -c tests/pgsql.phpunit.xml"
     },
     "extra": {
         "branch-alias": {

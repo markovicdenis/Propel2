@@ -14,7 +14,7 @@ use Propel\Tests\Helpers\BaseTestCase;
 
 class UuidConverterTest extends BaseTestCase
 {
-    public function uuidDataProvider(): array
+    public static function uuidDataProvider(): array
     {
         return [
             // uuid, hex, hexWithSwap

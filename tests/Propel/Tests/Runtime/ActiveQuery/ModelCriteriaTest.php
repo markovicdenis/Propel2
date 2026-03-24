@@ -37,6 +37,11 @@ use Propel\Tests\Bookstore\Map\ReviewTableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreDataPopulator;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 
+use function array_key_exists;
+use function count;
+use function is_array;
+use function is_int;
+
 /**
  * Test class for ModelCriteria.
  *
@@ -514,7 +519,7 @@ class ModelCriteriaTest extends BookstoreTestBase
         );
     }
 
-    public function filterByWithSubqueryDataProvider(): array
+    public static function filterByWithSubqueryDataProvider(): array
     {
         return [
             // operator input, operator in query
@@ -2764,8 +2769,7 @@ class ModelCriteriaTest extends BookstoreTestBase
     public function testMagicGroupBy()
     {
         $con = Propel::getServiceContainer()->getConnection(BookTableMap::DATABASE_NAME);
-        if( $this->runningOnMySQL())
-        {
+        if ($this->runningOnMySQL()) {
             $con->exec('SET SESSION sql_mode = "TRADITIONAL"');
         }
 

@@ -50,7 +50,7 @@ class UniqueTest extends ModelTestCase
     /**
      * @return array
      */
-    public function provideTableSpecificAttributes()
+    public static function provideTableSpecificAttributes()
     {
         return [
             [ 'books', 64, 'books_u_no_columns' ],

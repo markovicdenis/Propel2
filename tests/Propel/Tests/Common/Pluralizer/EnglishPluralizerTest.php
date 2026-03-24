@@ -18,7 +18,7 @@ use Propel\Common\Pluralizer\StandardEnglishPluralizer;
  */
 class EnglishPluralizerTest extends TestCase
 {
-    public function getPluralFormDataProvider()
+    public static function getPluralFormDataProvider()
     {
         return [
             ['', 's'],
@@ -101,7 +101,7 @@ class EnglishPluralizerTest extends TestCase
     }
 
     #[DataProvider('getPluralFormDataProvider')]
-    public function testSimplePluralForm($input)
+    public function testSimplePluralForm($input, $output)
     {
         $pluralizer = new SimpleEnglishPluralizer();
         $this->assertEquals($input . 's', $pluralizer->getPluralForm($input));

@@ -38,6 +38,8 @@ use Propel\Tests\Bookstore\ReviewQuery;
 use Propel\Tests\Helpers\Bookstore\BookstoreDataPopulator;
 use Propel\Tests\Helpers\Bookstore\BookstoreEmptyTestBase;
 
+use function count;
+
 /**
  * Tests the delete methods of the generated Query classes.
  *
@@ -454,18 +456,13 @@ class GeneratedQueryDoDeleteTest extends BookstoreEmptyTestBase
     /**
      * Test passing null values to removeInstanceFromPool().
      *
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testRemoveInstanceFromPool_Null()
     {
-        // if it throws an exception, then it's broken.
-        try {
-            BookTableMap::removeInstanceFromPool(null);
-        } catch (Exception $x) {
-            $this->fail('Expected to get no exception when removing an instance from the pool.');
-        }
+        BookTableMap::removeInstanceFromPool(null);
+
+        $this->assertNull(BookTableMap::getInstanceFromPool(null));
     }
 
     /**

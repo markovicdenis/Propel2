@@ -25,7 +25,7 @@ class AbstractQueryExecutorTest extends BookstoreTestBase
     /**
      * @return array
      */
-    public function queryExceptionOutputFormatDataProvider()
+    public static function queryExceptionOutputFormatDataProvider()
     {
         // [$useDebug, $sqlStatement, $internalErrorMessage, $expectedPublicMessage]
         return [
@@ -71,7 +71,7 @@ class AbstractQueryExecutorTest extends BookstoreTestBase
     public function testGetConnectionDefaultsToWritableConnection(): void
     {
         $query = BookQuery::create();
-        $executor = new class ($query) extends AbstractQueryExecutor{
+        $executor = new class ($query) extends AbstractQueryExecutor {
             public $isWriteConnection;
 
             protected function retrieveConnection(ServiceContainerInterface $sc, string $dbName, bool $getWritableConnection = false): ConnectionInterface

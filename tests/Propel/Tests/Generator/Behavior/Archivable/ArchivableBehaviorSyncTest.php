@@ -36,7 +36,7 @@ class ArchivableBehaviorSyncTest extends TestCase
     /**
      * @return array
      */
-    public function syncTestDataProvider(): array
+    public static function syncTestDataProvider(): array
     {
         return [
             [

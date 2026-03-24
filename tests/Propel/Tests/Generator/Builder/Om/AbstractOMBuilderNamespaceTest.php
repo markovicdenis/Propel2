@@ -175,7 +175,7 @@ class AbstractOMBuilderNamespaceTest extends TestCase
     /**
      * @return array
      */
-    public function namespaceDataProvider(): array
+    public static function namespaceDataProvider(): array
     {
         //[<table namespace>, <class namespace>, <message>]]
         return [

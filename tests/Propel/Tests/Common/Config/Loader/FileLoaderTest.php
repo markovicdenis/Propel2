@@ -27,7 +27,7 @@ class FileLoaderTest extends TestCase
         $this->loader = new TestableFileLoader();
     }
 
-    public function resolveParamsProvider()
+    public static function resolveParamsProvider()
     {
         return [
             [

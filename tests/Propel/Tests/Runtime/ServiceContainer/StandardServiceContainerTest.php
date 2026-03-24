@@ -686,7 +686,7 @@ class StandardServiceContainerTest extends BaseTestCase
         $this->assertSame($expectedProfilerMode, ConnectionFactory::$useProfilerConnection);
     }
 
-    public function debugModeDataProvider(): array
+    public static function debugModeDataProvider(): array
     {
         // use debug , use profile, connection debug, connection profile
         return [

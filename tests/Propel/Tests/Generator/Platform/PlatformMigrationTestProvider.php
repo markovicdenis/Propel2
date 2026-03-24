@@ -24,7 +24,7 @@ abstract class PlatformMigrationTestProvider extends PlatformTestBase
     /**
      * @return array
      */
-    public function providerForTestGetModifyDatabaseDDL()
+    public static function providerForTestGetModifyDatabaseDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -68,12 +68,12 @@ EOF;
         return [[DatabaseComparator::computeDiff($d1, $d2, $caseInsensitive = false, $withRenaming = true)]];
     }
 
-    public function providerForTestGetRenameTableDDL()
+    public static function providerForTestGetRenameTableDDL()
     {
         return [['foo1', 'foo2']];
     }
 
-    public function providerForTestGetModifyTableDDL()
+    public static function providerForTestGetModifyTableDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -132,7 +132,7 @@ EOF;
         return [[TableComparator::computeDiff($t1, $t2)]];
     }
 
-    public function providerForTestGetModifyTableColumnsDDL()
+    public static function providerForTestGetModifyTableColumnsDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -163,7 +163,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetModifyTablePrimaryKeysDDL()
+    public static function providerForTestGetModifyTablePrimaryKeysDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -193,7 +193,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetModifyTableIndicesDDL()
+    public static function providerForTestGetModifyTableIndicesDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -248,7 +248,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetModifyTableForeignKeysDDL()
+    public static function providerForTestGetModifyTableForeignKeysDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -302,7 +302,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetModifyTableForeignKeysSkipSqlDDL()
+    public static function providerForTestGetModifyTableForeignKeysSkipSqlDDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -344,7 +344,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetModifyTableForeignKeysSkipSql2DDL()
+    public static function providerForTestGetModifyTableForeignKeysSkipSql2DDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -383,7 +383,7 @@ EOF;
         return [[$tc->getTableDiff()]];
     }
 
-    public function providerForTestGetRemoveColumnDDL()
+    public static function providerForTestGetRemoveColumnDDL()
     {
         $table = new Table('foo');
         $table->setIdentifierQuoting(true);
@@ -393,7 +393,7 @@ EOF;
         return [[$column]];
     }
 
-    public function providerForTestGetRenameColumnDDL()
+    public static function providerForTestGetRenameColumnDDL()
     {
         $t1 = new Table('foo');
         $t1->setIdentifierQuoting(true);
@@ -414,7 +414,7 @@ EOF;
         return [[$c1, $c2]];
     }
 
-    public function providerForTestGetModifyColumnDDL()
+    public static function providerForTestGetModifyColumnDDL()
     {
         $t1 = new Table('foo');
         $t1->setIdentifierQuoting(true);
@@ -432,7 +432,7 @@ EOF;
         return [[ColumnComparator::computeDiff($c1, $c2)]];
     }
 
-    public function providerForTestGetModifyColumnsDDL()
+    public static function providerForTestGetModifyColumnsDDL()
     {
         $t1 = new Table('foo');
         $t1->setIdentifierQuoting(true);
@@ -464,7 +464,7 @@ EOF;
         ]]];
     }
 
-    public function providerForTestGetAddColumnDDL()
+    public static function providerForTestGetAddColumnDDL()
     {
         $schema = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -479,7 +479,7 @@ EOF;
         return [[$column]];
     }
 
-    public function providerForTestGetAddColumnsDDL()
+    public static function providerForTestGetAddColumnsDDL()
     {
         $schema = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -495,7 +495,7 @@ EOF;
         return [[[$table->getColumn('bar1'), $table->getColumn('bar2')]]];
     }
 
-    public function providerForTestGetModifyColumnRemoveDefaultValueDDL()
+    public static function providerForTestGetModifyColumnRemoveDefaultValueDDL()
     {
         $t1 = new Table('test');
         $t1->setIdentifierQuoting(true);
@@ -514,7 +514,7 @@ EOF;
         return [[ColumnComparator::computeDiff($c1, $c2)]];
     }
 
-    public function providerForTestGetModifyTableForeignKeysSkipSql3DDL()
+    public static function providerForTestGetModifyTableForeignKeysSkipSql3DDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -548,7 +548,7 @@ EOF;
         return [[$diff]];
     }
 
-    public function providerForTestGetModifyTableForeignKeysSkipSql4DDL()
+    public static function providerForTestGetModifyTableForeignKeysSkipSql4DDL()
     {
         $schema1 = <<<EOF
 <database name="test" identifierQuoting="true">
@@ -609,7 +609,7 @@ EOF;
         return $tc->getTableDiff();
     }
 
-    public function providerForTestMigrateToUUIDColumn()
+    public static function providerForTestMigrateToUUIDColumn()
     {
         $tableColumnsFrom = <<<EOF
         <column name="id" primaryKey="true" type="VARCHAR" size="36" autoIncrement="true"/>
@@ -621,7 +621,7 @@ EOF;
         return [[$this->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
 
-    public function providerForTestMigrateToUuidBinColumn()
+    public static function providerForTestMigrateToUuidBinColumn()
     {
         $tableColumnsFrom = <<<EOF
         <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
@@ -633,7 +633,7 @@ EOF;
         return [[$this->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
 
-    public function providerForTestMigrateFromUuidBinColumn()
+    public static function providerForTestMigrateFromUuidBinColumn()
     {
         $tableColumnsFrom = <<<EOF
         <column name="id" primaryKey="true" type="UUID_BINARY" default="vendor_specific_uuid_generator_function()"/>

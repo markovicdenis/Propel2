@@ -25,22 +25,22 @@ class UuidConverterMysqlCompatibilityTest extends BookstoreTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        if(!$this->checkMysqlVersionAtLeast8()){
+        if (!$this->checkMysqlVersionAtLeast8()) {
             $this->markTestSkipped('Test can only be run on MySQL version >= 8');
             return;
         }
     }
 
-    public function operationsDataProvider(): array
+    public static function operationsDataProvider(): array
     {
         return [
             // description, mysql function , converter callback, input value, input bin
-            ['uuid to bin without swap', 'SELECT UUID_TO_BIN(?, false)', fn($uuid) => UuidConverter::uuidToBin($uuid, false), false],
-            ['uuid to bin with swap', 'SELECT UUID_TO_BIN(?, true)', fn($uuid) => UuidConverter::uuidToBin($uuid, true), false],
+            ['uuid to bin without swap', 'SELECT UUID_TO_BIN(?, false)', fn ($uuid) => UuidConverter::uuidToBin($uuid, false), false],
+            ['uuid to bin with swap', 'SELECT UUID_TO_BIN(?, true)', fn ($uuid) => UuidConverter::uuidToBin($uuid, true), false],
 
-            ['bin to uuid without swap', 'SELECT BIN_TO_UUID(?, false)', fn($uuid) => UuidConverter::binToUuid($uuid, false), true],
-            ['bin to uuid with swap', 'SELECT BIN_TO_UUID(?, true)', fn($uuid) => UuidConverter::binToUuid($uuid, true), true],
-            
+            ['bin to uuid without swap', 'SELECT BIN_TO_UUID(?, false)', fn ($uuid) => UuidConverter::binToUuid($uuid, false), true],
+            ['bin to uuid with swap', 'SELECT BIN_TO_UUID(?, true)', fn ($uuid) => UuidConverter::binToUuid($uuid, true), true],
+
         ];
     }
 
@@ -52,7 +52,7 @@ class UuidConverterMysqlCompatibilityTest extends BookstoreTestBase
         $value = ($inputBin)
             ? hex2bin('aab5d5fd70c111e5a4fbb026b977eb28')
             : 'aab5d5fd-70c1-11e5-a4fb-b026b977eb28'
-            ;
+        ;
         $mysqlBin = $this->executeStatement($sqlStatement, $value);
 
         $propelBin = $callback($value);
@@ -71,6 +71,5 @@ class UuidConverterMysqlCompatibilityTest extends BookstoreTestBase
         return $result;
     }
 
-    
-}
 
+}

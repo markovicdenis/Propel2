@@ -36,7 +36,7 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     /**
      * @return mixed[][]
      */
-    public function havingClauseDataProvider(): array
+    public static function havingClauseDataProvider(): array
     {
         $this->loadConfig();
 
@@ -78,7 +78,7 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     /**
      * @return mixed[][]
      */
-    public function fromClauseDataProvider(): array
+    public static function fromClauseDataProvider(): array
     {
         return [
             // [<query>, <from tables>, <expected clause>, <expected params>, <message>]
@@ -120,7 +120,7 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     /**
      * @return mixed[][]
      */
-    public function removeRecursiveSubqueryTableAliasesDataProvider(): array
+    public static function removeRecursiveSubqueryTableAliasesDataProvider(): array
     {
         $this->loadConfig();
 

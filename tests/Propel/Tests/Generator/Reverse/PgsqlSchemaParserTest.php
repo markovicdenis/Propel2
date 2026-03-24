@@ -18,6 +18,8 @@ use Propel\Generator\Reverse\PgsqlSchemaParser;
 use Propel\Runtime\Propel;
 use Propel\Tests\TestCaseFixturesDatabase;
 
+use function count;
+
 /**
  * Tests for Pgsql database schema parser.
  *
@@ -56,7 +58,7 @@ class PgsqlSchemaParserTest extends TestCaseFixturesDatabase
         Propel::init(__DIR__ . '/../../../../Fixtures/bookstore/build/conf/bookstore-conf.php');
     }
 
-    public function parseDataProvider()
+    public static function parseDataProvider()
     {
         return [
             // columnDDL, expectedColumnPhpName, type, expectedColumnDefaultType, expectedColumnDefaultValue, expectedSize, expectedScale
@@ -96,13 +98,13 @@ class PgsqlSchemaParserTest extends TestCaseFixturesDatabase
         $this->assertEquals($expectedType, $column->getType());
 
         $defaultValue = $column->getDefaultValue();
-        if($expectedDefaultType === null){
+        if ($expectedDefaultType === null) {
             $this->assertNull($expectedDefaultType);
         } else {
             $this->assertEquals($expectedDefaultType, $defaultValue->getType());
             $this->assertEquals($expectedDefaultValue, $defaultValue->getValue());
         }
-        
+
         $this->assertEquals($expectedSize, $column->getSize());
         $this->assertEquals($expectedScale, $column->getScale());
     }

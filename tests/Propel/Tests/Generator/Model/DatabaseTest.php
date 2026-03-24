@@ -314,7 +314,7 @@ class DatabaseTest extends ModelTestCase
         $database->addTable(['name' => 'authors']);
     }
 
-    public function provideBehaviors()
+    public static function provideBehaviors()
     {
         return [
             ['aggregate_column', 'AggregateColumn'],
@@ -436,7 +436,7 @@ class DatabaseTest extends ModelTestCase
         $this->assertSame(strtoupper($format), $database->getDefaultStringFormat());
     }
 
-    public function provideSupportedFormats()
+    public static function provideSupportedFormats()
     {
         return [
             ['xml'],
@@ -461,7 +461,7 @@ class DatabaseTest extends ModelTestCase
     /**
      * return array
      */
-    public function baseClassDataProvider(): array
+    public static function baseClassDataProvider(): array
     {
         return [
             // [<Class name>, <Expected class name>, <message>]]
@@ -573,7 +573,7 @@ EOF;
     /**
      * @return array
      */
-    public function combinedNamespaceDataProvider(): array
+    public static function combinedNamespaceDataProvider(): array
     {
         // [<Database namespace>, <Table namespace>, <Combined namespace>, <Message>]
         return [

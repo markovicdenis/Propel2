@@ -41,7 +41,7 @@ EOF;
         }
     }
 
-    public function valueSetConstantProvider()
+    public static function valueSetConstantProvider()
     {
         return [
             ['\Map\ComplexColumnTypeEntity103TableMap::COL_BAR_FOO', 'foo'],

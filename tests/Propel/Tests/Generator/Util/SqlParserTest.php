@@ -22,7 +22,7 @@ use Propel\Tests\TestCase;
 
 class SqlParserTest extends TestCase
 {
-    public function stripSqlCommentsDataProvider()
+    public static function stripSqlCommentsDataProvider()
     {
         return [
             ['', ''],
@@ -53,7 +53,7 @@ class SqlParserTest extends TestCase
         $this->assertEquals($output, $parser->getSQL());
     }
 
-    public function convertLineFeedsToUnixStyleDataProvider()
+    public static function convertLineFeedsToUnixStyleDataProvider()
     {
         return [
             ['', ''],
@@ -79,7 +79,7 @@ class SqlParserTest extends TestCase
         $this->assertEquals($output, $parser->getSQL());
     }
 
-    public function explodeIntoStatementsDataProvider()
+    public static function explodeIntoStatementsDataProvider()
     {
         return [
             ['', []],

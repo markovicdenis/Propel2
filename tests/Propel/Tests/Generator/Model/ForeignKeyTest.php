@@ -543,7 +543,7 @@ class ForeignKeyTest extends ModelTestCase
         $this->assertSame($normalized, $fk->normalizeFKey($behavior));
     }
 
-    public function provideOnActionBehaviors()
+    public static function provideOnActionBehaviors()
     {
         return [
             [null, ''],
@@ -568,7 +568,7 @@ class ForeignKeyTest extends ModelTestCase
         $this->assertSame($normalized, $fk->normalizeFKey($behavior, $default));
     }
 
-    public function provideOnActionBehaviorsWithDefault()
+    public static function provideOnActionBehaviorsWithDefault()
     {
         return [
             [null, 'RESTRICT', 'RESTRICT'],

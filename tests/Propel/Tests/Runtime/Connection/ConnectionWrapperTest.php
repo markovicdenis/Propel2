@@ -22,7 +22,7 @@ class ConnectionWrapperTest extends BookstoreTestBase
         ConnectionWrapper::$useDebugMode = false;
         parent::tearDown();
     }
-    
+
     /**
      * Make sure logging is done after execution, otherwise Profiler will give wrong data.
      *
@@ -30,7 +30,7 @@ class ConnectionWrapperTest extends BookstoreTestBase
      */
     public function testQueriesAreLoggedAfterExecution()
     {
-        $wrapper = new class ($this->con) extends ConnectionWrapper{
+        $wrapper = new class ($this->con) extends ConnectionWrapper {
             /**
              * @var array<string>
              */
@@ -123,11 +123,11 @@ class ConnectionWrapperTest extends BookstoreTestBase
     {
         ConnectionWrapper::$useDebugMode = $classState;
         $this->con->useDebug($instanceState);
-        
+
         $this->assertSame($expected, $this->con->isInDebugMode(), $message);
     }
-    
-    public function debugModeProvider()
+
+    public static function debugModeProvider()
     {
         // [class state, instance state, expected state, message]
         return [

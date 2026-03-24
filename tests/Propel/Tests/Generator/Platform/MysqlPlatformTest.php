@@ -979,7 +979,7 @@ CREATE TABLE `foo`
         $this->assertEquals('`price` DECIMAL(10,3)', $this->getPlatform()->getColumnDDL($column));
     }
 
-    public function typeMappingDataProvider()
+    public static function typeMappingDataProvider()
     {
         return [
             [PropelTypes::DATETIME, 'DATETIME'],

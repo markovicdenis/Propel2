@@ -54,7 +54,7 @@ class DefaultPlatformTest extends TestCase
         $this->assertEquals('1', $p->getBooleanString($value));
     }
 
-    public function provideValidBooleanValues()
+    public static function provideValidBooleanValues()
     {
         return [
             [true],
@@ -82,7 +82,7 @@ class DefaultPlatformTest extends TestCase
         $this->assertEquals('0', $p->getBooleanString($value));
     }
 
-    public function provideInvalidBooleanValues()
+    public static function provideInvalidBooleanValues()
     {
         return [
             [false],
@@ -145,7 +145,7 @@ class DefaultPlatformTest extends TestCase
         return $column;
     }
 
-    public function getColumnDefaultValueDDLDataProvider(): array
+    public static function getColumnDefaultValueDDLDataProvider(): array
     {
         return [
             [$this->createColumn(PropelTypes::INTEGER, 0), 'DEFAULT 0'],
@@ -178,7 +178,7 @@ class DefaultPlatformTest extends TestCase
         $this->assertEquals($default, $this->getPlatform()->getColumnDefaultValueDDL($column));
     }
 
-    public function getColumnBindingDataProvider(): array
+    public static function getColumnBindingDataProvider(): array
     {
         return [
             [$this->createColumn(PropelTypes::DATE, '2020-02-03'), '$stmt->bindValue(ID, ACCESSOR ? ACCESSOR->format("Y-m-d") : null, PDO::PARAM_STR);'],

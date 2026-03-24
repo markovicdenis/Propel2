@@ -32,6 +32,9 @@ use Propel\Tests\Bookstore\ReviewQuery;
 use Propel\Tests\Helpers\Bookstore\BookstoreDataPopulator;
 use Propel\Tests\Helpers\Bookstore\BookstoreEmptyTestBase;
 
+use function array_key_exists;
+use function count;
+
 /**
  * Tests the generated Object classes.
  *
@@ -123,8 +126,8 @@ class GeneratedObjectWithFixturesTest extends BookstoreEmptyTestBase
         } catch (PropelException $e) {
         }
 
-            // 4) make sure that it doesn't exist in db
-            $book = BookQuery::create()->findPk($bookId);
+        // 4) make sure that it doesn't exist in db
+        $book = BookQuery::create()->findPk($bookId);
         $this->assertNull($book, 'Expect NULL from retrieveByPK on deleted Book.');
     }
 
@@ -187,8 +190,6 @@ class GeneratedObjectWithFixturesTest extends BookstoreEmptyTestBase
      * This is a test for expected exceptions when saving UNIQUE.
      * See http://propel.phpdb.org/trac/ticket/2
      *
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testSaveUnique()
@@ -208,6 +209,8 @@ class GeneratedObjectWithFixturesTest extends BookstoreEmptyTestBase
         // now attempt to create a new acct
         $acct2 = $acct->copy();
 
+        $acct3 = null;
+
         try {
             $acct2->save();
             $this->fail('Expected PropelException in first attempt to save object with duplicate value for UNIQUE constraint.');
@@ -224,6 +227,10 @@ class GeneratedObjectWithFixturesTest extends BookstoreEmptyTestBase
             $acct3->setLogin('foo2');
             $acct3->save();
         }
+
+        $this->assertInstanceOf(BookstoreEmployeeAccount::class, $acct3);
+        $this->assertSame('foo2', $acct3->getLogin());
+        $this->assertFalse($acct3->isPrimaryKeyNull());
 
         $this->con->beginTransaction();
     }

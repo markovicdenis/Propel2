@@ -52,7 +52,7 @@ class TableTest extends ModelTestCase
         $this->assertSame($expected, $table->getNamespace());
     }
 
-    public function provideNamespaces()
+    public static function provideNamespaces()
     {
         return [
             ['\Acme', '\Acme'],
@@ -212,7 +212,7 @@ class TableTest extends ModelTestCase
         $this->assertSame($expectedName, $table->getName());
     }
 
-    public function provideSchemaNames()
+    public static function provideSchemaNames()
     {
         return [
             [false, 'bookstore', 'books'],
@@ -295,7 +295,7 @@ class TableTest extends ModelTestCase
         $this->assertSame($format, $table->getDefaultStringFormat());
     }
 
-    public function provideStringFormats()
+    public static function provideStringFormats()
     {
         return [
             ['XML'],
@@ -877,7 +877,7 @@ class TableTest extends ModelTestCase
     /**
      * return array
      */
-    public function baseClassDataProvider(): array
+    public static function baseClassDataProvider(): array
     {
         return [
             // [<Class name>, <Expected class name>, <message>]]

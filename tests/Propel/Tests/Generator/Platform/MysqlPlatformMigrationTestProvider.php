@@ -16,7 +16,7 @@ class MysqlPlatformMigrationTestProvider extends PlatformMigrationTestProvider
     /**
      * @return array
      */
-    public function providerForTestGetAddColumnFirstDDL()
+    public static function providerForTestGetAddColumnFirstDDL()
     {
         $schema = <<<EOF
 <database name="test" identifierQuoting="true">

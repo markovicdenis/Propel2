@@ -69,7 +69,7 @@ class ColumnToQueryOperatorCriterionTest extends TestCaseFixtures
         $this->assertCreatedSqlSame($expected, $in);
     }
 
-    public function operatorDataProvider(): array
+    public static function operatorDataProvider(): array
     {
         return [
             [' untrimmed operator '],

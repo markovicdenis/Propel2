@@ -40,7 +40,7 @@ class QuickBuilderTest extends TestCase
         $this->assertTrue($builder->getPlatform() instanceof SqlitePlatform);
     }
 
-    public function simpleSchemaProvider(): array
+    public static function simpleSchemaProvider(): array
     {
         $xmlSchema = <<<EOF
 <database name="test_quick_build_2" namespace="MyNameSpace">

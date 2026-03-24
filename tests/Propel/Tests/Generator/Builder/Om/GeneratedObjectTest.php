@@ -66,6 +66,8 @@ use Propel\Tests\Helpers\Bookstore\Behavior\TestAuthorSaveFalse;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 use ReflectionMethod;
 
+use function count;
+
 /**
  * Tests the generated Object classes.
  *
@@ -1272,11 +1274,7 @@ EOF;
         ];
     }
 
-    /**
-     * @dataProvider conditionsForTestVisibility
-     *
-     * @return void
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('conditionsForTestVisibility')]
     public function testMethodVisibility($method)
     {
         $cv = new Country();
@@ -1285,11 +1283,7 @@ EOF;
         $this->assertTrue($reflectionMethod->isProtected(), 'readOnly tables end up with no callable `' . $method . '` method in the generated object class');
     }
 
-    /**
-     * @dataProvider conditionsForTestReadOnly
-     *
-     * @return void
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('conditionsForTestReadOnly')]
     public function testReadOnly($method)
     {
         $cv = new Country();

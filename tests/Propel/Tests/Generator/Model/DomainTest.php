@@ -66,7 +66,7 @@ class DomainTest extends ModelTestCase
         $this->assertSame('Some description', $domain->getDescription());
     }
 
-    public function provideDomainData()
+    public static function provideDomainData()
     {
         return [
             [1, null],
@@ -147,7 +147,7 @@ class DomainTest extends ModelTestCase
         $this->assertSame($expected, $domain->getPhpDefaultValue());
     }
 
-    public function provideBooleanValues()
+    public static function provideBooleanValues()
     {
         return [
             ['BOOLEAN', 1, true],
@@ -194,7 +194,7 @@ class DomainTest extends ModelTestCase
         $this->assertSame($definition, $domain->getSizeDefinition());
     }
 
-    public function provideSizeDefinitions()
+    public static function provideSizeDefinitions()
     {
         return [
             [10, null, '(10)'],

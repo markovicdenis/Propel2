@@ -13,6 +13,7 @@ use Propel\Tests\Bookstore\Base\Book2Query;
 use Propel\Tests\Bookstore\Book2;
 use Propel\Tests\Bookstore\Map\Book2TableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
+use PDO;
 
 /**
  * @group database
@@ -28,8 +29,8 @@ class UuidBinaryTypeTest extends BookstoreTestBase
     protected function setUp(): void
     {
         parent::setUp();
-    
-        if(!$this->book){
+
+        if (!$this->book) {
             Book2Query::create()->deleteAll();
             $this->book = new Book2();
             $this->book->setUuidBin($this->uuid)->save();
@@ -46,7 +47,7 @@ class UuidBinaryTypeTest extends BookstoreTestBase
         $this->assertSame($this->uuid, $retrievedBook->getUuidBin());
     }
 
-    public function uuidFilterDataProvider(): array
+    public static function uuidFilterDataProvider(): array
     {
         return [
             // description, uuid value
@@ -55,13 +56,13 @@ class UuidBinaryTypeTest extends BookstoreTestBase
             ],
             ['uuid array', [
                 'b41a29db-cf78-4d43-83a9-4cd3e1e1b41a',
-                '5875b237-21a2-4e7c-a976-73c6f0f6af4e', 
+                '5875b237-21a2-4e7c-a976-73c6f0f6af4e',
                 'b1b838f9-0212-4638-b065-9c1ba291f55f']
             ],
             ['uuid array with null', [
                 'b41a29db-cf78-4d43-83a9-4cd3e1e1b41a',
                 null,
-                '5875b237-21a2-4e7c-a976-73c6f0f6af4e', 
+                '5875b237-21a2-4e7c-a976-73c6f0f6af4e',
                 'b1b838f9-0212-4638-b065-9c1ba291f55f']
             ],
         ];
@@ -81,14 +82,15 @@ class UuidBinaryTypeTest extends BookstoreTestBase
         $this->assertSame($expectedBin, $paramValue, $description . ' - Uuid query params should be converted');
     }
 
-    public function queryConfiguratorDataProvider(){
+    public static function queryConfiguratorDataProvider()
+    {
         $uuidBin = UuidConverter::uuidToBin($this->uuid, true);
 
         return [
             // description, configurator
             //['where string', fn(Book2Query $query) => $query->where("book2.uuid_bin = '$uuidBin'")],
-            ['where with param', fn(Book2Query $query) => $query->where("book2.uuid_bin = ?", $uuidBin, \PDO::PARAM_LOB)],
-            ['filterBy', fn(Book2Query $query) => $query->filterByUuidBin($this->uuid)],
+            ['where with param', fn (Book2Query $query) => $query->where("book2.uuid_bin = ?", $uuidBin, PDO::PARAM_LOB)],
+            ['filterBy', fn (Book2Query $query) => $query->filterByUuidBin($this->uuid)],
         ];
     }
 

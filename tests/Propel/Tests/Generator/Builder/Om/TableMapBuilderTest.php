@@ -19,6 +19,10 @@ use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\Behavior\Map\Table1TableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 
+use function class_exists;
+use function constant;
+use function count;
+
 /**
  * Test class for TableMapBuilder.
  *
@@ -405,7 +409,7 @@ class TableMapBuilderTest extends BookstoreTestBase
     /**
      * @return array
      */
-    public function stringifyDataProvider(): array
+    public static function stringifyDataProvider(): array
     {
         return [
             [1, 'int should stay int'],
@@ -434,7 +438,7 @@ class TableMapBuilderTest extends BookstoreTestBase
      */
     public function testStringify($scalarData, string $message): void
     {
-        $builder = new class (new Table('any')) extends TableMapBuilder{
+        $builder = new class (new Table('any')) extends TableMapBuilder {
             public function doStringify($value): string
             {
                 return $this->stringify($value);
@@ -477,8 +481,8 @@ XML;
         $grassModelClass = '\\ExampleNamespace\\Greens\\Grass';
         $greenModelClass = '\\ExampleNamespace\\Greens\\GreenThing';
 
-        $this->assertTrue(\class_exists($tableMapClass));
-        $this->assertTrue(\class_exists($grassModelClass));
+        $this->assertTrue(class_exists($tableMapClass));
+        $this->assertTrue(class_exists($grassModelClass));
 
         $unexpectedClassName = $tableMapClass::getOMClass(
             array(
@@ -495,7 +499,7 @@ XML;
             array(
                 2, // random 'ID' value
                 // enable the 'grass' case
-                \constant($tableMapClass . '::COL_TYPE_GRASS'),
+                constant($tableMapClass . '::COL_TYPE_GRASS'),
             ),
             0, // somehow the offset is calculated within the getOMClass function (?)
             false
@@ -506,7 +510,7 @@ XML;
             array(
                 2, // random 'ID' value
                 // enable the 'default' case
-                \constant($tableMapClass . '::COL_TYPE_DEFAULT'),
+                constant($tableMapClass . '::COL_TYPE_DEFAULT'),
             ),
             0, // somehow the offset is calculated within the getOMClass function (?)
             false

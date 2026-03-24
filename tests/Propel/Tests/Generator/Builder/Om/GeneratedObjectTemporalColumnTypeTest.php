@@ -120,7 +120,7 @@ EOF;
         $this->assertEquals(date('Y-m-d H:i'), $r->getDatetimecolumn()->format('Y-m-d H:i'));
     }
 
-    public function persistenceDataProvider()
+    public static function persistenceDataProvider()
     {
         return [
             // type description, column name , input date value, formatted input date, format

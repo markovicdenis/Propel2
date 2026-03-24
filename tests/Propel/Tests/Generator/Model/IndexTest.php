@@ -70,7 +70,7 @@ class IndexTest extends ModelTestCase
         $this->assertSame($indexName, $index->getName());
     }
 
-    public function provideTableSpecificAttributes()
+    public static function provideTableSpecificAttributes()
     {
         return [
             [ 'books', 64, 'books_i_no_columns' ],
@@ -99,7 +99,7 @@ class IndexTest extends ModelTestCase
         $this->assertNull($index->getColumnSize('baz'));
     }
 
-    public function provideColumnDefinitions()
+    public static function provideColumnDefinitions()
     {
         $dataset[0][] = [
             $this->getColumnMock('foo', [ 'size' => 100 ]),
@@ -157,7 +157,7 @@ class IndexTest extends ModelTestCase
         $this->assertFalse($index->hasColumnAtPosition(0, $name, 5, $case));
     }
 
-    public function provideColumnAttributes()
+    public static function provideColumnAttributes()
     {
         return [
             [ 'bar', false ],

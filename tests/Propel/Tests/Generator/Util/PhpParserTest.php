@@ -14,7 +14,7 @@ use Propel\Tests\TestCase;
 
 class PhpParserTest extends TestCase
 {
-    public function basicClassCodeProvider()
+    public static function basicClassCodeProvider()
     {
         $code = <<<EOF
 <?php

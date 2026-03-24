@@ -20,6 +20,9 @@ use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Collection\ArrayCollection;
 
+use function call_user_func;
+use function count;
+
 /**
  * Test class for PropelQuery
  *
@@ -202,15 +205,15 @@ class PropelQueryTest extends BookstoreTestBase
         $queryTypes = [
             ['query' => BookQuery::create(), 'returnType' => ObjectCollection::class],
             ['query' => BookQuery::create()->select(['id']), 'returnType' => ArrayCollection::class],
-            
+
         ];
-        foreach($queryTypes as ['query' => $query, 'returnType' => $returnType]){
+        foreach ($queryTypes as ['query' => $query, 'returnType' => $returnType]) {
             $result = call_user_func([$query, $findMethodName], $findMethodArg);
             $this->assertInstanceOf($returnType, $result);
         }
     }
-    
-    public function findMethodsProvider()
+
+    public static function findMethodsProvider()
     {
         return [
             ['find', null],

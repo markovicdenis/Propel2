@@ -88,7 +88,7 @@ class SetColumnConverterTest extends TestCase
         SetColumnConverter::convertIntToArray('65', $valueSet);
     }
 
-    public function convertValuesProvider()
+    public static function convertValuesProvider()
     {
         return [
             [['a'],             '1'],

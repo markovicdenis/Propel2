@@ -17,7 +17,7 @@ use Propel\Tests\TestCase;
  */
 class ColumnDefaultValueTest extends TestCase
 {
-    public function equalsProvider()
+    public static function equalsProvider()
     {
         return [
             [new ColumnDefaultValue('foo', 'bar'), new ColumnDefaultValue('foo', 'bar'), true],

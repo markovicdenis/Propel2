@@ -109,7 +109,7 @@ class InitCommandTest extends TestCaseFixtures
 
     /**
      * Gets the user input responses to the prompts during init command.
-     * 
+     *
      * 1. database type
      * 2. host
      * 3. port
@@ -118,7 +118,7 @@ class InitCommandTest extends TestCaseFixtures
      * 6. password
      * 7. charset
      * 8. ...
-     * 
+     *
      * @param string $lastAnswer
      *
      * @return array
