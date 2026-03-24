@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Common\Pluralizer;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Propel\Common\Pluralizer\SimpleEnglishPluralizer;
 use Propel\Common\Pluralizer\StandardEnglishPluralizer;
@@ -92,22 +93,14 @@ class EnglishPluralizerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider getPluralFormDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('getPluralFormDataProvider')]
     public function testStandardPluralForm($input, $output)
     {
         $pluralizer = new StandardEnglishPluralizer();
         $this->assertEquals($output, $pluralizer->getPluralForm($input));
     }
 
-    /**
-     * @dataProvider getPluralFormDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('getPluralFormDataProvider')]
     public function testSimplePluralForm($input)
     {
         $pluralizer = new SimpleEnglishPluralizer();

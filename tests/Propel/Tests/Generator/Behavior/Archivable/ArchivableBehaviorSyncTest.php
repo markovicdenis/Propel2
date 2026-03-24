@@ -18,6 +18,7 @@
 namespace Propel\Tests\Generator\Behavior\Archivable;
 
 use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Diff\TableComparator;
@@ -32,9 +33,9 @@ use Propel\Tests\TestCase;
  */
 class ArchivableBehaviorSyncTest extends TestCase
 {
- /**
-  * @return array
-  */
+    /**
+     * @return array
+     */
     public function syncTestDataProvider(): array
     {
         return [
@@ -222,18 +223,7 @@ class ArchivableBehaviorSyncTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider syncTestDataProvider
-     *
-     * @param string $message
-     * @param string $behaviorAdditions
-     * @param string $sourceTableContentTags
-     * @param string $archiveTableInputTags
-     * @param string $auxiliaryTables
-     * @param string $archiveTableOutputTags
-     *
-     * @return void
-     */
+    #[DataProvider('syncTestDataProvider')]
     public function testSync(
         string $message,
         string $behaviorAdditions,

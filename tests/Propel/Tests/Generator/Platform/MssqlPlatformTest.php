@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Platform;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\IdMethod;
@@ -54,11 +55,7 @@ class MssqlPlatformTest extends PlatformTestProvider
         $this->assertEquals($expected, $this->getPlatform()->getSequenceName($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTablesDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTablesDDL')]
     public function testGetAddTablesDDL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -152,11 +149,7 @@ EOF;
         $this->assertEquals($expected, $this->getPlatform()->getAddTablesDDL($database));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTablesDDLSchema
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTablesDDLSchema')]
     public function testGetAddTablesDDLSchemas($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -295,11 +288,7 @@ EOF;
         $this->assertEquals($expected, $this->getPlatform()->getAddTablesDDL($database));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTablesSkipSQLDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTablesSkipSQLDDL')]
     public function testGetAddTablesSkipSQLDDL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -307,11 +296,7 @@ EOF;
         $this->assertEquals($expected, $this->getPlatform()->getAddTablesDDL($database));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTableDDLSimplePK
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTableDDLSimplePK')]
     public function testGetAddTableDDLSimplePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -327,11 +312,7 @@ CREATE TABLE [foo]
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTableDDLCompositePK
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTableDDLCompositePK')]
     public function testGetAddTableDDLCompositePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -347,11 +328,7 @@ CREATE TABLE [foo]
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTableDDLUniqueIndex
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTableDDLUniqueIndex')]
     public function testGetAddTableDDLUniqueIndex($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -367,11 +344,7 @@ CREATE TABLE [foo]
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTableDDLSchema
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTableDDLSchema')]
     public function testGetAddTableDDLSchema($schema)
     {
         $table = $this->getTableFromSchema($schema, 'Woopah.foo');
@@ -421,11 +394,7 @@ END
         $this->assertEquals($expected, $this->getPlatform()->getDropTableDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetAddTableDDLSchema
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetAddTableDDLSchema')]
     public function testGetDropTableDDLSchema($schema)
     {
         $table = $this->getTableFromSchema($schema, 'Woopah.foo');
@@ -503,11 +472,7 @@ END
         $this->assertEquals($expected, $this->getPlatform()->getPrimaryKeyDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestPrimaryKeyDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetDropPrimaryKeyDDL($table)
     {
         $expected = "
@@ -516,11 +481,7 @@ ALTER TABLE [foo] DROP CONSTRAINT [foo_pk];
         $this->assertEquals($expected, $this->getPlatform()->getDropPrimaryKeyDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestPrimaryKeyDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetAddPrimaryKeyDDL($table)
     {
         $expected = "
@@ -529,11 +490,7 @@ ALTER TABLE [foo] ADD CONSTRAINT [foo_pk] PRIMARY KEY ([bar]);
         $this->assertEquals($expected, $this->getPlatform()->getAddPrimaryKeyDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetIndicesDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetIndicesDDL')]
     public function testAddIndicesDDL($table)
     {
         $expected = "
@@ -544,11 +501,7 @@ CREATE INDEX [foo_index] ON [foo] ([bar1]);
         $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetIndexDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testAddIndexDDL($index)
     {
         $expected = "
@@ -557,11 +510,7 @@ CREATE INDEX [babar] ON [foo] ([bar1],[bar2]);
         $this->assertEquals($expected, $this->getPlatform()->getAddIndexDDL($index));
     }
 
-    /**
-     * @dataProvider providerForTestGetIndexDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testDropIndexDDL($index)
     {
         $expected = "
@@ -570,33 +519,21 @@ DROP INDEX [babar];
         $this->assertEquals($expected, $this->getPlatform()->getDropIndexDDL($index));
     }
 
-    /**
-     * @dataProvider providerForTestGetIndexDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testGetIndexDDL($index)
     {
         $expected = 'INDEX [babar] ([bar1],[bar2])';
         $this->assertEquals($expected, $this->getPlatform()->getIndexDDL($index));
     }
 
-    /**
-     * @dataProvider providerForTestGetUniqueDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetUniqueDDL')]
     public function testGetUniqueDDL($index)
     {
         $expected = 'CONSTRAINT [babar] UNIQUE NONCLUSTERED ([bar1],[bar2]) ON [PRIMARY]';
         $this->assertEquals($expected, $this->getPlatform()->getUniqueDDL($index));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeysDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeysDDL')]
     public function testGetAddForeignKeysDDL($table)
     {
         $expected = "
@@ -613,11 +550,7 @@ END
         $this->assertEquals($expected, $this->getPlatform()->getAddForeignKeysDDL($table));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeyDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetAddForeignKeyDDL($fk)
     {
         $expected = "
@@ -629,22 +562,14 @@ END
         $this->assertEquals($expected, $this->getPlatform()->getAddForeignKeyDDL($fk));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeySkipSqlDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetAddForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
         $this->assertEquals($expected, $this->getPlatform()->getAddForeignKeyDDL($fk));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeyDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetDropForeignKeyDDL($fk)
     {
         $expected = "
@@ -653,33 +578,21 @@ ALTER TABLE [foo] DROP CONSTRAINT [foo_bar_fk];
         $this->assertEquals($expected, $this->getPlatform()->getDropForeignKeyDDL($fk));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeySkipSqlDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetDropForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
         $this->assertEquals($expected, $this->getPlatform()->getDropForeignKeyDDL($fk));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeyDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetForeignKeyDDL($fk)
     {
         $expected = 'CONSTRAINT [foo_bar_fk] FOREIGN KEY ([bar_id]) REFERENCES [bar] ([id]) ON DELETE CASCADE';
         $this->assertEquals($expected, $this->getPlatform()->getForeignKeyDDL($fk));
     }
 
-    /**
-     * @dataProvider providerForTestGetForeignKeySkipSqlDDL
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
@@ -699,11 +612,7 @@ ALTER TABLE [foo] DROP CONSTRAINT [foo_bar_fk];
         $this->assertEquals($expected, $this->getPlatform()->getCommentBlockDDL('foo bar'));
     }
 
-    /**
-     * @dataProvider providerForTestCreateSchemaWithUuidColumns
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestCreateSchemaWithUuidColumns')]
     public function testCreateSchemaWithUuidColumns($schema)
     {
         $expected = "
@@ -718,11 +627,7 @@ CREATE TABLE [foo]
         $this->assertCreateTableMatches($expected, $schema);
     }
 
-    /**
-     * @dataProvider providerForTestCreateSchemaWithUuidBinaryColumns
-     *
-     * @return void
-     */
+    #[DataProvider('providerForTestCreateSchemaWithUuidBinaryColumns')]
     public function testCreateSchemaWithUuidBinaryColumns($schema)
     {
         $expected = "

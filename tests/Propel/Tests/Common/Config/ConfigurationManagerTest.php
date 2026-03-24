@@ -9,6 +9,7 @@
 namespace Propel\Tests\Common\Config;
 
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Common\Config\ConfigurationManager;
 use Propel\Common\Config\Exception\InvalidArgumentException;
 use Propel\Tests\TestCase;
@@ -459,11 +460,7 @@ EOF;
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
 
-    /**
-     * @dataProvider providerForInvalidConnections
-     *
-     * @return void
-     */
+    #[DataProvider('providerForInvalidConnections')]
     public function testRuntimeOrGeneratorConnectionIsNotInConfiguredConnectionsThrowsException($yamlConf, $section)
     {
         $this->expectException(InvalidConfigurationException::class);
@@ -472,11 +469,7 @@ EOF;
         $manager = new ConfigurationManager($this->getRoot()->url());
     }
 
-    /**
-     * @dataProvider providerForInvalidDefaultConnection
-     *
-     * @return void
-     */
+    #[DataProvider('providerForInvalidDefaultConnection')]
     public function testRuntimeOrGeneratorDefaultConnectionIsNotInConfiguredConnectionsThrowsException($yamlConf, $section)
     {
         $this->expectException(InvalidConfigurationException::class);

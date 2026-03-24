@@ -25,6 +25,7 @@ use Map\ArchivableTest3TableMap;
 use Map\ArchivableTest4TableMap;
 use Map\ArchivableTest5TableMap;
 use Map\MyOldArchivableTest3TableMap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Exception\SchemaException;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
@@ -214,11 +215,7 @@ EOF;
         ];
     }
 
-    /**
-     * @dataProvider invalidFkTestDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('invalidFkTestDataProvider')]
     public function testMissingFkParametersThrowsException(string $description, string $parameters)
     {
         //$this->markTestSkipped();
@@ -297,11 +294,7 @@ EOF;
         ];
     }
 
-    /**
-     * @dataProvider addFkTestDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('addFkTestDataProvider')]
     public function testAddFkParameter(
         string $description,
         string $parameters,
@@ -479,11 +472,7 @@ SQL;
         return [[$schema, $sql, $classes]];
     }
 
-    /**
-     * @dataProvider tablePrefixDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('tablePrefixDataProvider')]
     public function testGeneratedSqlWithTablePrefix($schema, $expectSQL, $expectClasses)
     {
         $builder = new QuickBuilder();
@@ -495,11 +484,7 @@ SQL;
         $this->assertEquals($expectSQL, $actualSQL);
     }
 
-    /**
-     * @dataProvider tablePrefixDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('tablePrefixDataProvider')]
     public function testGeneratedClassesWithTablePrefix($schema, $expectSQL, $expectClasses)
     {
         $builder = new QuickBuilder();

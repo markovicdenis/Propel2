@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Common\Util;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Propel\Common\Exception\SetColumnConverterException;
 use Propel\Common\Util\SetColumnConverter;
@@ -19,14 +20,7 @@ use Propel\Common\Util\SetColumnConverter;
  */
 class SetColumnConverterTest extends TestCase
 {
-    /**
-     * @dataProvider convertValuesProvider
-     *
-     * @param array $values
-     * @param string $validInteger
-     *
-     * @return void
-     */
+    #[DataProvider('convertValuesProvider')]
     public function testConvertToIntValidValues(array $values, $validInteger)
     {
         $valueSet = ['a', 'b', 'c', 'd', 'e', 'f'];
@@ -65,14 +59,7 @@ class SetColumnConverterTest extends TestCase
         SetColumnConverter::convertToInt(['g'], $valueSet);
     }
 
-    /**
-     * @dataProvider convertValuesProvider
-     *
-     * @param array $validArray
-     * @param string $intValue
-     *
-     * @return void
-     */
+    #[DataProvider('convertValuesProvider')]
     public function testConvertIntToArrayValidValues(array $validArray, $intValue)
     {
         $valueSet = ['a', 'b', 'c', 'd', 'e', 'f'];

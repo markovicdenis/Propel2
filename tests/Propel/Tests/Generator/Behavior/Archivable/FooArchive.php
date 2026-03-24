@@ -56,6 +56,20 @@ class FooArchive
     }
 
     /**
+     * @param string $name
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function setByName($name, $value)
+    {
+        $method = 'set' . $name;
+        $this->{$method}($value);
+
+        return $this;
+    }
+
+    /**
      * @return $this
      */
     public function save()

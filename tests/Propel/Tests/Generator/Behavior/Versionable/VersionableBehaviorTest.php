@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Behavior\Versionable;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 
 /**
@@ -32,11 +33,7 @@ EOF;
         return [[$schema]];
     }
 
-    /**
-     * @dataProvider basicSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('basicSchemaDataProvider')]
     public function testModifyTableAddsVersionColumn($schema)
     {
         $builder = new QuickBuilder();
@@ -154,11 +151,7 @@ EOF;
         return [[$schema]];
     }
 
-    /**
-     * @dataProvider foreignTableSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('foreignTableSchemaDataProvider')]
     public function testModifyTableAddsVersionColumnForForeignKeysIfForeignTableIsVersioned($schema)
     {
         $builder = new QuickBuilder();
@@ -205,11 +198,7 @@ EOF;
         $this->assertStringContainsString($expected, $builder->getSQL());
     }
 
-    /**
-     * @dataProvider foreignTableSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('foreignTableSchemaDataProvider')]
     public function testModifyTableAddsVersionColumnForReferrersIfForeignTableIsVersioned($schema)
     {
         $builder = new QuickBuilder();
@@ -254,11 +243,7 @@ EOF;
         $this->assertStringContainsString($expected, $builder->getSQL());
     }
 
-    /**
-     * @dataProvider basicSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('basicSchemaDataProvider')]
     public function testModifyTableAddsVersionTable($schema)
     {
         $builder = new QuickBuilder();
@@ -395,11 +380,7 @@ EOF;
         return [[$schema]];
     }
 
-    /**
-     * @dataProvider logSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('logSchemaDataProvider')]
     public function testModifyTableAddsLogColumns($schema)
     {
         $builder = new QuickBuilder();
@@ -425,11 +406,7 @@ EOF;
         $this->assertStringContainsString($expected, $builder->getSQL());
     }
 
-    /**
-     * @dataProvider logSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('logSchemaDataProvider')]
     public function testModifyTableAddsVersionTableLogColumns($schema)
     {
         $builder = new QuickBuilder();
@@ -526,7 +503,7 @@ CREATE TABLE versionable_behavior_test_0_version
         ON DELETE CASCADE
 );
 
-    CREATE INDEX versionable_behavior_test_0_version_bar_idx ON versionable_behavior_test_0_version (bar);
+CREATE INDEX versionable_behavior_test_0_version_bar_idx ON versionable_behavior_test_0_version (bar);
 EOF;
         $builder = new QuickBuilder();
         $builder->setSchema($schema);
@@ -569,11 +546,7 @@ XML;
         return [[$schema]];
     }
 
-    /**
-     * @dataProvider tablePrefixSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('tablePrefixSchemaDataProvider')]
     public function testModifyTableAddsVersionColumnWithPrefix($schema)
     {
         $builder = new QuickBuilder();
@@ -596,11 +569,7 @@ SQL;
         $this->assertStringContainsString($expected, $builder->getSQL());
     }
 
-    /**
-     * @dataProvider tablePrefixSchemaDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('tablePrefixSchemaDataProvider')]
     public function testModifyTableAddsVersionTableWithPrefix($schema)
     {
         $builder = new QuickBuilder();

@@ -226,7 +226,7 @@ EOF;
     public function testArchiveThrowsExceptionOnNewObjects()
     {
         $this->expectException(PropelException::class);
-        
+
         $a = new ArchivableTest10();
         $a->archive();
     }
@@ -245,7 +245,7 @@ EOF;
     public function testRestoreFromArchiveThrowsExceptionOnUnarchivedObjects()
     {
         $this->expectException(PropelException::class);
-        
+
         $a = new ArchivableTest10();
         $a->setTitle('foo');
         $a->setAge(12);
@@ -484,6 +484,6 @@ EOF;
         $a->save();
         $ret = $a->archive();
         // time without seconds
-        $this->assertEquals(date('Y-m-d H:i'), $ret->getArchivedAt('Y-m-d H:i'));
+        $this->assertEquals(date('Y-m-d H:i'), $ret->getArchivedAt()->format('Y-m-d H:i'));
     }
 }
