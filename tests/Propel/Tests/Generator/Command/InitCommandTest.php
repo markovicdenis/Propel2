@@ -125,22 +125,23 @@ class InitCommandTest extends TestCaseFixtures
      */
     private function getInputsArray($lastAnswer = 'yes')
     {
-        // like mysql:host=$DB_HOSTNAME;port=$DB_PORT;dbname=$DB_NAME;user=$DB_USER;password=$DB_PW
         $dsnData = $this->getParsedDsn();
 
-        $inputs = [];
-        if ($dsnData['type']) {
-            $inputs[] = $dsnData['type'];
-        }
+        $inputs = [
+            $dsnData['type'],
+        ];
 
-        if ($this->getDriver() !== 'sqlite') {
+        if ($dsnData['type'] === 'sqlite') {
+            $inputs[] = $dsnData['path'];
+        } else {
             $inputs[] = $dsnData['host'] ?? null;
             $inputs[] = $dsnData['port'] ?? null;
+            $inputs[] = $dsnData['dbname'] ?? null;
         }
+
         $inputs = array_merge($inputs, [
-            $dsnData['dbname'] ?? null,
-            $dsnData['user'] ?? null,
-            $dsnData['password'] ?? null,
+            $dsnData['user'] ?? '',
+            $dsnData['password'] ?? '',
             'utf8',
             'no',
             $this->dir,
@@ -165,13 +166,15 @@ class InitCommandTest extends TestCaseFixtures
         $firstColon = strpos($dsn, ':');
         $parsedDsn['type'] = substr($dsn, 0, $firstColon);
 
-        if($parsedDsn['type'] === 'sqlite'){
+        if ($parsedDsn['type'] === 'sqlite') {
+            $parsedDsn['path'] = substr($dsn, $firstColon + 1);
+
             return $parsedDsn;
         }
 
         $namedArgsString = substr($dsn, $firstColon + 1);
         $namedArgsStrings = explode(';', $namedArgsString);
-        foreach($namedArgsStrings as $argString){
+        foreach ($namedArgsStrings as $argString) {
             [$key, $value] = explode('=', $argString);
             $parsedDsn[$key] = $value;
         }

@@ -134,14 +134,12 @@ class Propel
         include $configFile;
     }
 
-    public static function getServiceContainer(): StandardServiceContainer
+    public static function getServiceContainer(): ServiceContainerInterface
     {
         if (self::$serviceContainer === null) {
             self::$serviceContainer = new StandardServiceContainer();
         }
 
-        // HACK: Force return type to StandardServiceContainer
-        assert(self::$serviceContainer instanceof StandardServiceContainer);
         return self::$serviceContainer;
     }
 
@@ -161,14 +159,11 @@ class Propel
     public static function getStandardServiceContainer(): StandardServiceContainer
     {
         $sc = self::getServiceContainer();
-        return $sc;
+        if ($sc instanceof StandardServiceContainer) {
+            return $sc;
+        }
 
-        // if ($sc instanceof StandardServiceContainer) {
-        //     return $sc;
-        // }
-
-        // HACK: Force return type to StandardServiceContainer
-        // throw new PropelException('Instance was configured to not use StandardServiceContainer. Use Propel::getServiceContainer()');
+        throw new PropelException('Instance was configured to not use StandardServiceContainer. Use Propel::getServiceContainer()');
     }
 
     /**

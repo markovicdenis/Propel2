@@ -26,7 +26,7 @@ class Issue730Test extends TestCaseFixtures
 <?xml version="1.0" encoding="utf-8"?>
 <database name="default" defaultIdMethod="native">
     <table name="issue730_group" idMethod="native">
-        <column name="id" type="INTEGER" primaryKey="true" required="true"/>
+        <column name="id" type="INTEGER" primaryKey="true" autoIncrement="true" required="true"/>
         <column name="name" type="VARCHAR" size="100" required="true"/>
     </table>
     <table name="issue730_department_group" idMethod="native">

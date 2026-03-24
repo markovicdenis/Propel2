@@ -10,6 +10,7 @@ namespace Propel\Tests;
 
 use PDO;
 use Propel\Runtime\Propel;
+use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use ReflectionClass;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
@@ -194,15 +195,19 @@ class TestCaseFixtures extends TestCase
     protected function readAllRuntimeConfigs()
     {
         $currentConfigsVersion = static::$lastBuildMode . ':' . static::$lastBuildDsn;
-        if (static::$activeConfigsVersion === $currentConfigsVersion) {
-            return;
-        }
+
+        Propel::setServiceContainer(new StandardServiceContainer());
 
         $finder = new Finder();
         $finder->files()->name('*-conf.php')->in(__DIR__ . '/../../Fixtures/');
 
         foreach ($finder as $file) {
-            include_once($file->getPathname());
+            include $file->getPathname();
+
+            $loadDatabasePath = $file->getPath() . '/loadDatabase.php';
+            if (is_file($loadDatabasePath)) {
+                include $loadDatabasePath;
+            }
         }
 
         static::$activeConfigsVersion = $currentConfigsVersion;
@@ -260,18 +265,18 @@ class TestCaseFixtures extends TestCase
      */
     protected function getFixturesConnectionDsn()
     {
-        if ('sqlite' === strtolower(getenv('DB'))) {
+        $db = strtolower(getenv('DB'));
+        if (!$db || 'agnostic' === $db) {
+            $db = 'sqlite';
+        }
+
+        if ($db === 'sqlite') {
             $path = __DIR__ . '/../../test.sq3';
             if (!file_exists($path)) {
                 touch($path);
             }
 
             return 'sqlite:' . realpath($path);
-        }
-
-        $db = strtolower(getenv('DB'));
-        if (!$db || 'agnostic' === $db) {
-            $db = 'mysql';
         }
 
         $dsn = $db . ':host=' . (getenv('DB_HOSTNAME') ?: '127.0.0.1');
@@ -301,7 +306,7 @@ class TestCaseFixtures extends TestCase
 
         $db = strtolower(getenv('DB'));
         if (!$db || 'agnostic' === $db) {
-            $db = 'mysql';
+            $db = 'sqlite';
         }
 
         return $db ?: strtolower($driver);

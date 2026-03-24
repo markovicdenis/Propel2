@@ -915,8 +915,8 @@ class Table extends ScopedMappingModel implements IdMethod
                 $crossFK = new CrossForeignKeys($refFK, $this);
                 foreach ($refFK->getOtherFks() as $fk) {
                     if (
-                        $fk->isAtLeastOneLocalPrimaryKeyIsRequired() &&
-                        $crossFK->isAtLeastOneLocalPrimaryKeyNotCovered($fk)
+                        ($fk->isAtLeastOneLocalPrimaryKeyIsRequired() && $crossFK->isAtLeastOneLocalPrimaryKeyNotCovered($fk))
+                        || (!$fk->getLocalPrimaryKeys() && $fk->isAtLeastOneLocalColumnRequired())
                     ) {
                         $crossFK->addCrossForeignKey($fk);
                     }

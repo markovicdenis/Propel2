@@ -4328,14 +4328,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
         // Add binding for other direction of this 1:1 relationship.
-        assert(\$this instanceof $currentClassName);
         \$v{$mod}->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         } else {
             $script .= "
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
-        assert(\$this instanceof $currentClassName);
         \$v{$mod}->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         }
@@ -4515,7 +4513,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()->findPk($localColumns, \$con);";
         } else {
             $script .= "
-            assert(\$this instanceof $currentClassName);
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()
                 ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this) // here
                 ->findOne(\$con);";
@@ -4899,7 +4896,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$query->distinct();
             }
 
-            assert(\$this instanceof $currentClassName);
             return \$query
                 ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                 ->count(\$con);
@@ -4960,7 +4956,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     return \$$collName;
                 }
             } else {
-                assert(\$this instanceof $currentClassName);
                 \$$collName = $fkQueryClassName::create(null, \$criteria)
                     ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                     ->find(\$con);
@@ -5053,8 +5048,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
         foreach (\${$inputCollection}ToDelete as \${$inputCollectionEntry}Removed) {
-            \${$inputCollectionEntry}Removed->set{$relCol}(null);
+";
+
+        if (!$refFK->isAtLeastOneLocalPrimaryKey()) {
+            $script .= "            \${$inputCollectionEntry}Removed->set{$relCol}(null);
+";
         }
+
+        $script .= "        }
 
         \$this->{$collName} = null;
         foreach (\${$inputCollection} as \${$inputCollectionEntry}) {
@@ -5097,7 +5098,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function doAdd{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName}): void
     {
         \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
-        assert(\$this instanceof $currentClassName);
         \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
     }
 ";
@@ -5227,7 +5227,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Make sure that that the passed-in $className isn't already associated with this object
         if (\$v !== null && !\$v->has" . $this->getFKPhpNameAffix($refFK, false) . "()) {
-            assert(\$this instanceof $currentClassName);
             \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
         }
 
@@ -7178,7 +7177,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$this->postSave(\$con);";
             $this->applyBehaviorModifier('postSave', $script, '                ');
             $script .= "
-                assert(\$this instanceof {$this->getObjectClassName(true)});
                 " . $this->getTableMapClassName() . "::addInstanceToPool(\$this);
             } else {
                 \$affectedRows = 0;
@@ -7479,7 +7477,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $removeMethod = 'remove' . $this->getRefFKPhpNameAffix($fk, false);
             $script .= "
         if (null !== \$this->$varName) {
-            assert(\$this instanceof $currentClassName);
             \$this->$varName->$removeMethod(\$this);
         }";
         }

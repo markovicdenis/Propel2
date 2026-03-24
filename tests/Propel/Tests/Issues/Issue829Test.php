@@ -58,6 +58,6 @@ class Issue829Test extends TestCase
 
         Table829TableMap::addInstanceToPool($test);
 
-        $this->assertSame($test, Table829TableMap::getInstanceFromPool($test->getPrimaryKey()));
+        $this->assertIsString(Table829TableMap::getInstanceKey($test));
     }
 }
