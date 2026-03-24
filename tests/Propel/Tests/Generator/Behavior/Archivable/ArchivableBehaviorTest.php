@@ -28,7 +28,9 @@ use Map\MyOldArchivableTest3TableMap;
 use Propel\Generator\Exception\SchemaException;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
+
 use function substr_count;
+use function sprintf;
 
 /**
  * Tests for ArchivableBehavior class
@@ -303,15 +305,14 @@ EOF;
     public function testAddFkParameter(
         string $description,
         string $parameters,
-        ?string $localColumnName, 
+        ?string $localColumnName,
         ?string $fkTableName,
         ?string $fkColumnName,
         bool $withDbConstraint
-    ): void
-    {
+    ): void {
         $archiveTableName = 'archive_table_with_FK';
 
-        // Two archived tables connected by a foreign key 
+        // Two archived tables connected by a foreign key
         $schema = <<<EOF
 <database name="archivable_behavior_test_0">
 
@@ -346,7 +347,7 @@ EOF;
         $expectedCount = $fkColumnName ? 1 : 0;
         $this->assertCount($expectedCount, $fks, $description);
 
-        if(!$localColumnName){
+        if (!$localColumnName) {
             return;
         }
 
@@ -365,7 +366,7 @@ EOF;
     public function testCopiesIndices()
     {
         $table = ArchivableTest1ArchiveTableMap::getTableMap();
-        $expected = 'CREATE INDEX archivable_test_1_archive_i_6c947f ON archivable_test_1_archive (title,age);';
+        $expected = 'CREATE INDEX archivable_test_1_archive_title_age_idx ON archivable_test_1_archive (title,age);';
         $this->assertStringContainsString($expected, self::$generatedSQL);
     }
 
@@ -375,7 +376,7 @@ EOF;
     public function testCopiesUniquesToIndices()
     {
         $table = ArchivableTest2ArchiveTableMap::getTableMap();
-        $expected = 'CREATE INDEX my_old_archivable_test_3_i_639136 ON my_old_archivable_test_3 (title);';
+        $expected = 'CREATE INDEX my_old_archivable_test_3_title_idx ON my_old_archivable_test_3 (title);';
         $this->assertStringContainsString($expected, self::$generatedSQL);
     }
 
@@ -384,7 +385,7 @@ EOF;
      */
     public function testCopiedUniqueDoesNotDuplicateCopiedIndex()
     {
-        $expectedSqlMigration = 'CREATE INDEX my_old_archivable_test_3_i_639136 ON my_old_archivable_test_3 (title);';
+        $expectedSqlMigration = 'CREATE INDEX my_old_archivable_test_3_title_idx ON my_old_archivable_test_3 (title);';
         $this->assertSame(1, substr_count(self::$generatedSQL, $expectedSqlMigration));
     }
 

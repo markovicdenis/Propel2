@@ -8,11 +8,24 @@
 
 namespace Propel\Tests;
 
+use PHPUnit\Framework\MockObject\Stub\ReturnStub;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Propel\Generator\Platform\PlatformInterface;
 
+use function sprintf;
+
 class TestCase extends PHPUnitTestCase
 {
+    /**
+     * @param mixed $value
+     *
+     * @return \PHPUnit\Framework\MockObject\Stub\Stub
+     */
+    protected function returnValue($value)
+    {
+        return new ReturnStub($value);
+    }
+
     /**
      * @return string
      */

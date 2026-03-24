@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Model\Column;
@@ -42,11 +43,7 @@ class TableTest extends ModelTestCase
         $this->assertFalse($table->hasForeignKeys());
     }
 
-    /**
-     * @dataProvider provideNamespaces
-     *
-     * @return void
-     */
+    #[DataProvider('provideNamespaces')]
     public function testSetNamespace($namespace, $expected)
     {
         $table = new Table('');
@@ -196,11 +193,7 @@ class TableTest extends ModelTestCase
         $this->assertSame('books', $table->getName());
     }
 
-    /**
-     * @dataProvider provideSchemaNames
-     *
-     * @return void
-     */
+    #[DataProvider('provideSchemaNames')]
     public function testGetNameWithPlatform($supportsSchemas, $schemaName, $expectedName)
     {
         $database = $this->getDatabaseMock($schemaName, [
@@ -293,11 +286,7 @@ class TableTest extends ModelTestCase
         $this->assertSame('XML', $table->getDefaultStringFormat());
     }
 
-    /**
-     * @dataProvider provideStringFormats
-     *
-     * @return void
-     */
+    #[DataProvider('provideStringFormats')]
     public function testGetDefaultStringFormat($format)
     {
         $table = new Table('');
@@ -897,11 +886,7 @@ class TableTest extends ModelTestCase
         ];
     }
 
-    /**
-     * @dataProvider baseClassDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('baseClassDataProvider')]
     public function testSetBaseClass(string $className, string $expectedClassName, string $message)
     {
         $table = new Table('');
@@ -910,11 +895,7 @@ class TableTest extends ModelTestCase
         $this->assertSame($expectedClassName, $table->getBaseClass(), $message);
     }
 
-    /**
-     * @dataProvider baseClassDataProvider
-     *
-     * @return void
-     */
+    #[DataProvider('baseClassDataProvider')]
     public function testSetBaseQueryClass(string $className, string $expectedClassName, string $message)
     {
         $table = new Table('');

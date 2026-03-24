@@ -119,7 +119,7 @@ class ObjectBuilderTest extends TestCase
             $this->builder->getResolveFromRowExpressionForColumn($id, 0)
         );
         $this->assertSame(
-            '$this->resolveFromRow($row, 1, $startcol, $indexType, static fn ($v) => null !== $v ? (string) $v : null)',
+            '$this->resolveFromRow($row, 1, $startcol, $indexType, fn ($v) => null !== $v ? (string) $v : null)',
             $this->builder->getResolveFromRowExpressionForColumn($title, 1)
         );
         $this->assertNull($this->builder->getResolveFromRowExpressionForColumn($createdAt, 2));

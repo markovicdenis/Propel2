@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Behavior\Versionable;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Exception\PropelException;
@@ -281,11 +282,7 @@ EOF;
         ];
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionGetterAndSetter($class)
     {
         $o = new $class();
@@ -293,22 +290,14 @@ EOF;
         $this->assertEquals(1234, $o->getVersion());
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionDefaultValue($class)
     {
         $o = new $class();
         $this->assertEquals(0, $o->getVersion());
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionValueInitializesOnInsert($class)
     {
         $o = new $class();
@@ -316,11 +305,7 @@ EOF;
         $this->assertEquals(1, $o->getVersion());
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionValueIncrementsOnUpdate($class)
     {
         $o = new $class();
@@ -366,11 +351,7 @@ EOF;
         $this->assertEquals(3, $bar->getVersion());
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionDoesNotIncrementOnUpdateWithNoChange($class)
     {
         $o = new $class();
@@ -382,11 +363,7 @@ EOF;
         $this->assertEquals(1, $o->getVersion());
     }
 
-    /**
-     * @dataProvider providerForNewActiveRecordTests
-     *
-     * @return void
-     */
+    #[DataProvider('providerForNewActiveRecordTests')]
     public function testVersionDoesNotIncrementWhenVersioningIsDisabled($class)
     {
         $o = new $class();

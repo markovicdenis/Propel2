@@ -13,6 +13,7 @@ use ComplexColumnTypeEntity5Query;
 use ComplexColumnTypeEntity6;
 use DateTime;
 use Map\ComplexColumnTypeEntity5TableMap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\Exception\PropelException;
@@ -130,9 +131,7 @@ EOF;
         ];
     }
 
-    /**
-     * @dataProvider persistenceDataProvider
-     */
+    #[DataProvider('persistenceDataProvider')]
     public function testPersistence($typeDescription, $columnName, $inputDateValue, $formattedDate, $format)
     {
         $r = new ComplexColumnTypeEntity5();

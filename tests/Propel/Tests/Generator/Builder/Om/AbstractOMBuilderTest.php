@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Builder\Om\AbstractOMBuilder;
 use Propel\Tests\Bookstore\Author;
 use Propel\Tests\Bookstore\Book;
@@ -68,11 +69,7 @@ EOF;
         $this->assertEquals($expected, (string)$publisher, 'generated __toString() uses default string format and exportTo()');
     }
 
-    /**
-     * @dataProvider dataGetPackagePath
-     *
-     * @return void
-     */
+    #[DataProvider('dataGetPackagePath')]
     public function testGetPackagePath($package, $expectedPath)
     {
         $builder = new OMBuilderMock();

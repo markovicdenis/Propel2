@@ -395,7 +395,7 @@ CREATE TABLE [Woopah].[foo]
         $expected = "
 IF EXISTS (SELECT 1 FROM sysobjects WHERE type = 'U' AND name = 'foo')
 BEGIN
-    DECLARE @reftable_6 nvarchar(60), @constraintname_6 nvarchar(60)
+    DECLARE @reftable_1 nvarchar(60), @constraintname_1 nvarchar(60)
     DECLARE refcursor CURSOR FOR
     select reftables.name tablename, cons.name constraintname
         from sysobjects tables,
@@ -407,11 +407,11 @@ BEGIN
             and reftables.id = ref.fkeyid
             and tables.name = 'foo'
     OPEN refcursor
-    FETCH NEXT from refcursor into @reftable_6, @constraintname_6
+    FETCH NEXT from refcursor into @reftable_1, @constraintname_1
     while @@FETCH_STATUS = 0
     BEGIN
-        exec ('alter table '+@reftable_6+' drop constraint '+@constraintname_6)
-        FETCH NEXT from refcursor into @reftable_6, @constraintname_6
+        exec ('alter table '+@reftable_1+' drop constraint '+@constraintname_1)
+        FETCH NEXT from refcursor into @reftable_1, @constraintname_1
     END
     CLOSE refcursor
     DEALLOCATE refcursor

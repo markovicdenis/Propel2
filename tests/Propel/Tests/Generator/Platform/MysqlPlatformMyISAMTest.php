@@ -281,7 +281,7 @@ CREATE TABLE `foo`
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `bar` INTEGER,
     PRIMARY KEY (`id`),
-    INDEX `foo_i_14f552` (`bar`)
+    INDEX `foo_bar_idx` (`bar`)
 ) ENGINE=MyISAM;
 ";
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));

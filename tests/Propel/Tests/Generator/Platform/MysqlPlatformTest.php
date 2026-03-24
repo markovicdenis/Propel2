@@ -28,7 +28,7 @@ class MysqlPlatformTest extends PlatformTestProvider
      *
      * @return \Propel\Generator\Platform\MysqlPlatform
      */
-    protected function getPlatform():PlatformInterface
+    protected function getPlatform(): PlatformInterface
     {
         static $platform;
 
@@ -291,7 +291,7 @@ CREATE TABLE `foo`
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `bar` INTEGER,
     PRIMARY KEY (`id`),
-    INDEX `foo_i_14f552` (`bar`)
+    INDEX `foo_bar_idx` (`bar`)
 ) ENGINE=InnoDB;
 ";
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
@@ -955,7 +955,7 @@ CREATE TABLE `foo`
         $this->getPlatform()->normalizeTable($table);
         $this->assertEquals('`price` DECIMAL(10,3)', $this->getPlatform()->getColumnDDL($column));
     }
-    
+
     public function typeMappingDataProvider()
     {
         return [
@@ -963,11 +963,12 @@ CREATE TABLE `foo`
             [PropelTypes::TIMESTAMP, 'TIMESTAMP'],
         ];
     }
-    
+
     /**
      * @dataProvider typeMappingDataProvider
      */
-    public function testTypeMapping(string $propelDataType, string $expectedMysqlDataType){
+    public function testTypeMapping(string $propelDataType, string $expectedMysqlDataType)
+    {
         $actualMysqlDataType = $this->getPlatform()->getDomainForType($propelDataType)->getSqlType();
         $this->assertEquals($expectedMysqlDataType, $actualMysqlDataType);
     }

@@ -9,6 +9,7 @@
 namespace Propel\Tests\Generator\Model;
 
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\PropelTypes;
@@ -176,7 +177,7 @@ class ColumnTest extends ModelTestCase
 
         $this->assertSame('is_published', $column->getName());
         $this->assertSame('IsPublished', $column->getPhpName());
-        $this->assertSame('boolean', $column->getPhpType());
+        $this->assertSame('bool', $column->getPhpType());
         $this->assertSame('IS_PUBLISHED', $column->getTableMapName());
         $this->assertSame('public', $column->getAccessorVisibility());
         $this->assertSame('public', $column->getMutatorVisibility());
@@ -218,11 +219,7 @@ class ColumnTest extends ModelTestCase
         $this->assertSame('null', $column->getDefaultValueString());
     }
 
-    /**
-     * @dataProvider provideDefaultValues
-     *
-     * @return void
-     */
+    #[DataProvider('provideDefaultValues')]
     public function testGetDefaultValueString($mappingType, $value, $expected)
     {
         $defaultValue = $this
@@ -270,11 +267,7 @@ class ColumnTest extends ModelTestCase
 
     /**
      * @return void
-     */
-    public function testAddInheritance()
-    {
-        $column = new Column('');
-
+    #[DataProvider('providePdoTypes')]
         $inheritance = $this
             ->getMockBuilder('Propel\Generator\Model\Inheritance')
             ->disableOriginalConstructor()
@@ -425,11 +418,7 @@ class ColumnTest extends ModelTestCase
         $this->assertSame('NOT NULL', $column->getNotNullString());
     }
 
-    /**
-     * @dataProvider providePdoTypes
-     *
-     * @return void
-     */
+    #[DataProvider('providePdoTypes')]
     public function testGetPdoType($mappingType, $pdoType)
     {
         $domain = $this->getDomainMock();
@@ -559,11 +548,7 @@ class ColumnTest extends ModelTestCase
         $this->assertTrue($column->isPhpObjectType());
     }
 
-    /**
-     * @dataProvider provideMappingTemporalTypes
-     *
-     * @return void
-     */
+    #[DataProvider('provideMappingTemporalTypes')]
     public function testTemporalType($mappingType)
     {
         $domain = $this->getDomainMock();
@@ -599,11 +584,7 @@ class ColumnTest extends ModelTestCase
 
     /**
      * @dataProvider provideMappingLobTypes
-     *
-     * @return void
-     */
-    public function testLobType($mappingType, $phpType, $isPhpPrimitiveType)
-    {
+    #[DataProvider('provideMappingLobTypes')]
         $domain = $this->getDomainMock();
         $domain
             ->expects($this->once())
@@ -633,11 +614,7 @@ class ColumnTest extends ModelTestCase
         ];
     }
 
-    /**
-     * @dataProvider provideMappingBooleanTypes
-     *
-     * @return void
-     */
+    #[DataProvider('provideMappingBooleanTypes')]
     public function testBooleanType($mappingType)
     {
         $domain = $this->getDomainMock();
@@ -670,11 +647,7 @@ class ColumnTest extends ModelTestCase
 
     /**
      * @dataProvider provideMappingNumericTypes
-     *
-     * @return void
-     */
-    public function testNumericType($mappingType, $phpType, $isPrimitiveNumericType)
-    {
+    #[DataProvider('provideMappingNumericTypes')]
         $domain = $this->getDomainMock();
         $domain
             ->expects($this->once())
@@ -713,11 +686,7 @@ class ColumnTest extends ModelTestCase
 
     /**
      * @dataProvider provideMappingUuidTypes
-     *
-     * @return void
-     */
-    public function testUuidType(string $columnType, string $phpType)
-    {
+    #[DataProvider('provideMappingUuidTypes')]
         $domain = $this->getDomainMock();
         $domain
             ->expects($this->once())
@@ -741,18 +710,14 @@ class ColumnTest extends ModelTestCase
     public function provideMappingUuidTypes()
     {
         return [
-            // column type, php type, 
+            // column type, php type,
             [PropelTypes::UUID, 'string'],
             [PropelTypes::UUID_BINARY, 'string'],
         ];
     }
 
 
-    /**
-     * @dataProvider provideMappingTextTypes
-     *
-     * @return void
-     */
+    #[DataProvider('provideMappingTextTypes')]
     public function testTextType($mappingType)
     {
         $domain = $this->getDomainMock();

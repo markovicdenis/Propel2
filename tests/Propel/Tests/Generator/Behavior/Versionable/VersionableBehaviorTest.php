@@ -64,7 +64,7 @@ EOF;
      */
     public function testModifyTableAddsVersionColumnCustomName()
     {
-            $schema = <<<EOF
+        $schema = <<<EOF
 <database name="versionable_behavior_test_0">
     <table name="versionable_behavior_test_0">
         <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
@@ -100,7 +100,7 @@ EOF;
      */
     public function testModifyTableDoesNotAddVersionColumnIfExists()
     {
-            $schema = <<<EOF
+        $schema = <<<EOF
 <database name="versionable_behavior_test_0">
     <table name="versionable_behavior_test_0">
         <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
@@ -526,7 +526,7 @@ CREATE TABLE versionable_behavior_test_0_version
         ON DELETE CASCADE
 );
 
-CREATE INDEX versionable_behavior_test_0_version_i_14f552 ON versionable_behavior_test_0_version (bar);
+    CREATE INDEX versionable_behavior_test_0_version_bar_idx ON versionable_behavior_test_0_version (bar);
 EOF;
         $builder = new QuickBuilder();
         $builder->setSchema($schema);
