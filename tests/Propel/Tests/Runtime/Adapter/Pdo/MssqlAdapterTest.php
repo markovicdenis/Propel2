@@ -137,7 +137,7 @@ class MssqlAdapterTest extends TestCase
         $sql = $c->createSelectSql($params);
 
         // Expect a TOP N, subquery in the SELECT clause
-        $expected = 'SELECT TOP 10 book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, (SELECT email FROM author WHERE id = book.author_id) AS author_email FROM book';
+        $expected = 'SELECT TOP 10 book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, (SELECT email FROM author WHERE id = book.author_id) AS [author_email] FROM book';
 
         $this->assertEquals($expected, $sql);
     }
@@ -238,7 +238,7 @@ class MssqlAdapterTest extends TestCase
         $sql = $c->createSelectSql($params);
 
         // Expect a well-formed query where the `date_from` column remains untouched
-        $expected = 'SELECT TOP 10 book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, (SELECT GETDATE()) AS date_from FROM book';
+        $expected = 'SELECT TOP 10 book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, (SELECT GETDATE()) AS [date_from] FROM book';
 
         $this->assertEquals($expected, $sql);
     }

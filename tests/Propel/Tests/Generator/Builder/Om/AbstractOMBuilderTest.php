@@ -45,7 +45,7 @@ class AbstractOMBuilderTest extends TestCase
         $author->setFirstName('John');
         $author->setLastName('Doe');
         $expected = <<<EOF
-Id: null
+Id: 0
 FirstName: John
 LastName: Doe
 Email: null

@@ -10,6 +10,8 @@ namespace Propel\Tests\Generator\Model;
 
 use Propel\Tests\TestCase;
 
+use function count;
+
 /**
  * This class provides methods for mocking Table, Database and Platform objects.
  *
@@ -279,7 +281,7 @@ abstract class ModelTestCase extends TestCase
         $domain
             ->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue($name));
+            ->willReturn($name);
 
         return $domain;
     }
@@ -315,47 +317,47 @@ abstract class ModelTestCase extends TestCase
         $table
             ->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue($name));
+            ->willReturn($name);
 
         $table
             ->expects($this->any())
             ->method('getCommonName')
-            ->will($this->returnValue($options['common_name']));
+            ->willReturn($options['common_name']);
 
         $table
             ->expects($this->any())
             ->method('getPhpName')
-            ->will($this->returnValue($options['php_name']));
+            ->willReturn($options['php_name']);
 
         $table
             ->expects($this->any())
             ->method('getPlatform')
-            ->will($this->returnValue($options['platform']));
+            ->willReturn($options['platform']);
 
         $table
             ->expects($this->any())
             ->method('getNamespace')
-            ->will($this->returnValue($options['namespace']));
+            ->willReturn($options['namespace']);
 
         $table
             ->expects($this->any())
             ->method('getBehaviors')
-            ->will($this->returnValue($options['behaviors']));
+            ->willReturn($options['behaviors']);
 
         $table
             ->expects($this->any())
             ->method('getIndices')
-            ->will($this->returnValue($options['indices']));
+            ->willReturn($options['indices']);
 
         $table
             ->expects($this->any())
             ->method('getUnices')
-            ->will($this->returnValue($options['unices']));
+            ->willReturn($options['unices']);
 
         $table
             ->expects($this->any())
             ->method('getDatabase')
-            ->will($this->returnValue($options['database']));
+            ->willReturn($options['database']);
 
         return $table;
     }
@@ -383,11 +385,11 @@ abstract class ModelTestCase extends TestCase
         $database
             ->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue($name));
+            ->willReturn($name);
         $database
             ->expects($this->any())
             ->method('getPlatform')
-            ->will($this->returnValue($options['platform']));
+            ->willReturn($options['platform']);
 
         return $database;
     }
@@ -416,12 +418,12 @@ abstract class ModelTestCase extends TestCase
         $column
             ->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue($name));
+            ->willReturn($name);
 
         $column
             ->expects($this->any())
             ->method('getSize')
-            ->will($this->returnValue($options['size']));
+            ->willReturn($options['size']);
 
         return $column;
     }

@@ -10,6 +10,7 @@ namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\ExistsCriterion;
+use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\TestCaseFixtures;
 use Propel\Tests\Bookstore\AuthorQuery;
@@ -89,6 +90,7 @@ class ExistsCriterionTest extends TestCaseFixtures
         $exists->appendPsTo($ps, $params);
         $bookSql = $bookQuery->createSelectSql($params);
 
-        $this->assertEquals('SELECT 1 AS existsFlag FROM book WHERE author.id=book.author_id', $bookSql);
+        $adapter = Propel::getServiceContainer()->getAdapter($bookQuery->getDbName());
+        $this->assertEquals('SELECT 1 AS ' . $adapter->quoteIdentifier('existsFlag') . ' FROM book WHERE author.id=book.author_id', $bookSql);
     }
 }

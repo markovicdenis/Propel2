@@ -8,7 +8,9 @@
 
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
+use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
+use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\TestCaseFixtures;
@@ -26,6 +28,15 @@ class PgsqlAdapterTest extends TestCaseFixtures
     protected function getDriver()
     {
         return 'pgsql';
+    }
+
+    protected function createPgsqlSql(Criteria $query): string
+    {
+        $params = [];
+        Propel::getServiceContainer()->setAdapter('pgsql', new PgsqlAdapter());
+        $query->setDbName('pgsql');
+
+        return $query->createSelectSql($params);
     }
 
     /**
@@ -53,8 +64,7 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $c->addSelectColumn(BookTableMap::COL_ID);
         $c->lockForShare();
 
-        $params = [];
-        $result = $c->createSelectSql($params);
+        $result = $this->createPgsqlSql($c);
 
         $expected = 'SELECT book.id FROM book FOR SHARE';
 
@@ -74,8 +84,7 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $c->addSelectColumn(BookTableMap::COL_ID);
         $c->lockForUpdate([BookTableMap::TABLE_NAME], true);
 
-        $params = [];
-        $result = $c->createSelectSql($params);
+        $result = $this->createPgsqlSql($c);
 
         $expected = 'SELECT book.id FROM book FOR UPDATE OF "book" NOWAIT';
 
@@ -91,6 +100,7 @@ class PgsqlAdapterTest extends TestCaseFixtures
     {
         $subCriteria = new BookQuery();
         $subCriteria->addSelectColumn(BookTableMap::COL_ID);
+        $subCriteria->setDbName('pgsql');
         $subCriteria->lockForShare([BookTableMap::TABLE_NAME]);
 
         $c = new BookQuery();
@@ -98,9 +108,8 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $c->addSelectQuery($subCriteria, 'subCriteriaAlias', false);
         $c->lockForShare([BookTableMap::TABLE_NAME], true);
 
-        $expected ='SELECT subCriteriaAlias.id FROM (SELECT book.id FROM book FOR SHARE of "book") AS subCriteriaAlias FOR SHARE OF "book" NOWAIT';
+        $expected = 'SELECT book.id FROM book, (SELECT book.id FROM book FOR SHARE OF "book") AS subCriteriaAlias FOR SHARE OF "book" NOWAIT';
 
-        $params = [];
-        $this->assertSame($expected, $c->createSelectSql($params), 'Subquery contains shared read lock');
+        $this->assertSame($expected, $this->createPgsqlSql($c), 'Subquery contains shared read lock');
     }
 }

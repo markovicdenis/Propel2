@@ -98,7 +98,7 @@ class AbstractAdapterTest extends TestCaseFixtures
         $c->addAsColumn('book_id', BookTableMap::COL_ID);
         $fromClause = [];
         $selectSql = $db->createSelectSqlPart($c, $fromClause);
-        $this->assertEquals('SELECT book.id, book.id AS book_id', $selectSql, 'createSelectSqlPart() returns a SQL SELECT clause with both select and as columns');
+        $this->assertEquals('SELECT book.id, book.id AS ' . $db->quoteIdentifier('book_id'), $selectSql, 'createSelectSqlPart() returns a SQL SELECT clause with both select and as columns');
         $this->assertEquals(['book'], $fromClause, 'createSelectSqlPart() adds the tables from the select columns to the from clause');
     }
 
@@ -113,7 +113,7 @@ class AbstractAdapterTest extends TestCaseFixtures
         $c->addAsColumn('book_id', 'IF(1, ' . BookTableMap::COL_ID . ', ' . BookTableMap::COL_TITLE . ')');
         $fromClause = [];
         $selectSql = $db->createSelectSqlPart($c, $fromClause);
-        $this->assertEquals('SELECT book.id, IF(1, book.id, book.title) AS book_id', $selectSql, 'createSelectSqlPart() returns a SQL SELECT clause with both select and as columns');
+        $this->assertEquals('SELECT book.id, IF(1, book.id, book.title) AS ' . $db->quoteIdentifier('book_id'), $selectSql, 'createSelectSqlPart() returns a SQL SELECT clause with both select and as columns');
         $this->assertEquals(['book'], $fromClause, 'createSelectSqlPart() adds the tables from the select columns to the from clause');
     }
 
@@ -129,7 +129,7 @@ class AbstractAdapterTest extends TestCaseFixtures
         $c->setDistinct();
         $fromClause = [];
         $selectSql = $db->createSelectSqlPart($c, $fromClause);
-        $this->assertEquals('SELECT DISTINCT book.id, book.id AS book_id', $selectSql, 'createSelectSqlPart() includes the select modifiers in the SELECT clause');
+        $this->assertEquals('SELECT DISTINCT book.id, book.id AS ' . $db->quoteIdentifier('book_id'), $selectSql, 'createSelectSqlPart() includes the select modifiers in the SELECT clause');
         $this->assertEquals(['book'], $fromClause, 'createSelectSqlPart() adds the tables from the select columns to the from clause');
     }
 
@@ -144,7 +144,11 @@ class AbstractAdapterTest extends TestCaseFixtures
         $c->addAsColumn('book_id', BookTableMap::COL_ID);
         $fromClause = [];
         $selectSql = $db->createSelectSqlPart($c, $fromClause, true);
-        $this->assertEquals('SELECT book.id AS book_id_1, book.id AS book_id', $selectSql, 'createSelectSqlPart() aliases all columns if passed true as last parameter');
+        $this->assertEquals(
+            'SELECT book.id AS ' . $db->quoteIdentifier('book_id_1') . ', book.id AS ' . $db->quoteIdentifier('book_id'),
+            $selectSql,
+            'createSelectSqlPart() aliases all columns if passed true as last parameter'
+        );
         $this->assertEquals([], $fromClause, 'createSelectSqlPart() does not add the tables from an all-aliased list of select columns');
     }
 }

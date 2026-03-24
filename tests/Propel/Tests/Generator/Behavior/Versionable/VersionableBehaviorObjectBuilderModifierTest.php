@@ -180,9 +180,9 @@ EOF;
 EOF;
         QuickBuilder::buildSchema($schema4);
 
-    /**
-     *  Schema to test relation 1:1 versionable
-     */
+        /**
+         *  Schema to test relation 1:1 versionable
+         */
         $schema5 = <<<XML
 <database name="versionable_behavior_test_one_to_one_database">
     <table name="versionable_behavior_test_one_to_one">
@@ -807,13 +807,13 @@ EOF;
         $version = VersionableBehaviorTest4VersionQuery::create()
             ->filterByVersionableBehaviorTest4($o)
             ->findOne();
-        $this->assertEquals($t, $version->getVersionCreatedAt('U'));
+        $this->assertEquals($t, (int)$version->getVersionCreatedAt()->format('U'));
 
         $o = new VersionableBehaviorTest4();
         $inThePast = time() - 123456;
         $o->setVersionCreatedAt($inThePast);
         $o->save();
-        $this->assertEquals($inThePast, $o->getVersionCreatedAt('U'));
+        $this->assertEquals($inThePast, (int)$o->getVersionCreatedAt()->format('U'));
         $version = VersionableBehaviorTest4VersionQuery::create()
             ->filterByVersionableBehaviorTest4($o)
             ->findOne();

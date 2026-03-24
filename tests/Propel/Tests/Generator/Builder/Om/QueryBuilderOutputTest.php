@@ -112,8 +112,8 @@ XML;
         $builder = $this->createBuilder();
         $factoryDefinition = $builder->getFactoryDefinition();
 
-        $this->assertStringContainsString('@param string $modelAlias The alias of a model in the query', $factoryDefinition);
-        $this->assertStringContainsString('@param Criteria $criteria Optional Criteria to build the query from', $factoryDefinition);
+        $this->assertStringContainsString('@param ?string $modelAlias The alias of a model in the query', $factoryDefinition);
+        $this->assertStringContainsString('@param ?Criteria $criteria Optional Criteria to build the query from', $factoryDefinition);
         $this->assertStringContainsString('@return ChildBookQuery', $factoryDefinition);
         $this->assertStringContainsString(
             'public static function create(?string $modelAlias = null, ?Criteria $criteria = null): Criteria',

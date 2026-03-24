@@ -115,7 +115,7 @@ class ObjectBuilderTest extends TestCase
         $createdAt->setDomain(new Domain('TIMESTAMP'));
 
         $this->assertSame(
-            '$this->resolveFromRow($row, 0, $startcol, $indexType, static fn ($v) => (int) $v)',
+            '$this->resolveFromRow($row, 0, $startcol, $indexType, fn ($v) => null !== $v ? (int) $v : null)',
             $this->builder->getResolveFromRowExpressionForColumn($id, 0)
         );
         $this->assertSame(
@@ -208,13 +208,12 @@ class ObjectBuilderTest extends TestCase
         $script = $builder->addDoInsertToScript();
 
         $this->assertStringContainsString('/** @var list<InsertColumnBindingDto> $columnBindings */', $script);
-        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'id\', $this->id, PDO::PARAM_INT);', $script);
-        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'name\', $this->name, PDO::PARAM_STR);', $script);
-        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(":p{$index++}", \'created_at\', $this->created_at ? $this->created_at->format(\'Y-m-d H:i:s.u\') : null, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(\':p\'.$index++, \'id\', $this->id, PDO::PARAM_INT);', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(\':p\'.$index++, \'name\', $this->name, PDO::PARAM_STR);', $script);
+        $this->assertStringContainsString('$columnBindings[] = new InsertColumnBindingDto(\':p\'.$index++, \'created_at\', $this->created_at ? $this->created_at->format(\'Y-m-d H:i:s.u\') : null, PDO::PARAM_STR);', $script);
         $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->quotedColumnName, $columnBindings)', $script);
         $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->identifier, $columnBindings)', $script);
         $this->assertStringContainsString('$binding->bind($stmt);', $script);
-        $this->assertStringNotContainsString('$identifier = \':p\' . $index++;', $script);
         $this->assertStringNotContainsString('match ($columnName)', $script);
     }
 

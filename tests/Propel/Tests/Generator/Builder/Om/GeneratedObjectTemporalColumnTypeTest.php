@@ -104,7 +104,7 @@ EOF;
     {
         $r = new ComplexColumnTypeEntity5();
         $r->setBar1(time());
-        $this->assertEquals(date('Y-m-d'), $r->getBar1('Y-m-d'));
+        $this->assertEquals(date('Y-m-d'), $r->getBar1()->format('Y-m-d'));
 
         $r = new ComplexColumnTypeEntity5();
         $r->setBar2(strtotime('12:55'));
@@ -112,13 +112,13 @@ EOF;
 
         $r = new ComplexColumnTypeEntity5();
         $r->setBar3(time());
-        $this->assertEquals(date('Y-m-d H:i'), $r->getBar3('Y-m-d H:i'));
-        
+        $this->assertEquals(date('Y-m-d H:i'), $r->getBar3()->format('Y-m-d H:i'));
+
         $r = new ComplexColumnTypeEntity5();
         $r->setDatetimecolumn(time());
-        $this->assertEquals(date('Y-m-d H:i'), $r->getDatetimecolumn('Y-m-d H:i'));
+        $this->assertEquals(date('Y-m-d H:i'), $r->getDatetimecolumn()->format('Y-m-d H:i'));
     }
-    
+
     public function persistenceDataProvider()
     {
         return [
@@ -129,7 +129,7 @@ EOF;
             ['Datetime', 'Datetimecolumn', new DateTime('2022-06-28 11:55'), '2022-06-28 11:55', 'Y-m-d H:i'],
         ];
     }
-    
+
     /**
      * @dataProvider persistenceDataProvider
      */
@@ -140,10 +140,10 @@ EOF;
         $r->save();
         ComplexColumnTypeEntity5TableMap::clearInstancePool();
         $r1 = ComplexColumnTypeEntity5Query::create()->findPk($r->getId());
-        
+
         $storedValue = $r1->getByName($columnName);
         $this->assertInstanceOf(DateTime::class, $storedValue, "$typeDescription column should return DateTime objects");
-        
+
         $formattedReturnValue = $storedValue->format($format);
         $this->assertEquals($formattedDate, $formattedReturnValue, "$typeDescription column: persisted value should match");
     }
@@ -173,7 +173,7 @@ EOF;
         $r = new ComplexColumnTypeEntity5();
         $r->setBar3(new DateTime('2011-11-23'));
         $r->getBar3()->modify('+1 days');
-        $this->assertEquals('2011-11-24', $r->getBar3('Y-m-d'));
+        $this->assertEquals('2011-11-24', $r->getBar3()->format('Y-m-d'));
     }
 
     /**
@@ -182,7 +182,7 @@ EOF;
     public function testHasOnlyDefaultValues()
     {
         $r = new ComplexColumnTypeEntity5();
-        $this->assertEquals('2011-12-09', $r->getBar4('Y-m-d'));
+        $this->assertEquals('2011-12-09', $r->getBar4()->format('Y-m-d'));
         $this->assertTrue($r->hasOnlyDefaultValues());
     }
 
@@ -227,6 +227,6 @@ EOF;
         $str = serialize($r);
 
         $r2 = unserialize($str);
-        $this->assertEquals('2011-11-23', $r2->getBar3('Y-m-d'));
+        $this->assertEquals('2011-11-23', $r2->getBar3()->format('Y-m-d'));
     }
 }
