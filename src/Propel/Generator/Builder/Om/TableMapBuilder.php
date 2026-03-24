@@ -429,13 +429,11 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $table = $this->getTable();
         $tableColumns = $this->getTable()->getColumns();
 
-        $fieldNamesPhpName = [];
         $fieldNamesCamelCaseName = [];
         $fieldNamesColname = [];
         $fieldNamesFieldName = [];
 
         foreach ($tableColumns as $col) {
-            $fieldNamesPhpName[] = "'" . $col->getPhpName() . "'";
             $fieldNamesCamelCaseName[] = "'" . $col->getCamelCaseName() . "'";
             $fieldNamesColname[] = $this->getColumnConstant($col, 'self');
             $fieldNamesFieldName[] = "'" . $col->getName() . "'";
@@ -1248,12 +1246,12 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     protected function addSelectColumnsConstant(string &$script): void
     {
         $allColumns = [];
-        $columnNames = [];
+        $fieldNamesPhpName = [];
         $lazyColumns = [];
         foreach ($this->getTable()->getColumns() as $col) {
             $columnConstant = $this->getColumnConstant($col, 'self');
             $allColumns[] = $columnConstant;
-            $columnNames[] = $col->getPhpName();
+            $fieldNamesPhpName[] = "'" . $col->getPhpName() . "'";
 
             if ($col->isLazyLoad()) {
                 $lazyColumns[] = $columnConstant;
@@ -1262,7 +1260,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         $allColumnsString = implode(', ', $allColumns);
         $lazyColumnsString = implode(', ', $lazyColumns);
-        $columnNamesString = implode(', ', $columnNames);
+        $columnNamesString = implode(', ', $fieldNamesPhpName);
 
         $script .= "
     /**
@@ -1276,7 +1274,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     public const array LAZY_COLUMNS = [$lazyColumnsString];
     
     /**
-     * Lazy-load columns in schema order.
+     * Field names in PHPName format, in schema order.
      */
     public const array COLUMN_NAMES = [$columnNamesString];
 ";
