@@ -223,9 +223,7 @@ abstract class AbstractFormatter
         $class = $this->getCollectionClassName();
         if ($class) {
             /** @var \Propel\Runtime\Collection\Collection $collection */
-            $collection = new $class();
-            $collection->setModel((string)$this->class);
-            $collection->setFormatter($this);
+            $collection = new $class([], (string)$this->class, $this);
         }
 
         return $collection;

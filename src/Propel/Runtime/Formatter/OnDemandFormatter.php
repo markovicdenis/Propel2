@@ -88,8 +88,7 @@ class OnDemandFormatter extends ObjectFormatter
         $class = $this->getCollectionClassName();
 
         /** @var \Propel\Runtime\Collection\OnDemandCollection $collection */
-        $collection = new $class();
-        $collection->setModel($this->class);
+        $collection = new $class([], (string)$this->class, $this);
 
         return $collection;
     }

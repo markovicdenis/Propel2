@@ -16,14 +16,19 @@ use Propel\Common\Pluralizer\StandardEnglishPluralizer;
 use Propel\Runtime\Collection\Exception\ModelNotFoundException;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\BadMethodCallException;
+use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Exception\UnexpectedValueException;
 use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
-use Serializable;
+use ArrayIterator;
 use Traversable;
 
+use function array_is_list;
+use function array_pop;
+use function array_shift;
+use function array_unshift;
 use function count;
 use function in_array;
 use function is_object;
@@ -33,22 +38,12 @@ use function sprintf;
  * Class for iterating over a list of Propel elements
  * The collection keys must be integers - no associative array accepted
  *
- * @method \Propel\Runtime\Collection\Collection fromXML(string $data) Populate the collection from an XML string
- * @method \Propel\Runtime\Collection\Collection fromYAML(string $data) Populate the collection from a YAML string
- * @method \Propel\Runtime\Collection\Collection fromJSON(string $data) Populate the collection from a JSON string
- * @method \Propel\Runtime\Collection\Collection fromCSV(string $data) Populate the collection from a CSV string
- *
- * @method string toXML(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to an XML string
- * @method string toYAML(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a YAML string
- * @method string toJSON(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a JSON string
- * @method string toCSV(bool $usePrefix = true, bool $includeLazyLoadColumns = true) Export the collection to a CSV string
- *
  * @author Francois Zaninotto
  *
- * @implements ArrayAccess<int|string, mixed>
- * @implements IteratorAggregate<int|string, mixed>
+ * @implements ArrayAccess<int, mixed>
+ * @implements IteratorAggregate<int, mixed>
  */
-class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializable
+class Collection implements ArrayAccess, IteratorAggregate, Countable
 {
     /**
      * @var string
@@ -80,9 +75,68 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     /**
      * @param array $data
      */
-    public function __construct(array $data = [])
+    public function __construct(
+        array $data = [],
+        string $model = '',
+        ?AbstractFormatter $formatter = null,
+    ) {
+        $this->exchangeArray($data);
+        if ($model !== '') {
+            $this->setModel($model);
+        }
+        $this->formatter = $formatter;
+    }
+
+    /**
+     * @param string $data
+     *
+     * @return static
+     */
+    public static function fromXmlString(string $data, string $model = '', ?AbstractFormatter $formatter = null): self
     {
-        $this->data = $data;
+        $collection = new static([], $model, $formatter);
+        $collection->importFrom('XML', $data);
+
+        return $collection;
+    }
+
+    /**
+     * @param string $data
+     *
+     * @return static
+     */
+    public static function fromYamlString(string $data, string $model = '', ?AbstractFormatter $formatter = null): self
+    {
+        $collection = new static([], $model, $formatter);
+        $collection->importFrom('YAML', $data);
+
+        return $collection;
+    }
+
+    /**
+     * @param string $data
+     *
+     * @return static
+     */
+    public static function fromJsonString(string $data, string $model = '', ?AbstractFormatter $formatter = null): self
+    {
+        $collection = new static([], $model, $formatter);
+        $collection->importFrom('JSON', $data);
+
+        return $collection;
+    }
+
+    /**
+     * @param string $data
+     *
+     * @return static
+     */
+    public static function fromCsvString(string $data, string $model = '', ?AbstractFormatter $formatter = null): self
+    {
+        $collection = new static([], $model, $formatter);
+        $collection->importFrom('CSV', $data);
+
+        return $collection;
     }
 
     /**
@@ -136,13 +190,9 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      *
      * @return mixed
      */
-    public function &offsetGet($offset): mixed
+    public function offsetGet($offset): mixed
     {
-        if (isset($this->data[$offset])) {
-            return $this->data[$offset];
-        }
-
-        return null;
+        return $this->data[$offset] ?? null;
     }
 
     /**
@@ -155,9 +205,12 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     {
         if ($offset === null) {
             $this->data[] = $value;
-        } else {
-            $this->data[$offset] = $value;
+
+            return;
         }
+
+        $this->assertIntegerOffset($offset);
+        $this->data[$offset] = $value;
     }
 
     /**
@@ -167,6 +220,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function offsetUnset($offset): void
     {
+        $this->assertIntegerOffset($offset);
         unset($this->data[$offset]);
     }
 
@@ -177,7 +231,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function exchangeArray(array $input): void
     {
-        $this->data = $input;
+        $this->data = array_values($input);
     }
 
     /**
@@ -215,7 +269,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function getIterator(): Traversable
     {
-        return new CollectionIterator($this);
+        return new ArrayIterator($this->data);
     }
 
     /**
@@ -235,12 +289,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function getFirst()
     {
-        if (count($this->data) === 0) {
-            return null;
-        }
-        reset($this->data);
-
-        return current($this->data);
+        return $this->data[0] ?? null;
     }
 
     /**
@@ -250,13 +299,11 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function getLast()
     {
-        if ($this->count() === 0) {
+        if ($this->data === []) {
             return null;
         }
 
-        end($this->data);
-
-        return current($this->data);
+        return $this->data[array_key_last($this->data)];
     }
 
     /**
@@ -266,7 +313,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function isEmpty(): bool
     {
-        return $this->count() === 0;
+        return $this->data === [];
     }
 
     /**
@@ -295,15 +342,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function pop()
     {
-        if ($this->count() === 0) {
-            return null;
-        }
-
-        $array = $this->getArrayCopy();
-        $ret = array_pop($array);
-        $this->exchangeArray($array);
-
-        return $ret;
+        return array_pop($this->data);
     }
 
     /**
@@ -313,13 +352,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function shift()
     {
-        // the reindexing is complicated to deal with through the iterator
-        // so let's use the simple solution
-        $arr = $this->getArrayCopy();
-        $ret = array_shift($arr);
-        $this->exchangeArray($arr);
-
-        return $ret;
+        return array_shift($this->data);
     }
 
     /**
@@ -343,13 +376,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function prepend($value): int
     {
-        // the reindexing is complicated to deal with through the iterator
-        // so let's use the simple solution
-        $arr = $this->getArrayCopy();
-        $ret = array_unshift($arr, $value);
-        $this->exchangeArray($arr);
-
-        return $ret;
+        return array_unshift($this->data, $value);
     }
 
     /**
@@ -441,28 +468,6 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
         return $diff;
     }
 
-    // Serializable interface
-
-    /**
-     * @return string
-     */
-    public function serialize(): string
-    {
-        return \serialize($this->__serialize());
-    }
-
-    /**
-     * @param string $data
-     *
-     * @return void
-     */
-    public function unserialize(string $data): void
-    {
-        /** @var array{data?: array, model?: string, fullyQualifiedModel?: string} $repr */
-        $repr = \unserialize($data);
-        $this->__unserialize($repr);
-    }
-
     // Propel collection methods
 
     /**
@@ -536,6 +541,10 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
      */
     public function getFormatter(): AbstractFormatter
     {
+        if ($this->formatter === null) {
+            throw new LogicException('The collection formatter has not been initialized.');
+        }
+
         return $this->formatter;
     }
 
@@ -606,38 +615,24 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
         return $parser->listFromArray($array, $this->getPluralModelName());
     }
 
-    /**
-     * Catches calls to undefined methods.
-     *
-     * Provides magic import/export method support (fromXML()/toXML(), fromYAML()/toYAML(), etc.).
-     * Allows to define default __call() behavior if you use a custom BaseObject
-     *
-     * @param string $name
-     * @param mixed $params
-     *
-     * @throws \Propel\Runtime\Exception\BadMethodCallException
-     *
-     * @return array|string|null
-     */
-    public function __call(string $name, $params)
+    public function toXmlString(bool $usePrefix = false, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string
     {
-        if (strpos($name, 'from') === 0) {
-            $format = substr($name, 4);
-            $this->importFrom($format, reset($params));
+        return $this->exportTo('XML', $usePrefix, $includeLazyLoadColumns, $keyType);
+    }
 
-            return null;
-        }
+    public function toYamlString(bool $usePrefix = false, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string
+    {
+        return $this->exportTo('YAML', $usePrefix, $includeLazyLoadColumns, $keyType);
+    }
 
-        if (strpos($name, 'to') === 0) {
-            $format = substr($name, 2);
-            $usePrefix = $params[0] ?? false;
-            $includeLazyLoadColumns = $params[1] ?? true;
-            $keyType = $params[2] ?? TableMap::TYPE_PHPNAME;
+    public function toJsonString(bool $usePrefix = false, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string
+    {
+        return $this->exportTo('JSON', $usePrefix, $includeLazyLoadColumns, $keyType);
+    }
 
-            return $this->exportTo($format, $usePrefix, $includeLazyLoadColumns, $keyType);
-        }
-
-        throw new BadMethodCallException('Call to undefined method: ' . $name);
+    public function toCsvString(bool $usePrefix = false, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string
+    {
+        return $this->exportTo('CSV', $usePrefix, $includeLazyLoadColumns, $keyType);
     }
 
     /**
@@ -702,5 +697,17 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable, Serializa
     public function hashCode(): string
     {
         return spl_object_hash($this);
+    }
+
+    /**
+     * @param mixed $offset
+     *
+     * @return void
+     */
+    protected function assertIntegerOffset($offset): void
+    {
+        if (!is_int($offset)) {
+            throw new BadMethodCallException(sprintf('Collection offsets must be integers, %s given.', get_debug_type($offset)));
+        }
     }
 }
