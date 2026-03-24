@@ -8,7 +8,7 @@
      * @var array<string, mixed>
      */
     protected static array $fieldNames = [
-        self::TYPE_PHPNAME       => [<?= $fieldNamesPhpName ?>],
+        self::TYPE_PHPNAME       => <?= $fieldNamesPhpName ?>,
         self::TYPE_CAMELNAME     => [<?= $fieldNamesCamelCaseName ?>],
         self::TYPE_COLNAME       => <?= $fieldNamesColname ?>,
         self::TYPE_FIELDNAME     => [<?= $fieldNamesFieldName ?>]
