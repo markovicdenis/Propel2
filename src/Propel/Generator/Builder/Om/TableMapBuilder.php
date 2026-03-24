@@ -446,7 +446,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
             : 'self::ALL_COLUMNS';
 
         return $this->renderTemplate('tableMapFields', [
-                'fieldNamesPhpName' => implode(', ', $fieldNamesPhpName),
+                'fieldNamesPhpName' => 'self::COLUMN_NAMES',
                 'fieldNamesCamelCaseName' => implode(', ', $fieldNamesCamelCaseName),
                 'fieldNamesColname' => $fieldNamesColnameDefinition,
                 'fieldNamesFieldName' => implode(', ', $fieldNamesFieldName),
@@ -1248,10 +1248,13 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     protected function addSelectColumnsConstant(string &$script): void
     {
         $allColumns = [];
+        $columnNames = [];
         $lazyColumns = [];
         foreach ($this->getTable()->getColumns() as $col) {
             $columnConstant = $this->getColumnConstant($col, 'self');
             $allColumns[] = $columnConstant;
+            $columnNames[] = $col->getPhpName();
+
             if ($col->isLazyLoad()) {
                 $lazyColumns[] = $columnConstant;
             }
@@ -1259,6 +1262,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         $allColumnsString = implode(', ', $allColumns);
         $lazyColumnsString = implode(', ', $lazyColumns);
+        $columnNamesString = implode(', ', $columnNames);
 
         $script .= "
     /**
@@ -1270,6 +1274,11 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * Lazy-load columns in schema order.
      */
     public const array LAZY_COLUMNS = [$lazyColumnsString];
+    
+    /**
+     * Lazy-load columns in schema order.
+     */
+    public const array COLUMN_NAMES = [$columnNamesString];
 ";
     }
 
