@@ -14,37 +14,46 @@ use Propel\Runtime\Collection\Exception\ReadOnlyModelException;
 use Propel\Runtime\Collection\Exception\UnsupportedRelationException;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\RuntimeException;
+use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 
 use function is_callable;
 use function is_object;
+use function count;
 
 /**
- * Class for iterating over a list of Propel objects
+ * Class for iterating over a list of Propel objects.
+ *
+ * Two O(1) membership indexes are maintained:
+ *  - $instanceIndex  maps spl_object_id() → position  (instance identity)
+ *  - $index          maps hashCode()       → position  (record identity)
  *
  * @author Francois Zaninotto
  */
 class ObjectCollection extends Collection
 {
     /**
-     * @var array
+     * Record-identity index: hashCode() → array position.
+     *
+     * @var array<string, int>
      */
     protected array $index = [];
 
     /**
-     * @var array
+     * Instance-identity index: spl_object_id() → array position.
+     *
+     * @var array<int, int>
      */
-    protected array $indexSplHash = [];
+    protected array $instanceIndex = [];
 
-    /**
-     * @param array $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-        $this->rebuildIndex();
+    public function __construct(
+        array $data = [],
+        string $model = '',
+        ?AbstractFormatter $formatter = null,
+    ) {
+        parent::__construct($data, $model, $formatter);
     }
 
     /**
@@ -54,7 +63,7 @@ class ObjectCollection extends Collection
      */
     public function exchangeArray(array $input): void
     {
-        $this->data = $input;
+        $this->data = array_values($input);
         $this->rebuildIndex();
     }
 
@@ -367,9 +376,7 @@ class ObjectCollection extends Collection
             $collectionClassName = $relationMap->getRightTable()->getCollectionClassName();
 
             /** @var static $coll */
-            $coll = new $collectionClassName();
-            $coll->setModel($relationClassName);
-            $coll->setFormatter($this->getFormatter());
+            $coll = new $collectionClassName([], $relationClassName, $this->getFormatter());
 
             return $coll;
         }
@@ -412,71 +419,92 @@ class ObjectCollection extends Collection
         return $relatedObjects;
     }
 
+    // -------------------------------------------------------------------------
+    // Explicit identity API
+    // -------------------------------------------------------------------------
+
+    /**
+     * True if the exact same object instance is present.
+     * O(1) via spl_object_id().
+     */
+    public function containsInstance(object $object): bool
+    {
+        return isset($this->instanceIndex[spl_object_id($object)]);
+    }
+
+    /**
+     * True if any item has the same record identity (hashCode()) as $object.
+     * O(1) via record-identity index.
+     */
+    public function containsSameRecord(object $object): bool
+    {
+        return isset($this->index[$this->getHashCode($object)]);
+    }
+
+    /**
+     * Returns the position of the exact instance, or null if not found.
+     */
+    public function indexOfInstance(object $object): ?int
+    {
+        return $this->instanceIndex[spl_object_id($object)] ?? null;
+    }
+
+    /**
+     * Returns the position of the first record with the same identity, or null if not found.
+     */
+    public function indexOfSameRecord(object $object): ?int
+    {
+        return $this->index[$this->getHashCode($object)] ?? null;
+    }
+
     /**
      * @inheritDoc
+     *
+     * For objects: instance identity first, then record identity.
+     * For non-objects: delegates to base linear search.
+     */
+    public function contains($element): bool
+    {
+        if (!is_object($element)) {
+            return parent::contains($element);
+        }
+
+        return $this->containsInstance($element) || $this->containsSameRecord($element);
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * For objects: returns position via instance identity, falling back to record identity.
+     *
+     * @return int|false
      */
     public function search($element)
     {
-        $splHash = spl_object_hash($element);
-        if (isset($this->indexSplHash[$splHash])) {
-            return $this->index[$this->indexSplHash[$splHash]];
+        if (!is_object($element)) {
+            return parent::search($element);
         }
 
-        $hashCode = $this->getHashCode($element);
-        if (isset($this->index[$hashCode])) {
-            return $this->index[$hashCode];
-        }
-
-        return false;
+        return $this->indexOfInstance($element) ?? $this->indexOfSameRecord($element) ?? false;
     }
 
     /**
-     * @return void
+     * Remove an object by instance or record identity.
      */
-    protected function rebuildIndex(): void
+    public function removeObject(object $element): void
     {
-        $this->index = [];
-        $this->indexSplHash = [];
-        foreach ($this->data as $idx => $value) {
-            $hashCode = $this->getHashCode($value);
-            $this->index[$hashCode] = $idx;
-            $this->indexSplHash[spl_object_hash($value)] = $hashCode;
-        }
-    }
-
-    /**
-     * @param mixed $offset
-     *
-     * @return void
-     */
-    public function offsetUnset($offset): void
-    {
-        if (isset($this->data[$offset])) {
-            if (is_object($this->data[$offset])) {
-                unset($this->indexSplHash[spl_object_hash($this->data[$offset])]);
-                unset($this->index[$this->getHashCode($this->data[$offset])]);
-            }
-            unset($this->data[$offset]);
-        }
-    }
-
-    /**
-     * @param mixed $element
-     *
-     * @return void
-     */
-    public function removeObject($element): void
-    {
-        $pos = $this->search($element);
-        if ($pos !== false) {
+        $pos = $this->indexOfInstance($element) ?? $this->indexOfSameRecord($element);
+        if ($pos !== null) {
             $this->remove($pos);
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Mutators — maintain both indexes
+    // -------------------------------------------------------------------------
+
     /**
      * @param mixed $value
-     *
-     * @return void
      */
     public function append($value): void
     {
@@ -487,19 +515,14 @@ class ObjectCollection extends Collection
         }
 
         $this->data[] = $value;
-        end($this->data);
-        $pos = key($this->data);
-
-        $hashCode = $this->getHashCode($value);
-        $this->index[$hashCode] = $pos;
-        $this->indexSplHash[spl_object_hash($value)] = $hashCode;
+        $pos = count($this->data) - 1;
+        $this->index[$this->getHashCode($value)] = $pos;
+        $this->instanceIndex[spl_object_id($value)] = $pos;
     }
 
     /**
      * @param mixed $offset
      * @param mixed $value
-     *
-     * @return void
      */
     public function offsetSet($offset, $value): void
     {
@@ -509,45 +532,95 @@ class ObjectCollection extends Collection
             return;
         }
 
-        $hashCode = $this->getHashCode($value);
-
         if ($offset === null) {
-            $this->data[] = $value;
-            end($this->data);
-            $pos = key($this->data);
+            $this->append($value);
 
-            $this->index[$hashCode] = $pos;
-            $this->indexSplHash[spl_object_hash($value)] = $hashCode;
-        } else {
-            if (isset($this->data[$offset])) {
-                unset($this->indexSplHash[spl_object_hash($this->data[$offset])]);
-                unset($this->index[$this->getHashCode($this->data[$offset])]);
-            }
-
-            $this->index[$hashCode] = $offset;
-            $this->indexSplHash[spl_object_hash($value)] = $hashCode;
-            $this->data[$offset] = $value;
+            return;
         }
+
+        $this->assertIntegerOffset($offset);
+
+        if (isset($this->data[$offset]) && is_object($this->data[$offset])) {
+            $old = $this->data[$offset];
+            unset($this->instanceIndex[spl_object_id($old)]);
+            unset($this->index[$this->getHashCode($old)]);
+        }
+
+        $this->data[$offset] = $value;
+        $this->index[$this->getHashCode($value)] = $offset;
+        $this->instanceIndex[spl_object_id($value)] = $offset;
     }
 
     /**
-     * @inheritDoc
+     * @param mixed $offset
      */
-    public function contains($element): bool
+    public function offsetUnset($offset): void
     {
-        if (!is_object($element)) {
-            return parent::contains($element);
+        $this->assertIntegerOffset($offset);
+        if (isset($this->data[$offset]) && is_object($this->data[$offset])) {
+            $old = $this->data[$offset];
+            unset($this->instanceIndex[spl_object_id($old)]);
+            unset($this->index[$this->getHashCode($old)]);
+        }
+        unset($this->data[$offset]);
+        $this->data = array_values($this->data);
+        $this->rebuildIndex();
+    }
+
+    public function pop(): mixed
+    {
+        if ($this->data === []) {
+            return null;
+        }
+        $value = array_pop($this->data);
+        if (is_object($value)) {
+            unset($this->instanceIndex[spl_object_id($value)]);
+            unset($this->index[$this->getHashCode($value)]);
         }
 
-        return isset($this->indexSplHash[spl_object_hash($element)]) || isset($this->index[$this->getHashCode($element)]);
+        return $value;
+    }
+
+    public function shift(): mixed
+    {
+        if ($this->data === []) {
+            return null;
+        }
+        $value = array_shift($this->data);
+        $this->rebuildIndex();
+
+        return $value;
+    }
+
+    public function prepend($value): int
+    {
+        $count = array_unshift($this->data, $value);
+        $this->rebuildIndex();
+
+        return $count;
+    }
+
+    // -------------------------------------------------------------------------
+    // Index maintenance
+    // -------------------------------------------------------------------------
+
+    protected function rebuildIndex(): void
+    {
+        $this->index = [];
+        $this->instanceIndex = [];
+        foreach ($this->data as $pos => $value) {
+            if (!is_object($value)) {
+                continue;
+            }
+            $this->index[$this->getHashCode($value)] = $pos;
+            $this->instanceIndex[spl_object_id($value)] = $pos;
+        }
     }
 
     /**
-     * Returns the result of $object->hashCode() if available or uses spl_object_hash($object).
+     * Returns $object->hashCode() when available, otherwise spl_object_hash().
      *
      * @param mixed $object
-     *
-     * @return string
      */
     protected function getHashCode($object): string
     {

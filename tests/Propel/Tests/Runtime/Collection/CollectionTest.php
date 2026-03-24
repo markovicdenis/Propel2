@@ -9,12 +9,15 @@
 namespace Propel\Tests\Runtime\collection;
 
 use Propel\Runtime\Collection\Collection;
+use Propel\Runtime\Collection\CollectionIterator;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\Book;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 use UnexpectedValueException;
+
+use function count;
 
 /**
  * Test class for Collection.
@@ -99,7 +102,7 @@ class CollectionTest extends BookstoreTestBase
         $methods = ['getPosition', 'isFirst', 'isLast', 'isOdd', 'isEven'];
         $data = ['bar1', 'bar2', 'bar3'];
         $col = new Collection($data);
-        $it = $col->getIterator();
+        $it = new CollectionIterator($col);
         foreach ($it as $item) {
             foreach ($methods as $method) {
                 $this->assertNotNull(
@@ -299,7 +302,7 @@ class CollectionTest extends BookstoreTestBase
         $this->expectException(BadMethodCallException::class);
 
         $col = new Collection();
-        $col->getConnection();
+        $col->getWriteConnection();
     }
 
     /**

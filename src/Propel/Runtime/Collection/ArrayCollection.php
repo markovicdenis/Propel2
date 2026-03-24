@@ -147,8 +147,12 @@ class ArrayCollection extends Collection
      *
      * @return array
      */
-    public function toArray(?string $keyColumn = null, bool $usePrefix = false): array
-    {
+    public function toArray(
+        ?string $keyColumn = null,
+        bool $usePrefix = false,
+        string $keyType = \Propel\Runtime\Map\TableMap::TYPE_PHPNAME,
+        bool $includeLazyLoadColumns = true,
+    ): array {
         $ret = [];
         foreach ($this as $key => $element) {
             $key = $keyColumn === null ? $key : $element[$keyColumn];

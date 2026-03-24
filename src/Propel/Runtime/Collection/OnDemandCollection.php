@@ -12,6 +12,7 @@ use Propel\Runtime\Collection\Exception\ReadOnlyModelException;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\AbstractFormatter;
+use Propel\Runtime\Formatter\ObjectFormatter;
 use Propel\Runtime\Map\TableMap;
 use Traversable;
 
@@ -28,12 +29,29 @@ class OnDemandCollection extends Collection
     private ?OnDemandIterator $lastIterator = null;
 
     /**
+     * Override parent constructor to skip exchangeArray(), since this collection is read-only.
+     *
+     * @phpstan-ignore constructor.unusedParameter
+     */
+    public function __construct(
+        array $_data = [],
+        string $model = '',
+        ?AbstractFormatter $formatter = null,
+    ) {
+        // Do not call parent::__construct — it would call exchangeArray() which we prohibit.
+        if ($model !== '') {
+            $this->setModel($model);
+        }
+        $this->formatter = $formatter;
+    }
+
+    /**
      * @param \Propel\Runtime\Formatter\ObjectFormatter $formatter
      * @param \Propel\Runtime\DataFetcher\DataFetcherInterface $dataFetcher
      *
      * @return void
      */
-    public function initIterator(AbstractFormatter $formatter, DataFetcherInterface $dataFetcher): void
+    public function initIterator(ObjectFormatter $formatter, DataFetcherInterface $dataFetcher): void
     {
         $this->lastIterator = new OnDemandIterator($formatter, $dataFetcher);
     }
@@ -178,7 +196,7 @@ class OnDemandCollection extends Collection
     /**
      * @throws \Propel\Runtime\Exception\PropelException
      *
-     * @return string
+        * @return array
      */
     public function __serialize(): array
     {

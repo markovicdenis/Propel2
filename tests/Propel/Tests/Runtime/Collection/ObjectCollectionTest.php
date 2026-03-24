@@ -22,6 +22,8 @@ use Propel\Tests\Bookstore\Map\AuthorTableMap;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 
+use function count;
+
 /**
  * Test class for ObjectCollection.
  *
@@ -195,7 +197,7 @@ class ObjectCollectionTest extends BookstoreTestBase
     public function testPopulateRelationResetsPartialFlag()
     {
         Propel::enableInstancePooling();
-        $partialAccessor = new class extends Author{
+        $partialAccessor = new class () extends Author {
             public static function getIsPartial(Author $a)
             {
                 return $a->collBooksPartial;
@@ -326,6 +328,46 @@ class ObjectCollectionTest extends BookstoreTestBase
         $col = new ObjectCollection([$b1]);
         $this->assertTrue(0 === $col->search($b1));
         $this->assertFalse(0 === $col->search($b2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testContainsInstanceAndContainsSameRecord()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+        $book1->save();
+
+        $book2 = clone $book1;
+
+        $col = new ObjectCollection([$book1]);
+
+        $this->assertTrue($col->containsInstance($book1));
+        $this->assertFalse($col->containsInstance($book2));
+        $this->assertTrue($col->containsSameRecord($book1));
+        $this->assertTrue($col->containsSameRecord($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testIndexOfInstanceAndIndexOfSameRecord()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+        $book1->save();
+
+        $book2 = clone $book1;
+
+        $col = new ObjectCollection([$book1]);
+
+        $this->assertSame(0, $col->indexOfInstance($book1));
+        $this->assertNull($col->indexOfInstance($book2));
+        $this->assertSame(0, $col->indexOfSameRecord($book1));
+        $this->assertSame(0, $col->indexOfSameRecord($book2));
     }
 
     /**

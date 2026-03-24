@@ -11,6 +11,9 @@ namespace Propel\Tests\Runtime\ActiveRecord;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Tests\TestCase;
+use ReflectionProperty;
+use RuntimeException;
+use stdClass;
 
 /**
  * Test class for ActiveRecord.
@@ -98,7 +101,7 @@ class ActiveRecordTest extends TestCase
         $right->primaryKey = 7;
 
         $this->assertTrue($left->equals($right));
-        $this->assertFalse($left->equals(new \stdClass()));
+        $this->assertFalse($left->equals(new stdClass()));
     }
 
     /**
@@ -109,7 +112,7 @@ class ActiveRecordTest extends TestCase
         $record = new TestableActiveRecord();
         $record->setVirtualColumn('x', 1);
 
-        $reflection = new \ReflectionProperty($record, 'modifiedColumns');
+        $reflection = new ReflectionProperty($record, 'modifiedColumns');
         $reflection->setValue($record, ['foo' => true, 'bar' => true]);
 
         $record->resetModified('foo');
@@ -138,7 +141,7 @@ class ActiveRecordTest extends TestCase
 
         $this->assertSame(7, $record->resolveFromTestRow([7, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn ($v) => (int) $v));
         $this->assertSame('nick', $record->resolveFromTestRow(['Id' => 7, 'Nick' => 'nick'], 1, 0, TableMap::TYPE_PHPNAME, static fn ($v) => (string) $v));
-        $this->assertNull($record->resolveFromTestRow([null, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn () => throw new \RuntimeException('should not run')));
+        $this->assertNull($record->resolveFromTestRow([null, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn () => throw new RuntimeException('should not run')));
     }
 
     /**

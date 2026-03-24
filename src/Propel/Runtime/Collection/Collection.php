@@ -33,6 +33,7 @@ use function count;
 use function in_array;
 use function is_object;
 use function sprintf;
+use function is_int;
 
 /**
  * Class for iterating over a list of Propel elements
@@ -42,6 +43,7 @@ use function sprintf;
  *
  * @implements ArrayAccess<int, mixed>
  * @implements IteratorAggregate<int, mixed>
+ * @phpstan-consistent-constructor
  */
 class Collection implements ArrayAccess, IteratorAggregate, Countable
 {
@@ -265,7 +267,7 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
-     * @return \Propel\Runtime\Collection\CollectionIterator|\Propel\Runtime\Collection\IteratorInterface
+     * @return ArrayIterator<int, mixed>
      */
     public function getIterator(): Traversable
     {
@@ -583,6 +585,19 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
+     * Populate this collection from a plain array.
+     * Subclasses (ObjectCollection, ArrayCollection) override this to hydrate model objects.
+     *
+     * @param array $data
+     *
+     * @return void
+     */
+    public function fromArray(array $data): void
+    {
+        $this->exchangeArray($data);
+    }
+
+    /**
      * Export the current collection to a string, using a given parser format
      * <code>
      * $books = BookQuery::create()->find();
@@ -613,6 +628,26 @@ class Collection implements ArrayAccess, IteratorAggregate, Countable
         $array = $this->toArray(null, $usePrefix, $keyType, $includeLazyLoadColumns);
 
         return $parser->listFromArray($array, $this->getPluralModelName());
+    }
+
+    /**
+     * Return the collection data as a plain array.
+     * Subclasses (ObjectCollection, ArrayCollection) override this with object-aware serialisation.
+     *
+     * @param string|null $keyColumn
+     * @param bool $usePrefix
+     * @param string $keyType
+     * @param bool $includeLazyLoadColumns
+     *
+     * @return array
+     */
+    public function toArray(
+        ?string $keyColumn = null,
+        bool $usePrefix = false,
+        string $keyType = TableMap::TYPE_PHPNAME,
+        bool $includeLazyLoadColumns = true,
+    ): array {
+        return $this->getArrayCopy();
     }
 
     public function toXmlString(bool $usePrefix = false, bool $includeLazyLoadColumns = true, string $keyType = TableMap::TYPE_PHPNAME): string

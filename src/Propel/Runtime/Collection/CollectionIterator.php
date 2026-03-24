@@ -13,77 +13,54 @@ use ArrayIterator;
 use function count;
 
 /**
- * Iterator class for iterating over Collection data
+ * Read-only cursor with sequential navigation helpers over a Collection snapshot.
  *
- * @extends ArrayIterator<(int|string), mixed>
+ * This cursor snapshots the collection's data at construction time.
+ * Use Collection::getIterator() for standard foreach iteration.
+ * Use CollectionIterator when you need position-aware navigation
+ * (getPosition, isFirst, isLast, getPrevious, getNext, etc.).
+ *
+ * @extends ArrayIterator<int|string, mixed>
  */
-class CollectionIterator extends ArrayIterator implements IteratorInterface
+class CollectionIterator extends ArrayIterator
 {
-    /**
-     * @var \Propel\Runtime\Collection\Collection
-     */
     protected Collection $collection;
 
-    /**
-     * @var array
-     */
+    /** @var array<int|string, int> maps array key → sequential position */
     protected array $positions = [];
 
-    /**
-     * Constructor
-     *
-     * @param \Propel\Runtime\Collection\Collection $collection
-     */
     public function __construct(Collection $collection)
     {
         parent::__construct($collection->getData());
-
         $this->collection = $collection;
         $this->refreshPositions();
     }
 
-    /**
-     * Returns the collection instance
-     *
-     * @return \Propel\Runtime\Collection\Collection
-     */
     public function getCollection(): Collection
     {
         return $this->collection;
     }
 
-    /**
-     * Check if the collection is empty
-     *
-     * @return bool
-     */
     public function isEmpty(): bool
     {
         return $this->count() === 0;
     }
 
     /**
-     * Gets the position of the internal pointer
-     * This position can be later used in seek()
-     *
-     * @return int
+     * Returns the 0-based sequential position of the internal pointer.
      */
     public function getPosition(): int
     {
-        if (!$this->key()) {
+        $key = $this->key();
+        if (!$this->valid()) {
             return 0;
         }
 
-        return $this->positions[$this->key()];
+        return $this->positions[$key] ?? 0;
     }
 
     /**
-     * Move the internal pointer to the beginning of the list
-     * And get the first element in the collection
-     *
-     * @psalm-suppress ReservedWord
-     *
-     * @return mixed
+     * Rewind and return the first element, or null on an empty collection.
      */
     public function getFirst(): mixed
     {
@@ -95,230 +72,71 @@ class CollectionIterator extends ArrayIterator implements IteratorInterface
         return $this->current();
     }
 
-    /**
-     * Check whether the internal pointer is at the beginning of the list
-     *
-     * @return bool
-     */
     public function isFirst(): bool
     {
         return $this->getPosition() === 0;
     }
 
     /**
-     * Move the internal pointer backward
-     * And get the previous element in the collection
-     *
-     * @psalm-suppress ReservedWord
-     *
-     * @return mixed
+     * Move backward and return the previous element, or null if already at the start.
      */
     public function getPrevious(): mixed
     {
         if ($this->isFirst()) {
             return null;
         }
-
         $this->seek($this->getPosition() - 1);
 
         return $this->current();
     }
 
-    /**
-     * Get the current element in the collection
-     *
-     * @psalm-suppress ReservedWord
-     *
-     * @return mixed
-     */
     public function getCurrent(): mixed
     {
         return $this->current();
     }
 
     /**
-     * Move the internal pointer forward
-     * And get the next element in the collection
-     *
-     * @psalm-suppress ReservedWord
-     *
-     * @return mixed
+     * Move forward and return the next element, or null if already at the end.
      */
     public function getNext(): mixed
     {
         $this->next();
 
-        return $this->current();
+        return $this->valid() ? $this->current() : null;
     }
 
     /**
-     * Move the internal pointer to the end of the list
-     * And get the last element in the collection
-     *
-     * @psalm-suppress ReservedWord
-     *
-     * @return mixed
+     * Seek to the last element and return it, or null on an empty collection.
      */
     public function getLast(): mixed
     {
         if ($this->isEmpty()) {
             return null;
         }
-
         $this->seek(count($this->positions) - 1);
 
         return $this->current();
     }
 
-    /**
-     * Check whether the internal pointer is at the end of the list
-     *
-     * @return bool
-     */
     public function isLast(): bool
     {
         if ($this->isEmpty()) {
-            // empty list... so yes, this is the last
             return true;
         }
 
         return $this->getPosition() === count($this->positions) - 1;
     }
 
-    /**
-     * Check if the current index is an odd integer
-     *
-     * @return bool
-     */
     public function isOdd(): bool
     {
         return (bool)($this->getPosition() % 2);
     }
 
-    /**
-     * Check if the current index is an even integer
-     *
-     * @return bool
-     */
     public function isEven(): bool
     {
         return !$this->isOdd();
     }
 
-    /**
-     * @param string $index
-     * @param string $value
-     *
-     * @return void
-     */
-    public function offsetSet($index, $value): void
-    {
-        $this->collection->offsetSet($index, $value);
-        parent::offsetSet($index, $value);
-        $this->refreshPositions();
-    }
-
-    /**
-     * @param string $index
-     *
-     * @return void
-     */
-    public function offsetUnset($index): void
-    {
-        $this->collection->offsetUnset($index);
-        parent::offsetUnset($index);
-        $this->refreshPositions();
-    }
-
-    /**
-     * @param mixed $value
-     *
-     * @return void
-     */
-    public function append($value): void
-    {
-        $this->collection->append($value);
-        parent::append($value);
-        $this->refreshPositions();
-    }
-
-    /**
-     * @param int $flags Not used
-     *
-     * @return true
-     */
-    public function asort(int $flags = SORT_REGULAR): bool
-    {
-        parent::asort();
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @param int $flags Not used
-     *
-     * @return true
-     */
-    public function ksort(int $flags = SORT_REGULAR): bool
-    {
-        parent::ksort();
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @param callable $callback
-     *
-     * @return true
-     */
-    public function uasort(callable $callback): bool
-    {
-        parent::uasort($callback);
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @param callable $callback
-     *
-     * @return true
-     */
-    public function uksort(callable $callback): bool
-    {
-        parent::uksort($callback);
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @return true
-     */
-    public function natsort(): bool
-    {
-        parent::natsort();
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @return true
-     */
-    public function natcasesort(): bool
-    {
-        parent::natcasesort();
-        $this->refreshPositions();
-
-        return true;
-    }
-
-    /**
-     * @return void
-     */
     private function refreshPositions(): void
     {
         $this->positions = array_flip(array_keys($this->getArrayCopy()));

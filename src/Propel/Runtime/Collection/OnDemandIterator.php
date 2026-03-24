@@ -11,7 +11,7 @@ namespace Propel\Runtime\Collection;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\Exception\PropelException;
-use Propel\Runtime\Formatter\AbstractFormatter;
+use Propel\Runtime\Formatter\ObjectFormatter;
 use Propel\Runtime\Propel;
 
 use function is_array;
@@ -24,9 +24,9 @@ use function is_array;
 class OnDemandIterator implements IteratorInterface
 {
     /**
-     * @var \Propel\Runtime\Formatter\AbstractFormatter
+    * @var \Propel\Runtime\Formatter\ObjectFormatter
      */
-    protected AbstractFormatter $formatter;
+    protected ObjectFormatter $formatter;
 
     /**
      * @var \Propel\Runtime\DataFetcher\DataFetcherInterface
@@ -57,7 +57,7 @@ class OnDemandIterator implements IteratorInterface
      * @param \Propel\Runtime\Formatter\ObjectFormatter $formatter
      * @param \Propel\Runtime\DataFetcher\DataFetcherInterface $dataFetcher
      */
-    public function __construct(AbstractFormatter $formatter, DataFetcherInterface $dataFetcher)
+    public function __construct(ObjectFormatter $formatter, DataFetcherInterface $dataFetcher)
     {
         $this->formatter = $formatter;
         $this->dataFetcher = $dataFetcher;
