@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Unique;
 
 /**
@@ -18,14 +19,13 @@ use Propel\Generator\Model\Unique;
 class UniqueTest extends ModelTestCase
 {
     /**
-     * @dataProvider provideTableSpecificAttributes
-     *
      * @param string $tableName
      * @param int $maxColumnNameLength
      * @param string $indexName
      *
      * @return void
      */
+    #[DataProvider('provideTableSpecificAttributes')]
     public function testCreateDefaultUniqueIndexName($tableName, $maxColumnNameLength, $indexName)
     {
         $database = $this->getDatabaseMock('bookstore');

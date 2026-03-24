@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Platform;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
@@ -70,6 +71,7 @@ class PgsqlPlatformTest extends PlatformTestProvider
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTablesDDL')]
     public function testGetAddTablesDDL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -122,6 +124,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTablesSkipSQLDDL')]
     public function testGetAddTablesDDLSkipSQL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -225,6 +228,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTablesDDLSchema')]
     public function testGetAddTablesDDLSchemas($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -296,6 +300,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLSimplePK')]
     public function testGetAddTableDDLSimplePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -319,6 +324,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLCompositePK')]
     public function testGetAddTableDDLCompositePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -341,6 +347,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLUniqueIndex')]
     public function testGetAddTableDDLUniqueIndex($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -395,6 +402,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLSchema')]
     public function testGetAddTableDDLSchema($schema)
     {
         $table = $this->getTableFromSchema($schema, 'Woopah.foo');
@@ -515,6 +523,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLSchema')]
     public function testGetDropTableDDLSchema($schema)
     {
         $table = $this->getTableFromSchema($schema, 'Woopah.foo');
@@ -627,6 +636,7 @@ DROP SEQUENCE "foo_sequence";
      *
      * @return void
      */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetDropPrimaryKeyDDL($table)
     {
         $expected = '
@@ -640,6 +650,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_pkey";
      *
      * @return void
      */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetAddPrimaryKeyDDL($table)
     {
         $expected = '
@@ -653,6 +664,7 @@ ALTER TABLE "foo" ADD PRIMARY KEY ("bar");
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testAddIndexDDL($index)
     {
         $expected = '
@@ -668,6 +680,7 @@ CREATE INDEX "babar" ON "foo" ("bar1","bar2");
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetUniqueIndexDDL')]
     public function testAddUniqueIndexDDL(Unique $index): void
     {
         $expected = '
@@ -681,6 +694,7 @@ ALTER TABLE "foo" ADD CONSTRAINT "babar" UNIQUE ("bar1");
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndicesDDL')]
     public function testAddIndicesDDL($table)
     {
         $expected = '
@@ -696,6 +710,7 @@ CREATE INDEX "foo_index" ON "foo" ("bar1");
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testDropIndexDDL($index)
     {
         $expected = '
@@ -709,6 +724,7 @@ DROP INDEX "babar";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testGetIndexDDL($index)
     {
         $expected = 'INDEX "babar" ("bar1","bar2")';
@@ -720,6 +736,7 @@ DROP INDEX "babar";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetUniqueDDL')]
     public function testGetUniqueDDL($index)
     {
         $expected = 'CONSTRAINT "babar" UNIQUE ("bar1","bar2")';
@@ -731,6 +748,7 @@ DROP INDEX "babar";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeysDDL')]
     public function testGetAddForeignKeysDDL($table)
     {
         $expected = '
@@ -752,6 +770,7 @@ ALTER TABLE "foo" ADD CONSTRAINT "foo_baz_fk"
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetAddForeignKeyDDL($fk)
     {
         $expected = '
@@ -768,6 +787,7 @@ ALTER TABLE "foo" ADD CONSTRAINT "foo_bar_fk"
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetAddForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
@@ -779,6 +799,7 @@ ALTER TABLE "foo" ADD CONSTRAINT "foo_bar_fk"
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetDropForeignKeyDDL($fk)
     {
         $expected = '
@@ -792,6 +813,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_bar_fk";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetDropForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
@@ -803,6 +825,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_bar_fk";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetForeignKeyDDL($fk)
     {
         $expected = 'CONSTRAINT "foo_bar_fk"
@@ -817,6 +840,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_bar_fk";
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeySkipSqlDDL')]
     public function testGetForeignKeySkipSqlDDL($fk)
     {
         $expected = '';
@@ -839,7 +863,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_bar_fk";
     /**
      * @return void
      */
-    public function assertCreateTableMatches(string $expected, $schema, ?string $tableName = 'foo' )
+    public function assertCreateTableMatches(string $expected, $schema, ?string $tableName = 'foo')
     {
         $table = $this->getTableFromSchema($schema, $tableName);
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
@@ -850,6 +874,7 @@ ALTER TABLE "foo" DROP CONSTRAINT "foo_bar_fk";
      *
      * @return void
      */
+    #[DataProvider('providerForTestCreateSchemaWithUuidColumns')]
     public function testCreateSchemaWithUuidColumns($schema)
     {
         $expected = <<< 'EOT'
@@ -870,6 +895,7 @@ EOT;
      *
      * @return void
      */
+    #[DataProvider('providerForTestCreateSchemaWithUuidBinaryColumns')]
     public function testCreateSchemaWithUuidBinaryColumns($schema)
     {
         $expected = <<< 'EOT'

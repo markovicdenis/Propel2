@@ -10,6 +10,7 @@ namespace Propel\Tests\Runtime\ServiceContainer;
 
 use Exception;
 use Monolog\Logger;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Adapter\Pdo\SqliteAdapter;
@@ -26,6 +27,7 @@ use Propel\Runtime\Util\Profiler;
 use Propel\Tests\Helpers\BaseTestCase;
 use Propel\Runtime\Connection\ConnectionWrapper;
 use Propel\Runtime\Connection\ConnectionFactory;
+use Error;
 
 class StandardServiceContainerTest extends BaseTestCase
 {
@@ -203,8 +205,6 @@ class StandardServiceContainerTest extends BaseTestCase
     }
 
     /**
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testCheckValidVersion(): void
@@ -214,6 +214,8 @@ class StandardServiceContainerTest extends BaseTestCase
         } catch (PropelException $e) {
             $this->fail('The current configuration version should pass a check, but failed with message: ' . $e->getMessage());
         }
+
+        $this->assertTrue(true);
     }
 
     /**
@@ -388,7 +390,7 @@ class StandardServiceContainerTest extends BaseTestCase
         $this->sc->setConnectionManager(new ConnectionManagerSingle('foo'));
         try {
             $manager->getReadConnection();
-        } catch (\Error $e) {
+        } catch (Error $e) {
             $this->assertTrue(true, 'Throws error');
         }
     }
@@ -444,13 +446,13 @@ class StandardServiceContainerTest extends BaseTestCase
 
         try {
             $manager1->getReadConnection();
-        } catch (\Error $e) {
+        } catch (Error $e) {
             $this->assertTrue(true, 'Throws error');
         }
 
         try {
             $manager2->getReadConnection();
-        } catch (\Error $e) {
+        } catch (Error $e) {
             $this->assertTrue(true, 'Throws error');
         }
     }
@@ -674,18 +676,16 @@ class StandardServiceContainerTest extends BaseTestCase
         $handler = $logger->popHandler();
         $this->assertInstanceOf('\Monolog\Handler\StreamHandler', $handler);
     }
-    
-    
-    /**
-     * @dataProvider debugModeDataProvider
-     */
+
+
+    #[DataProvider('debugModeDataProvider')]
     public function testUseDebugMode(bool $useDebug, ?bool $useProfiler, bool $expectedConnectionMode, bool $expectedProfilerMode)
     {
         $this->sc->useDebugMode($useDebug, $useProfiler);
         $this->assertSame($expectedConnectionMode, ConnectionWrapper::$useDebugMode);
         $this->assertSame($expectedProfilerMode, ConnectionFactory::$useProfilerConnection);
     }
-        
+
     public function debugModeDataProvider(): array
     {
         // use debug , use profile, connection debug, connection profile
@@ -696,7 +696,7 @@ class StandardServiceContainerTest extends BaseTestCase
             [true, null, true, true],
             [true, false, true, false],
             [true, false, true, false],
-            
+
         ];
     }
 }

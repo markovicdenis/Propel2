@@ -11,9 +11,13 @@ namespace Propel\Tests\Runtime\Util;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Util\PropelDateTime;
+
+use function defined;
+use function sprintf;
 
 /**
  * Test for DateTime subclass to support serialization.
@@ -165,6 +169,7 @@ class PropelDateTimeTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('provideValidNewInstanceValues')]
     public function testNewInstance($value, $expected)
     {
         $originalTimezone = date_default_timezone_get();
@@ -181,6 +186,7 @@ class PropelDateTimeTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('provideValidNewInstanceValuesGmt1')]
     public function testNewInstanceGmt1($value, $expected)
     {
         $originalTimezone = date_default_timezone_get();

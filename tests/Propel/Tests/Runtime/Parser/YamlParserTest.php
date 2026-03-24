@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\Parser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Parser\YamlParser;
 use Propel\Tests\TestCase;
 
@@ -80,6 +81,7 @@ b2: 2
      *
      * @return void
      */
+    #[DataProvider('arrayYAMLConversionDataProvider')]
     public function testFromArray($arrayData, $YAMLData, $type)
     {
         $parser = new YamlParser();
@@ -91,6 +93,7 @@ b2: 2
      *
      * @return void
      */
+    #[DataProvider('arrayYAMLConversionDataProvider')]
     public function testToYAML($arrayData, $YAMLData, $type)
     {
         $parser = new YamlParser();
@@ -102,6 +105,7 @@ b2: 2
      *
      * @return void
      */
+    #[DataProvider('arrayYAMLConversionDataProvider')]
     public function testToArray($arrayData, $YAMLData, $type)
     {
         $parser = new YamlParser();
@@ -113,6 +117,7 @@ b2: 2
      *
      * @return void
      */
+    #[DataProvider('arrayYAMLConversionDataProvider')]
     public function testFromYAML($arrayData, $YAMLData, $type)
     {
         $parser = new YamlParser();
@@ -165,6 +170,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToYAMLDataProvider')]
     public function testListToYAML($list, $yaml)
     {
         $parser = new YamlParser();
@@ -176,6 +182,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToYAMLDataProvider')]
     public function testYAMLToList($list, $yaml)
     {
         $parser = new YamlParser();

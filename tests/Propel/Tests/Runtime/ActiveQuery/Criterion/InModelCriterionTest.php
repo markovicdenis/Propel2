@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\InModelCriterion;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -108,6 +109,7 @@ class InModelCriterionTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForNotEmptyValues')]
     public function testAppendPsToWithNotEmptyValueCreatesAnInCondition($notEmptyValue)
     {
         $cton = new InModelCriterion(new Criteria(), 'A.COL IN ?', 'A.COL', $notEmptyValue);
@@ -136,6 +138,7 @@ class InModelCriterionTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForEmptyValues')]
     public function testAppendPsToWithInAndEmptyValueCreatesAnAlwaysFalseCondition($emptyValue)
     {
         $cton = new InModelCriterion(new Criteria(), 'A.COL IN ?', 'A.COL', $emptyValue);
@@ -149,11 +152,12 @@ class InModelCriterionTest extends BaseTestCase
         $this->assertEquals($expected, $params);
     }
 
-   /**
-    * @dataProvider providerForEmptyValues
-    *
-    * @return void
-    */
+    /**
+     * @dataProvider providerForEmptyValues
+     *
+     * @return void
+     */
+    #[DataProvider('providerForEmptyValues')]
     public function testAppendPsToWithNotInAndEmptyValueCreatesAnAlwaysTrueCondition($emptyValue)
     {
         $cton = new InModelCriterion(new Criteria(), 'A.COL NOT IN ?', 'A.COL', $emptyValue);
@@ -167,11 +171,12 @@ class InModelCriterionTest extends BaseTestCase
         $this->assertEquals($expected, $params);
     }
 
-   /**
-    * @dataProvider providerForEmptyValues
-    *
-    * @return void
-    */
+    /**
+     * @dataProvider providerForEmptyValues
+     *
+     * @return void
+     */
+    #[DataProvider('providerForEmptyValues')]
     public function testAppendPsToWithNotInAndEmptyValueIsCaseInsensitive($emptyValue)
     {
         $cton = new InModelCriterion(new Criteria(), 'A.COL not in ?', 'A.COL', $emptyValue);

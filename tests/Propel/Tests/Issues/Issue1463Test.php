@@ -9,6 +9,7 @@
 namespace Propel\Tests\Issues;
 
 use Issue1463ItemQuery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Propel;
@@ -53,6 +54,7 @@ END;
      *
      * @return void
      */
+    #[DataProvider('dataLimit')]
     public function testLimit($limit, $expectedSql)
     {
         $query = Issue1463ItemQuery::create()->limit($limit);
@@ -129,6 +131,7 @@ END;
      *
      * @return void
      */
+    #[DataProvider('dataOffset')]
     public function testOffset($offset, $expectedSql)
     {
         $query = Issue1463ItemQuery::create()->offset($offset);
@@ -205,6 +208,7 @@ END;
      *
      * @return void
      */
+    #[DataProvider('dataOffsetAndLimit')]
     public function testOffsetAndLimit($offset, $expectedSql)
     {
         $query = Issue1463ItemQuery::create()->offset($offset)->limit(999);

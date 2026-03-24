@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /**
  * MIT License. This file is part of the Propel package.
@@ -8,6 +10,7 @@
 
 namespace Propel\Tests\Generator\Util;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use MyNameSpace\Map\QuickBuildFoo1TableMap;
 use MyNameSpace\QuickBuildFoo1;
 use MyNameSpace2\QuickBuildFoo2;
@@ -20,6 +23,8 @@ use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Propel;
 use Propel\Tests\TestCase;
+
+use function count;
 
 class QuickBuilderTest extends TestCase
 {
@@ -56,6 +61,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('simpleSchemaProvider')]
     public function testGetDatabase($builder): void
     {
         $database = $builder->getDatabase();
@@ -69,6 +75,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('simpleSchemaProvider')]
     public function testGetSQL($builder): void
     {
         $expected = <<<EOF
@@ -95,6 +102,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('simpleSchemaProvider')]
     public function testGetClasses($builder): void
     {
         $script = $builder->getClasses();
@@ -109,6 +117,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('simpleSchemaProvider')]
     public function testGetClassesLimitedClassTargets($builder): void
     {
         $script = $builder->getClasses(['tablemap', 'object', 'query']);
@@ -123,6 +132,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('simpleSchemaProvider')]
     public function testBuildClasses($builder): void
     {
         $builder->buildClasses();
@@ -177,6 +187,7 @@ EOF;
         $this->assertEquals($foo, QuickBuildFoo3Query::create()->findOne());
 
         $this->assertDirectoryExists(
-            sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . substr(sha1(getcwd()), 0, 10));
+            sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . substr(sha1(getcwd()), 0, 10)
+        );
     }
 }

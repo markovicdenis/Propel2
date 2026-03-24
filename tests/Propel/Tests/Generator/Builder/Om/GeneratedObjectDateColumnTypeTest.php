@@ -9,7 +9,6 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use GeneratedObjectDateColumnTypeEntity;
-
 use DateTimeImmutable;
 use PDO;
 use PHPUnit\Framework\Exception;
@@ -30,11 +29,17 @@ use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Connection\StatementWrapper;
 use Propel\Tests\TestCase;
 
+use function assert;
+use function call_user_func;
+use function class_exists;
+use function count;
+use function method_exists;
+
 class GeneratedObjectDateColumnTypeTest extends TestCase
 {
     public function setUp(): void
     {
-        if (!\class_exists('GeneratedObjectDateColumnTypeEntity')) {
+        if (!class_exists('GeneratedObjectDateColumnTypeEntity')) {
             $schema = <<<'XML'
 <database name="generated_object_date_column_type">
     <table name="generated_object_date_column_type_entity">
@@ -49,20 +54,28 @@ XML;
 
     public function testInsertDateColumn(): void
     {
-        assert(\class_exists(GeneratedObjectDateColumnTypeEntity::class));
+        assert(class_exists(GeneratedObjectDateColumnTypeEntity::class));
         $entity = new GeneratedObjectDateColumnTypeEntity();
-        $this->assertTrue(\method_exists($entity, 'setDatecolumn'));
-        $this->assertTrue(\method_exists($entity, 'save'));
+        $this->assertTrue(method_exists($entity, 'setDatecolumn'));
+        $this->assertTrue(method_exists($entity, 'save'));
         $dateValue = new DateTimeImmutable('2021-06-25 12:26');
         $entity->setDatecolumn($dateValue);
 
         $insertStatement = $this->createMockInsertStatement();
+        $expectedBindings = [
+            [':p0', null, PDO::PARAM_INT],
+            [':p1', $dateValue->format('Y-m-d'), PDO::PARAM_STR],
+        ];
+        $bindingIndex = 0;
         $insertStatement
+            ->expects($this->exactly(2))
             ->method('bindValue')
-            ->withConsecutive(
-                [':p0', null, PDO::PARAM_INT],
-                [':p1', $dateValue->format('Y-m-d'), PDO::PARAM_STR]
-            );
+            ->willReturnCallback(function ($parameter, $value, $type) use (&$bindingIndex, $expectedBindings): bool {
+                $this->assertSame($expectedBindings[$bindingIndex], [$parameter, $value, $type]);
+                $bindingIndex++;
+
+                return true;
+            });
 
         $con = $this->createMockConnection();
         $con
@@ -77,6 +90,8 @@ XML;
                 return $insertStatement;
             });
         $entity->save($con);
+
+        $this->assertSame(count($expectedBindings), $bindingIndex);
     }
 
     /**
@@ -92,7 +107,7 @@ XML;
         $con
             ->method('transaction')
             ->willReturnCallback(function ($callable) {
-                return \call_user_func($callable);
+                return call_user_func($callable);
             });
         $con
             ->method('lastInsertId')

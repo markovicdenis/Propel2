@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\Parser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Parser\CsvParser;
 use Propel\Tests\TestCase;
 
@@ -36,6 +37,7 @@ class CsvParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayCsvConversionDataProvider')]
     public function testFromArray($arrayData, $csvData, $type)
     {
         $parser = new CsvParser();
@@ -47,6 +49,7 @@ class CsvParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayCsvConversionDataProvider')]
     public function testToCSV($arrayData, $csvData, $type)
     {
         $parser = new CsvParser();
@@ -58,6 +61,7 @@ class CsvParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayCsvConversionDataProvider')]
     public function testToArray($arrayData, $csvData, $type)
     {
         $parser = new CsvParser();
@@ -69,6 +73,7 @@ class CsvParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayCsvConversionDataProvider')]
     public function testFromCSV($arrayData, $csvData, $type)
     {
         $parser = new CsvParser();
@@ -101,6 +106,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToCSVDataProvider')]
     public function testListToCSV($list, $heading, $csv)
     {
         $parser = new CsvParser();
@@ -115,6 +121,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToCSVDataProvider')]
     public function testCSVToList($list, $heading, $csv)
     {
         $parser = new CsvParser();

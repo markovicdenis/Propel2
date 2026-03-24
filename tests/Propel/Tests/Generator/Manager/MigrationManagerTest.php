@@ -10,10 +10,13 @@ namespace Propel\Tests\Generator\Manager;
 
 use PDO;
 use PDOException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Config\GeneratorConfig;
 use Propel\Generator\Manager\MigrationManager;
 use Propel\Generator\Platform\DefaultPlatform;
 use Propel\Tests\TestCase;
+
+use function sprintf;
 
 /**
  * @group database
@@ -53,7 +56,7 @@ class MigrationManagerTest extends TestCase
         $connections = $generatorConfig->getBuildConnections();
 
         $migrationManager = $this->getMockBuilder(MigrationManager::class)
-            ->setMethods(['getMigrationTimestamps'])
+            ->onlyMethods(['getMigrationTimestamps'])
             ->getMock();
         $migrationManager->setGeneratorConfig($generatorConfig);
         $migrationManager->setConnections($connections);
@@ -82,13 +85,12 @@ class MigrationManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider getAllDatabaseVersionsDataProvider
-     *
      * @param array<int, string|null> $migrationData
      * @param list<int> $expectedDatabaseVersions
      *
      * @return void
      */
+    #[DataProvider('getAllDatabaseVersionsDataProvider')]
     public function testGetAllDatabaseVersions(array $migrationData, array $expectedDatabaseVersions): void
     {
         $migrationManager = $this->createMigrationManager([]);
@@ -119,8 +121,6 @@ class MigrationManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider getGetNonExecutedMigrationTimestampsByVersionDataProvider
-     *
      * @param list<int> $localTimestamps
      * @param list<int> $databaseTimestamps
      * @param list<int> $expectedTimestamps
@@ -128,6 +128,7 @@ class MigrationManagerTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('getGetNonExecutedMigrationTimestampsByVersionDataProvider')]
     public function testGetNonExecutedMigrationTimestampsByVersion(
         array $localTimestamps,
         array $databaseTimestamps,
@@ -165,14 +166,13 @@ class MigrationManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider getAlreadyExecutedTimestampsDataProvider
-     *
      * @param list<int> $localTimestamps
      * @param array<int, string|null> $databaseMigrationData
      * @param list<int> $expectedTimestamps
      *
      * @return void
      */
+    #[DataProvider('getAlreadyExecutedTimestampsDataProvider')]
     public function testGetAlreadyExecutedTimestamps(
         array $localTimestamps,
         array $databaseMigrationData,
@@ -187,8 +187,6 @@ class MigrationManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider getAlreadyExecutedMigrationTimestampsByVersionDataProvider
-     *
      * @param list<int> $localTimestamps
      * @param array<int, string|null> $databaseMigrationData
      * @param list<int> $expectedTimestamps
@@ -196,6 +194,7 @@ class MigrationManagerTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('getAlreadyExecutedMigrationTimestampsByVersionDataProvider')]
     public function testGetAlreadyExecutedMigrationTimestampsByVersion(
         array $localTimestamps,
         array $databaseMigrationData,
@@ -366,11 +365,11 @@ class MigrationManagerTest extends TestCase
     public function testModifyMigrationTableIfOutdatedShouldNotUpdateTableIfExecutionDatetimeColumnExists(): void
     {
         $platformMock = $this->getMockBuilder(DefaultPlatform::class)
-            ->setMethods(['getAddColumnDDL'])
+            ->onlyMethods(['getAddColumnDDL'])
             ->getMock();
 
         $migrationManager = $this->getMockBuilder(MigrationManager::class)
-            ->setMethods(['getPlatform'])
+            ->onlyMethods(['getPlatform'])
             ->getMock();
 
         $migrationManager->expects($this->any())
@@ -399,8 +398,6 @@ class MigrationManagerTest extends TestCase
     }
 
     /**
-     * @dataProvider isDatabaseVersionsAppliedDataProvider
-     *
      * @param list<int> $localTimestamps
      * @param list<int> $databaseTimestamps
      * @param int $version
@@ -408,6 +405,7 @@ class MigrationManagerTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('isDatabaseVersionsAppliedDataProvider')]
     public function testIsDatabaseVersionsApplied(
         array $localTimestamps,
         array $databaseTimestamps,

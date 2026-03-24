@@ -11,6 +11,8 @@ namespace Propel\Tests;
 use PHPUnit\Framework\MockObject\Stub\ReturnStub;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 use Propel\Generator\Platform\PlatformInterface;
+use ReflectionClass;
+use BadMethodCallException;
 
 use function sprintf;
 
@@ -24,6 +26,46 @@ class TestCase extends PHPUnitTestCase
     protected function returnValue($value)
     {
         return new ReturnStub($value);
+    }
+
+    /**
+     * @param string $attributeName
+     * @param string $className
+     * @param string $message
+     *
+     * @return void
+     */
+    protected function assertClassHasAttribute($attributeName, $className, $message = '')
+    {
+        if ($message === '') {
+            $message = sprintf('Failed asserting that class "%s" has attribute "%s".', $className, $attributeName);
+        }
+
+        $this->assertTrue((new ReflectionClass($className))->hasProperty($attributeName), $message);
+    }
+
+    /**
+     * Compatibility shim for PHPUnit versions where getMockForTrait() was removed.
+     *
+     * @param string $traitName
+     *
+     * @return object
+     */
+    protected function getMockForTrait($traitName)
+    {
+        if ($traitName !== 'Propel\\Runtime\\Connection\\TransactionTrait') {
+            throw new BadMethodCallException(sprintf('Unsupported trait mock requested for "%s".', $traitName));
+        }
+
+        $className = 'PropelTestTransactionTraitMock';
+
+        if (!class_exists($className, false)) {
+            eval('class ' . $className . ' { use \\Propel\\Runtime\\Connection\\TransactionTrait; public function beginTransaction(): bool { return true; } public function commit(): bool { return true; } public function rollBack(): bool { return true; } }');
+        }
+
+        return $this->getMockBuilder($className)
+            ->onlyMethods(['beginTransaction', 'commit', 'rollBack'])
+            ->getMock();
     }
 
     /**

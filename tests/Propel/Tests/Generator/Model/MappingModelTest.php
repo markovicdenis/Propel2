@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\MappingModel;
 use Propel\Tests\TestCase;
 
@@ -17,10 +18,9 @@ use Propel\Tests\TestCase;
 class MappingModelTest extends TestCase
 {
     /**
-     * @dataProvider providerForGetDefaultValueForArray
-     *
      * @return void
      */
+    #[DataProvider('providerForGetDefaultValueForArray')]
     public function testGetDefaultValueForArray(string $value, $expected)
     {
         $mappingModel = new TestableMappingModel();

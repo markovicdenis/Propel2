@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Builder\Om\AbstractOMBuilder;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Model\ForeignKey;
@@ -59,10 +60,9 @@ class AbstractOMBuilderRelatedByTest extends TestCase
     }
 
     /**
-     * @dataProvider getRelatedBySuffixDataProvider
-     *
      * @return void
      */
+    #[DataProvider('getRelatedBySuffixDataProvider')]
     public function testGetRelatedBySuffix($table, $index, $expectedSuffix, $expectedReverseSuffix)
     {
         $fk = $this->getForeignKey($table, $index);

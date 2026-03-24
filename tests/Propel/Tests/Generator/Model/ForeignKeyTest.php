@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\ForeignKey;
 
 /**
@@ -532,10 +533,9 @@ class ForeignKeyTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideOnActionBehaviors
-     *
      * @return void
      */
+    #[DataProvider('provideOnActionBehaviors')]
     public function testNormalizeForeignKey($behavior, $normalized)
     {
         $fk = new ForeignKey();
@@ -558,10 +558,9 @@ class ForeignKeyTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideOnActionBehaviorsWithDefault
-     *
      * @return void
      */
+    #[DataProvider('provideOnActionBehaviorsWithDefault')]
     public function testNormalizeForeignKeyWithDefault($behavior, $default, $normalized)
     {
         $fk = new ForeignKey();

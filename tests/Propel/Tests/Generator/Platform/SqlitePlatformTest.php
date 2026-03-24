@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Platform;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\IdMethod;
@@ -77,6 +78,7 @@ class SqlitePlatformTest extends PlatformTestProvider
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTablesDDL')]
     public function testGetAddTablesDDL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -122,6 +124,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTablesSkipSQLDDL')]
     public function testGetAddTablesSkipSQLDDL($schema)
     {
         $database = $this->getDatabaseFromSchema($schema);
@@ -134,6 +137,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLSimplePK')]
     public function testGetAddTableDDLSimplePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -153,6 +157,7 @@ CREATE TABLE [foo]
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLNonIntegerPK')]
     public function testGetAddTableDDLNonIntegerPK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -173,6 +178,7 @@ CREATE TABLE [foo]
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLCompositePK')]
     public function testGetAddTableDDLCompositePK($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -193,6 +199,7 @@ CREATE TABLE [foo]
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddTableDDLUniqueIndex')]
     public function testGetAddTableDDLUniqueIndex($schema)
     {
         $table = $this->getTableFromSchema($schema);
@@ -292,6 +299,7 @@ DROP TABLE IF EXISTS [foo];
      *
      * @return void
      */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetDropPrimaryKeyDDL($table)
     {
         // not supported by SQLite
@@ -304,6 +312,7 @@ DROP TABLE IF EXISTS [foo];
      *
      * @return void
      */
+    #[DataProvider('providerForTestPrimaryKeyDDL')]
     public function testGetAddPrimaryKeyDDL($table)
     {
         // not supported by SQLite
@@ -316,6 +325,7 @@ DROP TABLE IF EXISTS [foo];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndicesDDL')]
     public function testAddIndicesDDL($table)
     {
         $expected = '
@@ -331,6 +341,7 @@ CREATE INDEX [foo_index] ON [foo] ([bar1]);
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testAddIndexDDL($index)
     {
         $expected = '
@@ -344,6 +355,7 @@ CREATE INDEX [babar] ON [foo] ([bar1],[bar2]);
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testDropIndexDDL($index)
     {
         $expected = '
@@ -357,6 +369,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetIndexDDL')]
     public function testGetIndexDDL($index)
     {
         $expected = 'INDEX [babar] ([bar1],[bar2])';
@@ -368,6 +381,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetUniqueDDL')]
     public function testGetUniqueDDL($index)
     {
         $expected = 'UNIQUE ([bar1],[bar2])';
@@ -379,6 +393,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeysDDL')]
     public function testGetAddForeignKeysDDL($table)
     {
         $expected = '';
@@ -390,6 +405,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetAddForeignKeyDDL($fk)
     {
         $expected = '';
@@ -401,6 +417,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetDropForeignKeyDDL($fk)
     {
         $expected = '';
@@ -412,6 +429,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetForeignKeyDDL')]
     public function testGetForeignKeyDDL($fk)
     {
         $expected = 'FOREIGN KEY ([bar_id]) REFERENCES [bar] ([id])
@@ -437,6 +455,7 @@ DROP INDEX [babar];
      *
      * @return void
      */
+    #[DataProvider('providerForTestCreateSchemaWithUuidColumns')]
     public function testCreateSchemaWithUuidColumns($schema)
     {
         $expected = "
@@ -456,6 +475,7 @@ CREATE TABLE [foo]
      *
      * @return void
      */
+    #[DataProvider('providerForTestCreateSchemaWithUuidBinaryColumns')]
     public function testCreateSchemaWithUuidBinaryColumns($schema)
     {
         $expected = "

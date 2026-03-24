@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\Parser;
 
 use DateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Parser\XmlParser;
 use Propel\Tests\TestCase;
 
@@ -89,6 +90,7 @@ class XmlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayXmlConversionDataProvider')]
     public function testFromArray($arrayData, $xmlData, $type)
     {
         $parser = new XmlParser();
@@ -100,6 +102,7 @@ class XmlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayXmlConversionDataProvider')]
     public function testToXML($arrayData, $xmlData, $type)
     {
         $parser = new XmlParser();
@@ -111,6 +114,7 @@ class XmlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayXmlConversionDataProvider')]
     public function testToArray($arrayData, $xmlData, $type)
     {
         $parser = new XmlParser();
@@ -122,6 +126,7 @@ class XmlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayXmlConversionDataProvider')]
     public function testFromXML($arrayData, $xmlData, $type)
     {
         $parser = new XmlParser();
@@ -199,6 +204,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToXMLDataProvider')]
     public function testListToXML($list, $xml)
     {
         $parser = new XmlParser();
@@ -210,6 +216,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToXMLDataProvider')]
     public function testXMLToList($list, $xml)
     {
         $parser = new XmlParser();

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Platform;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Diff\DatabaseComparator;
 use Propel\Generator\Platform\OraclePlatform;
 use Propel\Generator\Platform\PlatformInterface;
@@ -29,6 +30,7 @@ class OraclePlatformMigrationTest extends PlatformMigrationTestProvider
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyDatabaseDDL')]
     public function testGetModifyDatabaseDDL($databaseDiff)
     {
         $expected = "
@@ -75,6 +77,7 @@ ALTER TABLE foo2
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetRenameTableDDL')]
     public function testGetRenameTableDDL($fromName, $toName)
     {
         $expected = "
@@ -88,6 +91,7 @@ ALTER TABLE foo1 RENAME TO foo2;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableDDL')]
     public function testGetModifyTableDDL($tableDiff)
     {
         $expected = "
@@ -128,6 +132,7 @@ ALTER TABLE foo ADD CONSTRAINT foo1_fk_1
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableColumnsDDL')]
     public function testGetModifyTableColumnsDDL($tableDiff)
     {
         $expected = "
@@ -151,6 +156,7 @@ ALTER TABLE foo ADD
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTablePrimaryKeysDDL')]
     public function testGetModifyTablePrimaryKeysDDL($tableDiff)
     {
         $expected = "
@@ -166,6 +172,7 @@ ALTER TABLE foo ADD CONSTRAINT foo_pk PRIMARY KEY (id,bar);
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableIndicesDDL')]
     public function testGetModifyTableIndicesDDL($tableDiff)
     {
         $expected = "
@@ -189,6 +196,7 @@ CREATE INDEX bar_baz_fk ON foo (id,bar,baz);
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableForeignKeysDDL')]
     public function testGetModifyTableForeignKeysDDL($tableDiff)
     {
         $expected = "
@@ -210,6 +218,7 @@ ALTER TABLE foo1 ADD CONSTRAINT foo1_fk_2
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableForeignKeysSkipSqlDDL')]
     public function testGetModifyTableForeignKeysSkipSqlDDL($tableDiff)
     {
         $expected = "
@@ -228,6 +237,7 @@ ALTER TABLE foo1 ADD CONSTRAINT foo1_fk_1
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyTableForeignKeysSkipSql2DDL')]
     public function testGetModifyTableForeignKeysSkipSql2DDL($tableDiff)
     {
         $expected = '';
@@ -241,6 +251,7 @@ ALTER TABLE foo1 ADD CONSTRAINT foo1_fk_1
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetRemoveColumnDDL')]
     public function testGetRemoveColumnDDL($column)
     {
         $expected = "
@@ -254,6 +265,7 @@ ALTER TABLE foo DROP COLUMN bar;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetRenameColumnDDL')]
     public function testGetRenameColumnDDL($fromColumn, $toColumn)
     {
         $expected = "
@@ -267,6 +279,7 @@ ALTER TABLE foo RENAME COLUMN bar1 TO bar2;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyColumnDDL')]
     public function testGetModifyColumnDDL($columnDiff)
     {
         $expected = "
@@ -280,6 +293,7 @@ ALTER TABLE foo MODIFY bar FLOAT(3);
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetModifyColumnsDDL')]
     public function testGetModifyColumnsDDL($columnDiffs)
     {
         $expected = "
@@ -297,6 +311,7 @@ ALTER TABLE foo MODIFY
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddColumnDDL')]
     public function testGetAddColumnDDL($column)
     {
         $expected = "
@@ -310,6 +325,7 @@ ALTER TABLE foo ADD bar NUMBER;
      *
      * @return void
      */
+    #[DataProvider('providerForTestGetAddColumnsDDL')]
     public function testGetAddColumnsDDL($columns)
     {
         $expected = "
@@ -525,6 +541,7 @@ ALTER TABLE foo2
      *
      * @return void
      */
+    #[DataProvider('providerForTestMigrateToUUIDColumn')]
     public function testMigrateToUUIDColumn($tableDiff)
     {
         $expected = <<<END

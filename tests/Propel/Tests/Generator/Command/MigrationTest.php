@@ -21,6 +21,8 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
+use function sprintf;
+
 /**
  * @group database
  */
@@ -363,7 +365,7 @@ class MigrationTest extends TestCaseFixturesDatabase
         }
 
         $app = new Application('Propel', Propel::VERSION);
-        $app->add($commandInstance);
+        $app->addCommand($commandInstance);
         $app->setAutoExit(false);
 
         return $app->run($applicationInputArguments, $outputCapturer);

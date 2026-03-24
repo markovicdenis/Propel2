@@ -22,8 +22,6 @@ use Symfony\Component\Console\Output\StreamOutput;
 class DataDictionaryExportCommandTest extends TestCaseFixturesDatabase
 {
     /**
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testCommandExecutesWithoutError(): void
@@ -58,5 +56,7 @@ class DataDictionaryExportCommandTest extends TestCaseFixturesDatabase
 
             $this->fail('Command datadictionary:export failed with error: ' . $message);
         }
+
+        $this->assertSame(AbstractCommand::CODE_SUCCESS, $result);
     }
 }

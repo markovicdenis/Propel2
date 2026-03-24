@@ -16,6 +16,7 @@ namespace Propel\Tests\Generator\Util;
  * @license MIT License
  */
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\SqlParser;
 use Propel\Tests\TestCase;
 
@@ -43,6 +44,7 @@ class SqlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('stripSqlCommentsDataProvider')]
     public function testStripSQLComments($input, $output)
     {
         $parser = new SqlParser();
@@ -68,6 +70,7 @@ class SqlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('convertLineFeedsToUnixStyleDataProvider')]
     public function testConvertLineFeedsToUnixStyle($input, $output)
     {
         $parser = new SqlParser();
@@ -97,6 +100,7 @@ class SqlParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('explodeIntoStatementsDataProvider')]
     public function testExplodeIntoStatements($input, $output)
     {
         $parser = new SqlParser();

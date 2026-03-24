@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\ColumnToQueryOperatorCriterion;
 use Propel\Tests\Bookstore\AuthorQuery;
@@ -39,6 +40,7 @@ class ColumnToQueryOperatorCriterionTest extends TestCaseFixtures
      * @dataProvider operatorDataProvider
      * @return void
      */
+    #[DataProvider('operatorDataProvider')]
     public function testCriterionCreatesClauseForOperator(string $operator)
     {
         $outer = AuthorQuery::create();
@@ -54,6 +56,7 @@ class ColumnToQueryOperatorCriterionTest extends TestCaseFixtures
      * @dataProvider operatorDataProvider
      * @return void
      */
+    #[DataProvider('operatorDataProvider')]
     public function testCriterionCreateForRelation(string $operator)
     {
         $outer = AuthorQuery::create();

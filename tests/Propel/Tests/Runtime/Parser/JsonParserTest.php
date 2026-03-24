@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\Parser;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Parser\JsonParser;
 use Propel\Tests\TestCase;
 
@@ -40,6 +41,7 @@ class JsonParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayJsonConversionDataProvider')]
     public function testFromArray($arrayData, $jsonData, $type)
     {
         $parser = new JsonParser();
@@ -51,6 +53,7 @@ class JsonParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayJsonConversionDataProvider')]
     public function testToJSON($arrayData, $jsonData, $type)
     {
         $parser = new JsonParser();
@@ -62,6 +65,7 @@ class JsonParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayJsonConversionDataProvider')]
     public function testToArray($arrayData, $jsonData, $type)
     {
         $parser = new JsonParser();
@@ -73,6 +77,7 @@ class JsonParserTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('arrayJsonConversionDataProvider')]
     public function testFromJSON($arrayData, $jsonData, $type)
     {
         $parser = new JsonParser();
@@ -98,6 +103,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToJSONDataProvider')]
     public function testListToJSON($list, $json)
     {
         $parser = new JsonParser();
@@ -109,6 +115,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('listToJSONDataProvider')]
     public function testJSONToList($list, $json)
     {
         $parser = new JsonParser();

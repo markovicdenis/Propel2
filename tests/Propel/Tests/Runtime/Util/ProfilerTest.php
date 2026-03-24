@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\Util;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Util\Profiler;
 use Propel\Tests\Helpers\BaseTestCase;
 
@@ -144,6 +145,7 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestFormatMemory')]
     public function testFormatMemory($input, $output)
     {
         $this->assertSame(Profiler::formatMemory($input), $output);
@@ -166,6 +168,7 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestFormatMemoryPrecision')]
     public function testFormatMemoryPrecision($input, $output)
     {
         $this->assertSame(Profiler::formatMemory(12345.6789, $input), $output);
@@ -195,6 +198,7 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestFormatDuration')]
     public function testFormatDuration($input, $output)
     {
         $this->assertEquals(Profiler::formatDuration($input), $output);
@@ -217,6 +221,7 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestFormatDurationPrecision')]
     public function testFormatDurationPrecision($input, $output)
     {
         $this->assertSame(Profiler::formatDuration(123.456789, $input), $output);
@@ -251,6 +256,7 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestToPrecision')]
     public function testToPrecision($input, $output)
     {
         $this->assertSame(Profiler::toPrecision($input), $output);
@@ -274,14 +280,13 @@ class ProfilerTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForTestToPrecisionPrecision')]
     public function testToPrecisionPrecision($input, $output)
     {
         $this->assertSame(Profiler::toPrecision(123.456789, $input), $output);
     }
 
     /**
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testGetProfilerWithoutStartValuesUsesEndValues()
@@ -290,10 +295,11 @@ class ProfilerTest extends BaseTestCase
         $profile = $profiler->getProfile();
         $expectedProfilePattern = '/^\s+Time:\s+0ms \| Memory:\s+[0-9.kMGTPEZY]+B \| Memory Delta:\s+0B \| Memory Peak:\s+[0-9.kMGTPEZY]+B \| $/';
 
-        // $this->assertMatchesRegularExpression is currently not available in github testsuite
-        if (preg_match($expectedProfilePattern, $profile) !== 1) {
-            $this->fail("Getting profile without start values should return empty values\nExpected Pattern: $expectedProfilePattern\nReceived Profile: '$profile'");
-        }
+        $this->assertSame(
+            1,
+            preg_match($expectedProfilePattern, $profile),
+            "Getting profile without start values should return empty values\nExpected Pattern: $expectedProfilePattern\nReceived Profile: '$profile'"
+        );
     }
 
     /**
@@ -301,7 +307,7 @@ class ProfilerTest extends BaseTestCase
      */
     public function testGetProfilerClearsStartValues()
     {
-        $profiler = new class () extends Profiler{
+        $profiler = new class () extends Profiler {
             public function getStartSnapshot(): ?array
             {
                 return $this->snapshot;

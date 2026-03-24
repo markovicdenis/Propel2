@@ -9,6 +9,7 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use ComplexColumnTypeEntity4;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
 
@@ -80,10 +81,9 @@ EOF;
     }
 
     /**
-     * @dataProvider providerForSetter
-     *
      * @return void
      */
+    #[DataProvider('providerForSetter')]
     public function testSetterBooleanValue($value, $expected)
     {
         $e = new ComplexColumnTypeEntity4();

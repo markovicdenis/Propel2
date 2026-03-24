@@ -9,8 +9,12 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use Map\ComplexColumnTypeEntity103TableMap;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
+
+use function constant;
+use function defined;
 
 /**
  * Tests the generated TableMap classes for enum column type constants
@@ -51,10 +55,9 @@ EOF;
     }
 
     /**
-     * @dataProvider valueSetConstantProvider
-     *
      * @return void
      */
+    #[DataProvider('valueSetConstantProvider')]
     public function testValueSetConstants($constantName, $value)
     {
         $this->assertTrue(defined($constantName));

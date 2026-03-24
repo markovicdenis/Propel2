@@ -8,10 +8,13 @@
 
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\TestCaseFixtures;
+
+use function is_array;
 
 /**
  * Tests the DbMySQL adapter
@@ -53,6 +56,7 @@ class MysqlAdapterTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('getConParams')]
     public function testPrepareParamsThrowsException($conparams)
     {
         $db = new TestableMysqlAdapter();
@@ -66,6 +70,7 @@ class MysqlAdapterTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('getConParams')]
     public function testPrepareParams($conparams)
     {
         $db = new TestableMysqlAdapter();
@@ -81,6 +86,7 @@ class MysqlAdapterTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('getConParams')]
     public function testNoSetNameQueryExecuted($conparams)
     {
         $db = new TestableMysqlAdapter();
@@ -166,7 +172,7 @@ class MysqlAdapterTest extends TestCaseFixtures
             ->lockForShare([BookTableMap::TABLE_NAME], true)
         ;
 
-        $expectedSql ='SELECT subCriteriaAlias.id FROM (SELECT book.id FROM book LOCK IN SHARE MODE) AS subCriteriaAlias LOCK IN SHARE MODE';
+        $expectedSql = 'SELECT subCriteriaAlias.id FROM (SELECT book.id FROM book LOCK IN SHARE MODE) AS subCriteriaAlias LOCK IN SHARE MODE';
 
         $params = [];
         $generatedSql = $query->createSelectSql($params);

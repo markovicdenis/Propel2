@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\BasicCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\Exception\InvalidValueException;
@@ -91,6 +92,7 @@ class BasicCriterionTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('supportedANSIFunctions')]
     public function testAppendPsToAcceptsAnANSIDateFunctionForValue($ansiFunction)
     {
         $cton = new BasicCriterion(new Criteria(), 'A.COL', $ansiFunction);

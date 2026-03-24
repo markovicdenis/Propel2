@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Tests\TestCase;
 
@@ -28,10 +29,9 @@ class ColumnDefaultValueTest extends TestCase
     }
 
     /**
-     * @dataProvider equalsProvider
-     *
      * @return void
      */
+    #[DataProvider('equalsProvider')]
     public function testEquals($def1, $def2, $test)
     {
         if ($test) {

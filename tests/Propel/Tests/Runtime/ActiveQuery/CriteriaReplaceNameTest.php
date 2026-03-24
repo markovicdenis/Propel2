@@ -8,10 +8,13 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Tests\Bookstore\AuthorQuery;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\TestCase;
+
+use function count;
 
 /**
  * Tests name replacement in conditions. The tests were scattered across several classes and are somewhat redundant.
@@ -94,6 +97,7 @@ class CriteriaReplaceNameTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('NamespacedBookReplaceNamesDataProvider')]
     public function testReplaceNameFromNamespacedBook(string $origClause, ?string $columnPhpName, string $modifiedClause)
     {
         include self::PROJECT_ROOT . '/tests/Fixtures/namespaced/build/conf/bookstore_namespaced-conf.php';
@@ -106,6 +110,7 @@ class CriteriaReplaceNameTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('BookReplaceNamesDataProvider')]
     public function testReplaceNameFromBook(string $origClause, ?string $columnPhpName, string $modifiedClause)
     {
         include self::PROJECT_ROOT . '/tests/Fixtures/bookstore/build/conf/bookstore-conf.php';
@@ -118,6 +123,7 @@ class CriteriaReplaceNameTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('BookstoreContestReplaceNamesDataProvider')]
     public function testReplaceNameFromBookstoreContest(string $origClause, ?string $columnPhpName, string $modifiedClause)
     {
         include self::PROJECT_ROOT . '/tests/Fixtures/bookstore/build/conf/bookstore-conf.php';
@@ -161,6 +167,7 @@ class CriteriaReplaceNameTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('ReplaceMultipleNamesDataProvider')]
     public function testReplaceMultipleNames($origClause, $expectedColumns, $modifiedClause)
     {
         $c = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
@@ -188,14 +195,14 @@ class CriteriaReplaceNameTest extends TestCase
         ->groupBy('Book.AuthorId');
 
         $joinCondition = 'Author.Id = numberOfBooks.AuthorId';
-        
+
         $authorQuery = AuthorQuery::create()
         ->addSelectQuery($numberOfBooksQuery, 'numberOfBooks', false)
         ->where($joinCondition)
         ->withColumn('numberOfBooks.NumberOfBooks', 'NumberOfBooks');
 
         $authorQuery->replaceNames($joinCondition); // note that replaceNames() changes the input string
-        
+
         $this->assertEquals('author.id = numberOfBooks.AuthorId', $joinCondition, 'Aliases from subquery should not be replaced');
 
         $authorIdColumnMap = $authorQuery->getTableMap()->getColumnByPhpName('Id');

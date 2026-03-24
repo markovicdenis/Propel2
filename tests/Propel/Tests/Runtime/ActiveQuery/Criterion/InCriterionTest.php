@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery\Criterion;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\InCriterion;
 use Propel\Runtime\Collection\ArrayCollection;
@@ -146,6 +147,7 @@ class InCriterionTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForNotEmptyValues')]
     public function testAppendPsToWithNotEmptyValueCreatesAnInCondition($notEmptyValue)
     {
         $cton = new InCriterion(new Criteria(), 'A.COL', $notEmptyValue);
@@ -174,6 +176,7 @@ class InCriterionTest extends BaseTestCase
      *
      * @return void
      */
+    #[DataProvider('providerForEmptyValues')]
     public function testAppendPsToWithInAndEmptyValueCreatesAnAlwaysFalseCondition($emptyValue)
     {
         $cton = new InCriterion(new Criteria(), 'A.COL', $emptyValue);
@@ -187,11 +190,12 @@ class InCriterionTest extends BaseTestCase
         $this->assertEquals($expected, $params);
     }
 
-   /**
-    * @dataProvider providerForEmptyValues
-    *
-    * @return void
-    */
+    /**
+     * @dataProvider providerForEmptyValues
+     *
+     * @return void
+     */
+    #[DataProvider('providerForEmptyValues')]
     public function testAppendPsToWithNotInAndEmptyValueCreatesAnAlwaysTrueCondition($emptyValue)
     {
         $cton = new InCriterion(new Criteria(), 'A.COL', $emptyValue, Criteria::NOT_IN);

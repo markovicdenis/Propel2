@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Config\GeneratorConfig;
 use Propel\Generator\Exception\BehaviorNotFoundException;
 use Propel\Generator\Exception\EngineException;
@@ -18,6 +19,8 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Generator\Util\VfsTrait;
+
+use function sprintf;
 
 /**
  * Unit test suite for Database model class.
@@ -152,10 +155,9 @@ class DatabaseTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideBehaviors
-     *
      * @return void
      */
+    #[DataProvider('provideBehaviors')]
     public function testAddArrayBehavior($name, $class)
     {
         $type = sprintf(
@@ -423,10 +425,9 @@ class DatabaseTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideSupportedFormats
-     *
      * @return void
      */
+    #[DataProvider('provideSupportedFormats')]
     public function testSetDefaultStringFormat($format)
     {
         $database = new Database();
@@ -470,10 +471,9 @@ class DatabaseTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider baseClassDataProvider
-     *
      * @return void
      */
+    #[DataProvider('baseClassDataProvider')]
     public function testSetBaseClass(string $className, string $expectedClassName, string $message)
     {
         $database = new Database();
@@ -483,10 +483,9 @@ class DatabaseTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider baseClassDataProvider
-     *
      * @return void
      */
+    #[DataProvider('baseClassDataProvider')]
     public function testSetBaseQueryClass(string $className, string $expectedClassName, string $message)
     {
         $database = new Database();
@@ -589,8 +588,6 @@ EOF;
     }
 
     /**
-     * @dataProvider combinedNamespaceDataProvider
-     *
      * @param string|null $databaseNamespace
      * @param string|null $tableNamespace
      * @param string|null $expectedNamespace
@@ -598,6 +595,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('combinedNamespaceDataProvider')]
     public function testCombineNamespace($databaseNamespace, $tableNamespace, $expectedNamespace, $message)
     {
         $database = new Database();

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Builder\Om\AbstractOMBuilder;
 use Propel\Generator\Exception\LogicException;
 use Propel\Generator\Model\Database;
@@ -186,11 +187,9 @@ class AbstractOMBuilderNamespaceTest extends TestCase
     }
 
     /**
-     * @dataProvider namespaceDataProvider
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
+    #[DataProvider('namespaceDataProvider')]
     public function testDeclareClassNamespaceIgnoresLeadingSlashInNamespace(string $tableNamespace, string $classNamespace, string $message): void
     {
         $table = new Table('Table1');
@@ -199,11 +198,13 @@ class AbstractOMBuilderNamespaceTest extends TestCase
         $builder = new TestableOMBuilder2($table);
 
         $builder->declareClassNamespace('MyTable1Class', $classNamespace . '\\Base');
-        try{
+        try {
             $builder->declareClassNamespace('MyTable1Class', $classNamespace);
-        } catch(LogicException $e) {
+        } catch (LogicException $e) {
             $this->fail($message);
         }
+
+        $this->assertTrue(true);
     }
 }
 

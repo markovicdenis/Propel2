@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Platform;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Platform\DefaultPlatform;
@@ -45,6 +46,7 @@ class DefaultPlatformTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('provideValidBooleanValues')]
     public function testGetBooleanString($value)
     {
         $p = $this->getPlatform();
@@ -72,6 +74,7 @@ class DefaultPlatformTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('provideInvalidBooleanValues')]
     public function testGetNonBooleanString($value)
     {
         $p = $this->getPlatform();
@@ -169,6 +172,7 @@ class DefaultPlatformTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('getColumnDefaultValueDDLDataProvider')]
     public function testGetColumnDefaultValueDDL($column, $default)
     {
         $this->assertEquals($default, $this->getPlatform()->getColumnDefaultValueDDL($column));
@@ -190,6 +194,7 @@ class DefaultPlatformTest extends TestCase
      *
      * @return void
      */
+    #[DataProvider('getColumnBindingDataProvider')]
     public function testGetColumnBindingPHP($column, $default)
     {
         $this->assertStringContainsString($default, $this->getPlatform()->getColumnBindingPHP($column, 'ID', 'ACCESSOR'));

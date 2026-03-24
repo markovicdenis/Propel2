@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveRecord;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Map\TableMap;
 use Propel\Tests\Bookstore\Author;
 use Propel\Tests\Bookstore\Book;
@@ -90,6 +91,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toXmlDataProvider')]
     public function testToXML($expected)
     {
         $this->assertEquals($expected, $this->book->toXML());
@@ -100,6 +102,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toXmlDataProvider')]
     public function testFromXML($expected)
     {
         $book = new Book();
@@ -150,6 +153,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toYamlDataProvider')]
     public function testToYAML($expected)
     {
         $this->assertEquals($expected, $this->book->toYAML());
@@ -160,6 +164,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toYamlDataProvider')]
     public function testFromYAML($expected)
     {
         $book = new Book();
@@ -205,6 +210,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toJsonDataProvider')]
     public function testToJSON($expected, $type)
     {
         $this->assertEquals($expected, $this->book->toJSON(true, $type));
@@ -215,6 +221,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toJsonDataProvider')]
     public function testfromJSON($expected, $type)
     {
         $book = new Book();
@@ -244,6 +251,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toCsvDataProvider')]
     public function testToCSV($expected)
     {
         $this->assertEquals($expected, $this->book->toCSV());
@@ -254,6 +262,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('toCsvDataProvider')]
     public function testfromCSV($expected)
     {
         $book = new Book();

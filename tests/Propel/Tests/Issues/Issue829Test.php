@@ -45,8 +45,6 @@ class Issue829Test extends TestCase
      * that can be serialized but cannot be casted to a string (f.in. \DateTime)
      */
     /**
-     * @doesNotPerformAssertions
-     *
      * @return void
      */
     public function testAddingToInstancePool()
@@ -59,5 +57,7 @@ class Issue829Test extends TestCase
             ->setDate($date);
 
         Table829TableMap::addInstanceToPool($test);
+
+        $this->assertSame($test, Table829TableMap::getInstanceFromPool($test->getPrimaryKey()));
     }
 }

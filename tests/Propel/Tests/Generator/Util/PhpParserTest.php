@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Util;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\PhpParser;
 use Propel\Tests\TestCase;
 
@@ -55,6 +56,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testFindMethodNotExistsReturnsFalse($code)
     {
         $parser = new PhpParser($code);
@@ -66,6 +68,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testFindMethodNReturnsMethod($code)
     {
         $parser = new PhpParser($code);
@@ -84,6 +87,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testFindMethodPrecededByAttribute($code)
     {
         $parser = new PhpParser($code);
@@ -103,6 +107,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testFindMethodPrecededByComment($code)
     {
         $parser = new PhpParser($code);
@@ -125,6 +130,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testFindMethodWithWrongCurlyBraces($code)
     {
         $parser = new PhpParser($code);
@@ -145,6 +151,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testRemoveMethodNotExistsReturnsFalse($code)
     {
         $parser = new PhpParser($code);
@@ -156,6 +163,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testRemoveMethodReturnsMethod($code)
     {
         $parser = new PhpParser($code);
@@ -174,6 +182,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testRemoveMethodRemovesMethod($code)
     {
         $parser = new PhpParser($code);
@@ -213,6 +222,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testReplaceMethodNotExistsReturnsFalse($code)
     {
         $parser = new PhpParser($code);
@@ -224,6 +234,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testReplaceMethodReturnsMethod($code)
     {
         $parser = new PhpParser($code);
@@ -242,6 +253,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('basicClassCodeProvider')]
     public function testReplaceMethodReplacesMethod($code)
     {
         $parser = new PhpParser($code);

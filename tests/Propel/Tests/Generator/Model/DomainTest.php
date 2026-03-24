@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Domain;
 
@@ -32,10 +33,9 @@ class DomainTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideDomainData
-     *
      * @return void
      */
+    #[DataProvider('provideDomainData')]
     public function testSetupObject($default, $expression)
     {
         $platform = $this->getPlatformMock();
@@ -130,10 +130,9 @@ class DomainTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideBooleanValues
-     *
      * @return void
      */
+    #[DataProvider('provideBooleanValues')]
     public function testGetBooleanValue($mappingType, $booleanAsString, $expected)
     {
         $value = $this->getColumnDefaultValueMock();
@@ -185,10 +184,9 @@ class DomainTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideSizeDefinitions
-     *
      * @return void
      */
+    #[DataProvider('provideSizeDefinitions')]
     public function testGetSizeDefinition($size, $scale, $definition)
     {
         $domain = new Domain('FLOAT', 'DOUBLE', $size, $scale);

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Model\Index;
 
 /**
@@ -46,10 +47,9 @@ class IndexTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideTableSpecificAttributes
-     *
      * @return void
      */
+    #[DataProvider('provideTableSpecificAttributes')]
     public function testCreateDefaultIndexName($tableName, $maxColumnNameLength, $indexName)
     {
         $database = $this->getDatabaseMock('bookstore');
@@ -79,10 +79,9 @@ class IndexTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideColumnDefinitions
-     *
      * @return void
      */
+    #[DataProvider('provideColumnDefinitions')]
     public function testAddIndexedColumns($columns)
     {
         $index = new Index();
@@ -147,10 +146,9 @@ class IndexTest extends ModelTestCase
     }
 
     /**
-     * @dataProvider provideColumnAttributes
-     *
      * @return void
      */
+    #[DataProvider('provideColumnAttributes')]
     public function testNoColumnAtPositionCaseSensitivity($name, $case)
     {
         $index = new Index();

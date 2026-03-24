@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\ActiveQuery\SqlBuilder;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\SqlBuilder\SelectQuerySqlBuilder;
 use Propel\Tests\Bookstore\BookQuery;
@@ -51,8 +52,6 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     }
 
     /**
-     * @dataProvider havingClauseDataProvider
-     *
      * @param \Propel\Runtime\ActiveQuery\Criteria $query
      * @param string|null $expectedClause
      * @param array $expectedParams
@@ -60,9 +59,10 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('havingClauseDataProvider')]
     public function testBuildHavingClause(Criteria $query, ?string $expectedClause, array $expectedParams, string $message): void
     {
-        $builder = new class ($query) extends SelectQuerySqlBuilder{
+        $builder = new class ($query) extends SelectQuerySqlBuilder {
             public function doBuildHavingClause(array &$params): ?string
             {
                 return $this->buildHavingClause($params);
@@ -91,8 +91,6 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     }
 
     /**
-     * @dataProvider fromClauseDataProvider
-     *
      * @param \Propel\Runtime\ActiveQuery\Criteria $query
      * @param array $fromTables
      * @param string $expectedClause
@@ -101,9 +99,10 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('fromClauseDataProvider')]
     public function testBuildFromClause(Criteria $query, array $fromTables, string $expectedClause, array $expectedParams, string $message): void
     {
-        $builder = new class ($query) extends SelectQuerySqlBuilder{
+        $builder = new class ($query) extends SelectQuerySqlBuilder {
             public function doBuildFromClause(array &$params, array $fromTables): ?string
             {
                 $joinClauses = $this->buildJoinClauses($params, $fromTables);
@@ -135,8 +134,6 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
     }
 
     /**
-     * @dataProvider removeRecursiveSubqueryTableAliasesDataProvider
-     *
      * @param \Propel\Runtime\ActiveQuery\Criteria $query
      * @param array $fromTableNames
      * @param array $expectedTableNames
@@ -144,9 +141,10 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
      *
      * @return void
      */
+    #[DataProvider('removeRecursiveSubqueryTableAliasesDataProvider')]
     public function testRemoveRecursiveSubqueryTableAliases(Criteria $query, array $fromTableNames, array $expectedTableNames, string $message): void
     {
-        $builder = new class ($query) extends SelectQuerySqlBuilder{
+        $builder = new class ($query) extends SelectQuerySqlBuilder {
             public function doResolve(array &$fromTableNames): ?string
             {
                 return $this->removeRecursiveSubqueryTableAliases($fromTableNames);

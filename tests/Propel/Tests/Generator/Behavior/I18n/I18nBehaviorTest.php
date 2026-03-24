@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Behavior\I18n;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Tests\TestCase;
 
@@ -159,6 +160,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('schemaDataProvider')]
     public function testModifyTableAddsI18nTable($schema)
     {
         $builder = new QuickBuilder();
@@ -180,6 +182,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('schemaDataProvider')]
     public function testModifyTableRelatesI18nTableToMainTable($schema)
     {
         $builder = new QuickBuilder();
@@ -195,6 +198,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('schemaDataProvider')]
     public function testModifyTableAddsLocaleColumnToI18n($schema)
     {
         $builder = new QuickBuilder();
@@ -213,6 +217,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('schemaDataProvider')]
     public function testModifyTableMovesI18nColumns($schema)
     {
         $builder = new QuickBuilder();
@@ -235,6 +240,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('schemaDataProvider')]
     public function testModifyTableDoesNotMoveNonI18nColumns($schema)
     {
         $builder = new QuickBuilder();
@@ -439,6 +445,7 @@ EOF;
      *
      * @return void
      */
+    #[DataProvider('customPkSchemaDataProvider')]
     public function testModifyTableRelatesI18nTableToMainTableWithCustomPk($schema)
     {
         $builder = new QuickBuilder();
