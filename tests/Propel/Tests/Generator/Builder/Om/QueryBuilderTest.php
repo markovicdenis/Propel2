@@ -12,9 +12,12 @@ use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\ExistsCriterion;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\ActiveQuery\ModelJoin;
+use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
+use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
+use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Tests\Bookstore\AcctAuditLogQuery;
 use Propel\Tests\Bookstore\AuthorQuery;
 use Propel\Tests\Bookstore\Book;
@@ -41,6 +44,9 @@ use Propel\Tests\Bookstore\ReviewQuery;
 use Propel\Tests\Helpers\Bookstore\BookstoreDataPopulator;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 use ReflectionMethod;
+
+use function assert;
+use function sprintf;
 
 /**
  * Test class for QueryBuilder.
@@ -530,9 +536,45 @@ class QueryBuilderTest extends BookstoreTestBase
         $q = new BookListRelQuery();
         $q->filterByPrimaryKeys([]);
 
-        $q1 = BookListRelQuery::create();
-        $q1->add(null, '1<>1', Criteria::CUSTOM);
-        $this->assertEquals($q1, $q, 'filterByPrimaryKeys() translates to an always failing test on empty arrays');
+        $q1 = new BookListRelQuery();
+        $q1->where('1<>1');
+        $this->assertCount(1, $q1->getMap());
+        $this->assertCount(1, $q->getMap());
+        $expectedMap = $q1->getMap();
+        $actualMap = $q->getMap();
+        $this->assertSame((string)reset($expectedMap), (string)reset($actualMap), 'filterByPrimaryKeys() translates to an always failing test on empty arrays');
+    }
+
+    /**
+     * @return void
+     */
+    public function testFilterByPrimaryKeysCompositeKeyEmptyListCreatesValidSqlForMysqlAndPgsql()
+    {
+        $serviceContainer = Propel::getServiceContainer();
+        assert($serviceContainer instanceof StandardServiceContainer);
+        $dataSource = BookListRelTableMap::DATABASE_NAME;
+        $originalAdapter = $serviceContainer->getAdapter($dataSource);
+        $adapters = [
+            'mysql' => new MysqlAdapter(),
+            'pgsql' => new PgsqlAdapter(),
+        ];
+
+        try {
+            foreach ($adapters as $name => $adapter) {
+                $serviceContainer->setAdapter($dataSource, $adapter);
+
+                $query = new BookListRelQuery();
+                $query->filterByPrimaryKeys([]);
+
+                $params = [];
+                $sql = $query->createSelectSql($params);
+
+                $this->assertSame([], $params, sprintf('filterByPrimaryKeys([]) should not bind params for %s', $name));
+                $this->assertStringContainsString('WHERE 1<>1', $sql, sprintf('filterByPrimaryKeys([]) should generate an always-false WHERE clause for %s', $name));
+            }
+        } finally {
+            $serviceContainer->setAdapter($dataSource, $originalAdapter);
+        }
     }
 
     /**
