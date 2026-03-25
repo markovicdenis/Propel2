@@ -325,6 +325,56 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testPrimaryKeyAccessorStaysNullableAndDoesNotUseFallback()
+    {
+        $table = new Table('BalanceTransaction');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $comment = '';
+        $builder->addDefaultAccessorCommentToScript($comment, $id);
+
+        $body = '';
+        $builder->addDefaultAccessorBodyToScript($body, $id);
+
+        $this->assertStringContainsString('* @return int|null', $comment);
+        $this->assertStringContainsString('return $this->id;', $body);
+        $this->assertStringNotContainsString('?? 0', $body);
+    }
+
+    /**
+     * @return void
+     */
+    public function testPrimaryKeyMutatorDoesNotUseSharedCastHelper()
+    {
+        $table = new Table('BalanceTransaction');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $mutator = '';
+        $builder->addDefaultMutatorToScript($mutator, $id);
+
+        $this->assertStringNotContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+        $this->assertStringContainsString('if ($this->id !== $v) {', $mutator);
+    }
+
+    /**
+     * @return void
+     */
     public function testForeignKeyScalarAccessorsAndMutatorsStayNullableInGeneratedApi()
     {
         $database = new Database('test');
@@ -364,6 +414,77 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringContainsString('* @return int|null', $accessorComment);
         $this->assertStringContainsString('* @param int|null $v New value', $mutatorComment);
         $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+    }
+
+    /**
+     * @return void
+     */
+    public function testForeignPrimaryKeyMutatorDoesNotUseSharedCastHelper()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('parent');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('child');
+        $database->addTable($childTable);
+
+        $childId = new Column('parent_id');
+        $childId->setDomain(new Domain('INTEGER'));
+        $childId->setPrimaryKey(true);
+        $childId->setNotNull(true);
+        $childTable->addColumn($childId);
+        $childTable->addForeignKey(['foreignTable' => 'parent'])
+            ->addReference('parent_id', 'id');
+
+        $builder = new TestableObjectBuilder($childTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $mutator = '';
+        $builder->addDefaultMutatorToScript($mutator, $childId);
+
+        $this->assertStringNotContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+        $this->assertStringContainsString('if ($this->parent_id !== $v) {', $mutator);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCompositePrimaryKeyMutatorsDoNotUseSharedCastHelper()
+    {
+        $table = new Table('Widget');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $code = new Column('code');
+        $code->setDomain(new Domain('VARCHAR'));
+        $code->setPrimaryKey(true);
+        $code->setNotNull(true);
+        $table->addColumn($code);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $idMutator = '';
+        $builder->addDefaultMutatorToScript($idMutator, $id);
+
+        $codeMutator = '';
+        $builder->addDefaultMutatorToScript($codeMutator, $code);
+
+        $this->assertStringNotContainsString("\$v = \$this->castTo(\$v, 'int', true);", $idMutator);
+        $this->assertStringNotContainsString("\$v = \$this->castTo(\$v, 'string', true);", $codeMutator);
+        $this->assertStringContainsString('if ($this->id !== $v) {', $idMutator);
+        $this->assertStringContainsString('if ($this->code !== $v) {', $codeMutator);
     }
 
     /**
@@ -512,6 +633,51 @@ class ObjectBuilderTest extends TestCase
         $builder->addSetPrimaryKeyToScript($script);
 
         $this->assertStringContainsString('public function setPrimaryKey(?int $key = null): void', $script);
+        $this->assertStringContainsString('* @param int|null $key Primary key.', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetPrimaryKeyUsesNullableDocTypeForSinglePrimaryKey()
+    {
+        $table = new Table('BalanceTransaction');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addGetPrimaryKeyToScript($script);
+
+        $this->assertStringContainsString('* @return int|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetPrimaryKeyUsesNullableDocTypeForSinglePrimaryKey()
+    {
+        $table = new Table('BalanceTransaction');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addSetPrimaryKeyToScript($script);
+
+        $this->assertStringContainsString('* @param int|null $key Primary key.', $script);
     }
 
     /**
@@ -659,6 +825,11 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addSetPrimaryKey($script);
     }
 
+    public function addGetPrimaryKeyToScript(string &$script): void
+    {
+        $this->addGetPrimaryKey($script);
+    }
+
     public function addCommonTraitUsesToScript(string &$script): void
     {
         $this->addCommonTraitUses($script);
@@ -729,6 +900,11 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addDefaultAccessorCommentToScript(string &$script, Column $column): void
     {
         $this->addDefaultAccessorComment($script, $column);
+    }
+
+    public function addDefaultAccessorBodyToScript(string &$script, Column $column): void
+    {
+        $this->addDefaultAccessorBody($script, $column);
     }
 
     public function addMutatorCommentToScript(string &$script, Column $column): void

@@ -258,6 +258,10 @@ class ObjectBuilder extends AbstractObjectBuilder
 
     protected function isNullableInGeneratedObjectApi(Column $column): bool
     {
+        if ($column->isPrimaryKey()) {
+            return true;
+        }
+
         return $this->getUnsetValueForAccessor($column) === null;
     }
 
@@ -1655,7 +1659,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $fallback = '';
-        $unsetValue = $this->getUnsetValueForAccessor($column);
+        $unsetValue = $column->isPrimaryKey() ? null : $this->getUnsetValueForAccessor($column);
         if ($unsetValue !== null) {
             $fallback = " ?? {$unsetValue}";
         }
@@ -2541,7 +2545,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Perform type-casting to ensure that we can use type-sensitive
         // checking in mutators.
-        if ($col->isPhpPrimitiveType()) {
+        if ($col->isPhpPrimitiveType() && !$col->isPrimaryKey()) {
             $isNullable = $this->isNullableInGeneratedObjectApi($col) ? 'true' : 'false';
             $script .= "
         \$v = \$this->castTo(\$v, '" . $col->getPhpType() . "', $isNullable);
@@ -3991,6 +3995,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $table = $this->getTable();
         $pkeys = $table->getPrimaryKey();
         $cptype = $pkeys[0]->getPhpType();
+        if ($this->isNullableInGeneratedObjectApi($pkeys[0])) {
+            $cptype .= '|null';
+        }
 
         $script .= "
     /**
@@ -4092,9 +4099,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $col = $pkeys[0];
         $clo = $col->getLowercasedName();
         $ctype = $col->getPhpType();
+        $docType = $ctype;
         $unsetValue = $this->getPrimaryKeyUnsetValue($col);
         $defaultValue = ' = ' . $unsetValue;
         if ($unsetValue === 'null') {
+            $docType .= '|null';
             $ctype = "?$ctype";
         }
 
@@ -4102,7 +4111,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Generic method to set the primary key ($clo column).
      *
-     * @param $ctype \$key Primary key.
+     * @param $docType \$key Primary key.
      * @return void
      */
     public function setPrimaryKey($ctype \$key$defaultValue): void
