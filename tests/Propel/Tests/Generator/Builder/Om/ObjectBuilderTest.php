@@ -570,6 +570,78 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testRequiredObjectAccessorCommentStaysNullableAtRuntime()
+    {
+        $details = new Column('details');
+        $details->setDomain(new Domain('OBJECT'));
+        $details->setNotNull(true);
+
+        $builder = new TestableObjectBuilder(new Table('TypeObject'));
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addObjectAccessorToScript($script, $details);
+
+        $this->assertStringContainsString('* @return mixed|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRequiredJsonAccessorCommentStaysNullableAtRuntime()
+    {
+        $payload = new Column('payload');
+        $payload->setDomain(new Domain('JSON'));
+        $payload->setNotNull(true);
+
+        $builder = new TestableObjectBuilder(new Table('Thing'));
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addJsonAccessorToScript($script, $payload);
+
+        $this->assertStringContainsString('* @return object|array|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testNullableArrayAccessorCommentMatchesNonNullRuntimeReturn()
+    {
+        $tags = new Column('tags');
+        $tags->setDomain(new Domain('ARRAY'));
+
+        $builder = new TestableObjectBuilder(new Table('Thing'));
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addArrayAccessorToScript($script, $tags);
+
+        $this->assertStringContainsString('* @return array', $script);
+        $this->assertStringNotContainsString('* @return array|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRequiredTemporalAccessorCommentStaysNullableAtRuntime()
+    {
+        $createdAt = new Column('created_at');
+        $createdAt->setDomain(new Domain('TIMESTAMP'));
+        $createdAt->setNotNull(true);
+
+        $builder = new TestableObjectBuilder(new Table('Thing'));
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addTemporalAccessorToScript($script, $createdAt);
+
+        $this->assertStringContainsString('* @return \DateTime|null', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testForeignPrimaryKeyMutatorDoesNotUseSharedCastHelper()
     {
         $database = new Database('test');
@@ -705,14 +777,13 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('@var ?ChildAffiliateGroup', $fkAttributes);
         $this->assertStringContainsString('public function setAffiliateGroup(?ChildAffiliateGroup $v = null)', $fkMutator);
-        $this->assertStringContainsString('$currentObject = $this;', $fkMutator);
-        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliate);', $fkMutator);
-        $this->assertStringContainsString('$v?->addAffiliate($currentObject);', $fkMutator);
+        $this->assertStringContainsString('assert($this instanceof ChildAffiliate);', $fkMutator);
+        $this->assertStringContainsString('$v?->addAffiliate($this);', $fkMutator);
         $this->assertStringContainsString('@return ChildAffiliateGroup|null', $fkAccessor);
         $this->assertStringContainsString('public function addAffiliate(ChildAffiliate $l)', $refFkAdd);
         $this->assertStringContainsString('protected function doAddAffiliate(ChildAffiliate $affiliate): void', $refFkDoAdd);
-        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliateGroup);', $refFkDoAdd);
-        $this->assertStringContainsString('$affiliate->setAffiliateGroup($currentObject);', $refFkDoAdd);
+        $this->assertStringContainsString('assert($this instanceof ChildAffiliateGroup);', $refFkDoAdd);
+        $this->assertStringContainsString('$affiliate->setAffiliateGroup($this);', $refFkDoAdd);
         $this->assertStringContainsString('public function removeAffiliate(ChildAffiliate $affiliate)', $refFkRemove);
     }
 
@@ -794,8 +865,8 @@ class ObjectBuilderTest extends TestCase
         $groupBuilder->addPKRefFKSetToScript($script, $affiliateTable->getForeignKeys()[0]);
 
         $this->assertStringContainsString('public function setAffiliate(?ChildAffiliate $v = null)', $script);
-        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliateGroup);', $script);
-        $this->assertStringContainsString('$v->setAffiliateGroup($currentObject);', $script);
+        $this->assertStringContainsString('assert($this instanceof ChildAffiliateGroup);', $script);
+        $this->assertStringContainsString('$v->setAffiliateGroup($this);', $script);
     }
 
     /**
@@ -835,8 +906,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $affiliateBuilder->addFKAccessorToScript($script, $affiliateTable->getForeignKeys()[0]);
 
-        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliate);', $script);
-        $this->assertStringContainsString('$this->aAffiliateGroup?->setAffiliate($currentObject);', $script);
+        $this->assertStringContainsString('assert($this instanceof ChildAffiliate);', $script);
+        $this->assertStringContainsString('$this->aAffiliateGroup?->setAffiliate($this);', $script);
         $this->assertStringNotContainsString('$this->aAffiliateGroup?->setAffiliate(\$currentObject);', $script);
     }
 
@@ -933,10 +1004,9 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addClearToScript($script);
 
-        $this->assertStringContainsString('$currentObject = $this;', $script);
-        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliatePlayer);', $script);
-        $this->assertStringContainsString('$this->aAffiliate->removeAffiliatePlayer($currentObject);', $script);
-        $this->assertStringNotContainsString('$this->aAffiliate->removeAffiliatePlayer($this);', $script);
+        $this->assertStringContainsString('assert($this instanceof ChildAffiliatePlayer);', $script);
+        $this->assertStringContainsString('$this->aAffiliate->removeAffiliatePlayer($this);', $script);
+        $this->assertStringNotContainsString('$this->aAffiliate->removeAffiliatePlayer($currentObject);', $script);
     }
 
     /**
@@ -1040,7 +1110,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testTemporalAccessorCommentUsesNonNullReturnTypeWhenRequired()
+    public function testTemporalAccessorCommentStaysNullableWhenRequired()
     {
         $column = new Column('created_at');
         $column->setDomain(new Domain('TIMESTAMP'));
@@ -1049,8 +1119,30 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $this->builder->addTemporalAccessorCommentToScript($script, $column);
 
-        $this->assertStringContainsString('* @return \DateTime', $script);
-        $this->assertStringNotContainsString('* @return \DateTime|null', $script);
+        $this->assertStringContainsString('* @return \DateTime|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRequiredTemporalAccessorGenerationUsesNullableReturnDocType()
+    {
+        $table = new Table('Foo');
+
+        $column = new Column('register_stamp');
+        $column->setDomain(new Domain('TIMESTAMP'));
+        $column->setNotNull(true);
+        $table->addColumn($column);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addTemporalAccessorToScript($script, $column);
+
+        $this->assertStringContainsString('public function getRegisterStamp()', $script);
+        $this->assertStringContainsString('* @return \DateTime|null', $script);
+        $this->assertStringNotContainsString('* @return \DateTime', str_replace('* @return \DateTime|null', '', $script));
     }
 
     /**
@@ -1276,6 +1368,26 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addDefaultAccessorBodyToScript(string &$script, Column $column): void
     {
         $this->addDefaultAccessorBody($script, $column);
+    }
+
+    public function addObjectAccessorToScript(string &$script, Column $column): void
+    {
+        $this->addObjectAccessor($script, $column);
+    }
+
+    public function addJsonAccessorToScript(string &$script, Column $column): void
+    {
+        $this->addJsonAccessor($script, $column);
+    }
+
+    public function addArrayAccessorToScript(string &$script, Column $column): void
+    {
+        $this->addArrayAccessor($script, $column);
+    }
+
+    public function addTemporalAccessorToScript(string &$script, Column $column): void
+    {
+        $this->addTemporalAccessor($script, $column);
     }
 
     public function addMutatorCommentToScript(string &$script, Column $column): void

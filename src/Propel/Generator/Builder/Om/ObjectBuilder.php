@@ -305,8 +305,7 @@ class ObjectBuilder extends AbstractObjectBuilder
         $className = $this->getCurrentChildObjectClassName();
 
         return "
-{$indent}\${$variableName} = \$this;
-{$indent}assert(\${$variableName} instanceof {$className});";
+{$indent}assert(\$this instanceof {$className});";
     }
 
     protected function getPrimaryKeyUnsetValue(Column $column): string
@@ -635,7 +634,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         $clo = $column->getLowercasedName();
 
-        $orNull = $column->isNotNull() ? '|null' : '|null';
+        // Temporal values remain nullable in-memory even for required columns until they are hydrated or set.
+        $orNull = '|null';
 
         $script .= "
     /**
@@ -1018,8 +1018,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $dateTimeClass = $this->getDateTimeClass($column);
-        $orNull = $column->isNotNull() ? '' : '|null';
 
+        // Temporal getters stay nullable because required temporal columns still have no meaningful unset value.
         $script .= "
     /**
      * Get the [$clo] column value.
@@ -1029,7 +1029,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param mixed \$con An optional connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
-      * @return {$dateTimeClass}{$orNull}
+     * @return {$dateTimeClass}|null
      */";
     }
 
@@ -1162,10 +1162,28 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addObjectAccessor(string &$script, Column $column): void
     {
-        $this->addDefaultAccessorComment($script, $column);
+        $this->addObjectAccessorComment($script, $column);
         $this->addDefaultAccessorOpen($script, $column);
         $this->addObjectAccessorBody($script, $column);
         $this->addDefaultAccessorClose($script);
+    }
+
+    public function addObjectAccessorComment(string &$script, Column $column): void
+    {
+        $clo = $column->getLowercasedName();
+        $type = $column->getTypeHint() ?: ($column->getPhpType() ?: 'mixed');
+
+        $script .= "
+    /**
+     * Get the [$clo] column value.
+     * " . $column->getDescription();
+        if ($column->isLazyLoad()) {
+            $script .= "
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+        }
+        $script .= "
+     * @return {$type}|null
+     */";
     }
 
     /**
@@ -1220,8 +1238,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
 
-        $orNull = $column->isNotNull() ? '' : '|null';
-
         $script .= "
     /**
      * Get the [$clo] column value.
@@ -1233,7 +1249,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
         }
         $script .= "
-     * @return object|array{$orNull}
+      * @return object|array|null
      */";
     }
 
@@ -1283,10 +1299,28 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addArrayAccessor(string &$script, Column $column): void
     {
-        $this->addDefaultAccessorComment($script, $column);
+        $this->addArrayAccessorComment($script, $column);
         $this->addDefaultAccessorOpen($script, $column);
         $this->addArrayAccessorBody($script, $column);
         $this->addDefaultAccessorClose($script);
+    }
+
+    public function addArrayAccessorComment(string &$script, Column $column): void
+    {
+        $clo = $column->getLowercasedName();
+        $type = $column->getTypeHint() ?: ($column->getPhpType() ?: 'mixed');
+
+        $script .= "
+    /**
+     * Get the [$clo] column value.
+     * " . $column->getDescription();
+        if ($column->isLazyLoad()) {
+            $script .= "
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+        }
+        $script .= "
+     * @return {$type}
+     */";
     }
 
     /**
@@ -4442,14 +4476,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
         " . $this->getAssertedCurrentChildObjectSnippet() . "
         // Add binding for other direction of this 1:1 relationship.
-        \$v{$mod}->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$currentObject);
+        \$v{$mod}->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         } else {
             $script .= "
         " . $this->getAssertedCurrentChildObjectSnippet() . "
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
-        \$v{$mod}->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$currentObject);
+            \$v{$mod}->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         }
 
@@ -4676,7 +4710,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
             " . $this->getAssertedCurrentChildObjectSnippet() . "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()
-                ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$currentObject) // here
+                ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this) // here
                 ->findOne(\$con);";
         }
 
@@ -4684,7 +4718,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
             " . $this->getAssertedCurrentChildObjectSnippet() . "
             // Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
-            \$this->{$varName}?->set" . $this->getRefFKPhpNameAffix($fk, false) . '($currentObject);';
+            \$this->{$varName}?->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);";
         } else {
             $script .= "
             /* The following can be used additionally to
@@ -4692,7 +4726,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 to this object.  This level of coupling may, however, be
                 undesirable since it could result in an only partially populated collection
                 in the referenced object.
-                \$this->{$varName}->add" . $this->getRefFKPhpNameAffix($fk, true) . "(\$currentObject);
+                \$this->{$varName}->add" . $this->getRefFKPhpNameAffix($fk, true) . "(\$this);
              */";
         }
 
@@ -5045,7 +5079,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             " . $this->getAssertedCurrentChildObjectSnippet() . "
             return \$query
-                ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$currentObject)
+                ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                 ->count(\$con);
         }
 
@@ -5059,7 +5093,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *
      * @param string $script The script will be modified in this method.
      * @param \Propel\Generator\Model\ForeignKey $refFK
-     *
      * @return void
      */
     protected function addRefFKGet(string &$script, ForeignKey $refFK): void
@@ -5067,7 +5100,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $fkQueryClassName = $this->getClassNameFromBuilder($this->getNewStubQueryBuilder($refFK->getTable()));
         $relCol = $this->getRefFKPhpNameAffix($refFK, true);
         $collName = $this->getRefFKCollVarName($refFK);
-
         $className = $this->getClassNameFromTable($refFK->getTable());
         $currentClassName = $this->getClassNameFromTable($this->getTable());
 
@@ -5106,7 +5138,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             } else {
                 " . $this->getAssertedCurrentChildObjectSnippet() . "
                 \$$collName = $fkQueryClassName::create(null, \$criteria)
-                    ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$currentObject)
+                    ->filterBy" . $this->getFKPhpNameAffix($refFK) . "(\$this)
                     ->find(\$con);
 
                 if (null !== \$criteria) {
@@ -5121,7 +5153,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
                         \$this->{$collName}Partial = true;
                     }
-
                     assert(\$$collName instanceof ObjectCollection);
                     return \$$collName;
                 }
@@ -5242,7 +5273,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
         " . $this->getAssertedCurrentChildObjectSnippet() . "
-        \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$currentObject);
+        \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
     }
 ";
     }
@@ -5365,7 +5396,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // Make sure that that the passed-in $className isn't already associated with this object
         if (\$v !== null && !\$v->has" . $this->getFKPhpNameAffix($refFK, false) . "()) {
             " . $this->getAssertedCurrentChildObjectSnippet('currentObject', '            ') . "
-            \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$currentObject);
+            \$v->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
         }
 
         return \$this;
@@ -5952,7 +5983,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         " . $this->getAssertedCurrentChildObjectSnippet() . "
         \$criteria = $relatedQueryClassName::create(\$criteria)
-            ->filterBy{$selfRelationName}(\$currentObject);
+            ->filterBy{$selfRelationName}(\$this);
 
         \$$relatedUseQueryVariableName = \$criteria->{$relatedUseQueryGetter}();
 ";
@@ -6042,7 +6073,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 " . $this->getAssertedCurrentChildObjectSnippet() . "
 
                 \$query = $relatedQueryClassName::create(null, \$criteria)
-                    ->filterBy{$selfRelationName}(\$currentObject)";
+                    ->filterBy{$selfRelationName}(\$this)";
             foreach ($crossFKs->getCrossForeignKeys() as $fk) {
                 $varName = $this->getFKPhpNameAffix($fk, false);
                 $script .= "
@@ -6167,7 +6198,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 " . $this->getAssertedCurrentChildObjectSnippet() . "
 
                 \$query = $relatedQueryClassName::create(null, \$criteria)
-                    ->filterBy{$selfRelationName}(\$currentObject);
+                    ->filterBy{$selfRelationName}(\$this);
                 \$$collName = \$query->find(\$con);
                 if (null !== \$criteria) {
                     return \$$collName;
@@ -6329,7 +6360,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
                 " . $this->getAssertedCurrentChildObjectSnippet('currentObject', '                ') . "
                 return \$query
-                    ->filterBy{$selfRelationName}(\$currentObject)
+                    ->filterBy{$selfRelationName}(\$this)
                     ->count(\$con);
             }
         } else {
@@ -6501,7 +6532,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $refFK = $crossFKs->getIncomingForeignKey();
         $script .= "
 
-        {$foreignObjectName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$currentObject);
+        {$foreignObjectName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
 
         \$this->add{$refKObjectClassName}({$foreignObjectName});\n";
 
@@ -6532,9 +6563,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // in endless loop or in multiple relations
         if (!\${$lowerRelatedObjectClassName}->is{$selfRelationNamePlural}Loaded()) {
             \${$lowerRelatedObjectClassName}->init{$selfRelationNamePlural}();
-            \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$currentObject);
-        } elseif (!\${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->contains(\$currentObject)) {
-            \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$currentObject);
+            \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$this);
+        } elseif (!\${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->contains(\$this)) {
+            \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$this);
         }\n";
         }
 
@@ -6558,7 +6589,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         foreach ($crossFKs->getMiddleTable()->getForeignKeys() as $fk) {
             if ($fk !== $excludeFK && ($fk === $crossFKs->getIncomingForeignKey() || in_array($fk, $fks))) {
                 if ($fk === $crossFKs->getIncomingForeignKey()) {
-                    $names[] = '$currentObject';
+                    $names[] = '$this';
                 } else {
                     $names[] = '$' . lcfirst($this->getFKPhpNameAffix($fk, false));
                 }
@@ -6640,7 +6671,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             {$foreignObjectName}->set{$primaryKey->getPhpName()}(\$$paramName);";
         }
         $script .= "
-            {$foreignObjectName}->set{$this->getFKPhpNameAffix($crossFKs->getIncomingForeignKey())}(\$currentObject);";
+            {$foreignObjectName}->set{$this->getFKPhpNameAffix($crossFKs->getIncomingForeignKey())}(\$this);";
 
         $script .= "
             \$this->remove{$refKObjectClassName}(clone {$foreignObjectName});
@@ -7623,7 +7654,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= "
         if (null !== \$this->$varName) {
             " . $this->getAssertedCurrentChildObjectSnippet('currentObject', '            ') . "
-            \$this->$varName->$removeMethod(\$currentObject);
+            \$this->$varName->$removeMethod(\$this);
         }";
         }
 
