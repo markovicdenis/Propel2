@@ -6,8 +6,8 @@ use DateTime;
 use Exception;
 use Propel\Common\Util\SetColumnConverter;
 use Propel\Generator\Exception\EngineException;
-use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Model\Column;
+use Propel\Generator\Platform\MysqlPlatform;
 
 use function in_array;
 use function sprintf;
@@ -16,7 +16,7 @@ trait ObjectBuilderTrait
 {
     protected bool $castToNull = false;
     protected bool $shouldGenerateTryAccessors = false;
-
+    protected bool $useNullGuards = false;
 
     protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
     {
@@ -151,6 +151,10 @@ trait ObjectBuilderTrait
 
     protected function getNullGuardExceptionForAccessor(Column $column): ?string
     {
+        if (!$this->useNullGuards) {
+            return null;
+        }
+
         $cfc = $column->getPhpName();
 
         if ($column->isPrimaryKey()) {
