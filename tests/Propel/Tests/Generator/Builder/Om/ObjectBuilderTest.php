@@ -418,7 +418,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testIsPrimaryKeyNullUsesTryGetterForSinglePrimaryKey()
+    public function testIsPrimaryKeyNullUsesDirectGetterForSinglePrimaryKey()
     {
         $table = new Table('BalanceTransaction');
 
@@ -434,8 +434,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addIsPrimaryKeyNullToScript($script);
 
-        $this->assertStringContainsString('return 0 === $this->tryGetId();', $script);
-        $this->assertStringNotContainsString('return 0 === $this->getId();', $script);
+        $this->assertStringContainsString('return 0 === $this->getId();', $script);
+        $this->assertStringNotContainsString('return 0 === $this->tryGetId();', $script);
     }
 
     /**
@@ -1058,7 +1058,8 @@ class ObjectBuilderTest extends TestCase
         $builder->addGetPrimaryKeyToScript($script);
 
         $this->assertStringContainsString('* @return int|null', $script);
-        $this->assertStringContainsString('return $this->tryGetId();', $script);
+        $this->assertStringContainsString('return $this->getId();', $script);
+        $this->assertStringNotContainsString('return $this->tryGetId();', $script);
     }
 
     /**

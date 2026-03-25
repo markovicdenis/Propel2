@@ -4001,7 +4001,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function getPrimaryKey()
     {
-        return \$this->tryGet" . $pkeys[0]->getPhpName() . "();
+        return \$this->get" . $pkeys[0]->getPhpName() . "();
     }
 ";
     }
@@ -4167,11 +4167,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {";
         if (count($pkeys) === 1) {
             $script .= "
-        return {$this->getPrimaryKeyUnsetValue($pkeys[0])} === \$this->tryGet" . $pkeys[0]->getPhpName() . '();';
+        return {$this->getDefaultValueForColumn($pkeys[0])} === \$this->get" . $pkeys[0]->getPhpName() . '();';
         } elseif ($pkeys) {
             $tests = [];
             foreach ($pkeys as $ind => $pkey) {
-                $tests[] = "({$this->getPrimaryKeyUnsetValue($pkeys[$ind])} === \$this->get" . $pkey->getPhpName() . '())';
+                $tests[] = "({$this->getDefaultValueForColumn($pkeys[$ind])} === \$this->get" . $pkey->getPhpName() . '())';
             }
             $script .= "
         return " . implode(' && ', $tests) . ';';
