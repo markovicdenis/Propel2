@@ -7557,7 +7557,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $removeMethod = 'remove' . $this->getRefFKPhpNameAffix($fk, false);
             $script .= "
         if (null !== \$this->$varName) {
-            \$this->$varName->$removeMethod(\$this);
+            " . $this->getAssertedCurrentChildObjectSnippet('currentObject', '            ') . "
+            \$this->$varName->$removeMethod(\$currentObject);
         }";
         }
 

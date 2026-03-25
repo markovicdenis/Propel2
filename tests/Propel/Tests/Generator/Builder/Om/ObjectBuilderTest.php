@@ -882,6 +882,54 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testClearUsesAssertedChildObjectForReverseRelationRemoval()
+    {
+        $database = new Database('test');
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateId->setAutoIncrement(true);
+        $affiliateTable->addColumn($affiliateId);
+
+        $affiliatePlayerTable = new Table('affiliate_player');
+        $affiliatePlayerTable->setNamespace('Model');
+        $database->addTable($affiliatePlayerTable);
+
+        $affiliatePlayerId = new Column('id');
+        $affiliatePlayerId->setDomain(new Domain('INTEGER'));
+        $affiliatePlayerId->setPrimaryKey(true);
+        $affiliatePlayerId->setNotNull(true);
+        $affiliatePlayerId->setAutoIncrement(true);
+        $affiliatePlayerTable->addColumn($affiliatePlayerId);
+
+        $affiliateForeignKey = new Column('affiliate_id');
+        $affiliateForeignKey->setDomain(new Domain('INTEGER'));
+        $affiliatePlayerTable->addColumn($affiliateForeignKey);
+        $affiliatePlayerTable->addForeignKey(['foreignTable' => 'affiliate'])
+            ->addReference('affiliate_id', 'id');
+
+        $builder = new TestableObjectBuilder($affiliatePlayerTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addClearToScript($script);
+
+        $this->assertStringContainsString('$currentObject = $this;', $script);
+        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliatePlayer);', $script);
+        $this->assertStringContainsString('$this->aAffiliate->removeAffiliatePlayer($currentObject);', $script);
+        $this->assertStringNotContainsString('$this->aAffiliate->removeAffiliatePlayer($this);', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testSetPrimaryKeyUsesNullUnsetValueForForeignPrimaryKeys()
     {
         $database = new Database('test');
@@ -1100,6 +1148,11 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addClassBodyToScript(string &$script): void
     {
         $this->addClassBody($script);
+    }
+
+    public function addClearToScript(string &$script): void
+    {
+        $this->addClear($script);
     }
 
     public function addSetPrimaryKeyToScript(string &$script): void
