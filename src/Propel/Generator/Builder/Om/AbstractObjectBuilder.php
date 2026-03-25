@@ -8,6 +8,7 @@
 
 namespace Propel\Generator\Builder\Om;
 
+use Propel\Generator\Model\Column;
 use Propel\Generator\Model\PropelTypes;
 
 /**
@@ -21,6 +22,90 @@ use Propel\Generator\Model\PropelTypes;
  */
 abstract class AbstractObjectBuilder extends AbstractOMBuilder
 {
+    protected function addTemporalAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addObjectAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addArrayAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addHasArrayElement(string &$script, Column $column): void
+    {
+    }
+
+    protected function addJsonAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addEnumAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addSetAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addDefaultAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addBooleanAccessor(string &$script, Column $column): void
+    {
+    }
+
+    protected function addLazyLoader(string &$script, Column $column): void
+    {
+    }
+
+    protected function addObjectMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addLobMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addTemporalMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addArrayMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addAddArrayElement(string &$script, Column $col): void
+    {
+    }
+
+    protected function addRemoveArrayElement(string &$script, Column $col): void
+    {
+    }
+
+    protected function addJsonMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addEnumMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addSetMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addBooleanMutator(string &$script, Column $col): void
+    {
+    }
+
+    protected function addDefaultMutator(string &$script, Column $col): void
+    {
+    }
+
     /**
      * Adds the getter methods for the column values.
      * This is here because it is probably generic enough to apply to templates being generated
