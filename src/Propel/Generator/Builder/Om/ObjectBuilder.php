@@ -1620,7 +1620,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= '$con';
         }
 
-        $script .= ") ?? []);
+        $script .= "));
     }
 ";
     }
@@ -2465,7 +2465,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if ($col->isLazyLoad()) {
             $script .= '$con';
         }
-        $script .= ") ?? [] as \$element) {
+        $script .= ") as \$element) {
             if (\$element != \$value) {
                 \$targetArray[] = \$element;
             }
