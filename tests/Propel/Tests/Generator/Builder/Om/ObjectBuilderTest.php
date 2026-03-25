@@ -325,7 +325,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testPrimaryKeyAccessorStaysNullableAndDoesNotUseFallback()
+    public function testPrimaryKeyAccessorThrowsOnUnsetValueAndGeneratesTryGetter()
     {
         $table = new Table('BalanceTransaction');
 
@@ -344,9 +344,41 @@ class ObjectBuilderTest extends TestCase
         $body = '';
         $builder->addDefaultAccessorBodyToScript($body, $id);
 
-        $this->assertStringContainsString('* @return int|null', $comment);
+        $accessor = '';
+        $builder->addDefaultAccessorToScript($accessor, $id);
+
+        $this->assertStringContainsString('* @return int', $comment);
+        $this->assertStringNotContainsString('* @return int|null', $comment);
+        $this->assertStringContainsString('if ($this->id === null) {', $body);
+        $this->assertStringContainsString("throw new PropelException('Cannot return a null primary key from getId(). Use tryGetId() if you need the nullable value.');", $body);
         $this->assertStringContainsString('return $this->id;', $body);
         $this->assertStringNotContainsString('?? 0', $body);
+        $this->assertStringContainsString('* @return int|null', $accessor);
+        $this->assertStringContainsString('function tryGetId()', $accessor);
+        $this->assertStringContainsString('return $this->id;', $accessor);
+    }
+
+    /**
+     * @return void
+     */
+    public function testIsPrimaryKeyNullUsesTryGetterForSinglePrimaryKey()
+    {
+        $table = new Table('BalanceTransaction');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addIsPrimaryKeyNullToScript($script);
+
+        $this->assertStringContainsString('return 0 === $this->tryGetId();', $script);
+        $this->assertStringNotContainsString('return 0 === $this->getId();', $script);
     }
 
     /**
@@ -656,12 +688,13 @@ class ObjectBuilderTest extends TestCase
         $builder->addGetPrimaryKeyToScript($script);
 
         $this->assertStringContainsString('* @return int|null', $script);
+        $this->assertStringContainsString('return $this->tryGetId();', $script);
     }
 
     /**
      * @return void
      */
-    public function testSetPrimaryKeyUsesNullableDocTypeForSinglePrimaryKey()
+    public function testSetPrimaryKeyUsesNonNullableDocTypeForSinglePrimaryKey()
     {
         $table = new Table('BalanceTransaction');
 
@@ -677,7 +710,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addSetPrimaryKeyToScript($script);
 
-        $this->assertStringContainsString('* @param int|null $key Primary key.', $script);
+        $this->assertStringContainsString('* @param int $key Primary key.', $script);
+        $this->assertStringNotContainsString('* @param int|null $key Primary key.', $script);
     }
 
     /**
@@ -830,6 +864,11 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addGetPrimaryKey($script);
     }
 
+    public function addIsPrimaryKeyNullToScript(string &$script): void
+    {
+        $this->addIsPrimaryKeyNull($script);
+    }
+
     public function addCommonTraitUsesToScript(string &$script): void
     {
         $this->addCommonTraitUses($script);
@@ -900,6 +939,11 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addDefaultAccessorCommentToScript(string &$script, Column $column): void
     {
         $this->addDefaultAccessorComment($script, $column);
+    }
+
+    public function addDefaultAccessorToScript(string &$script, Column $column): void
+    {
+        $this->addDefaultAccessor($script, $column);
     }
 
     public function addDefaultAccessorBodyToScript(string &$script, Column $column): void

@@ -1591,6 +1591,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $this->addDefaultAccessorOpen($script, $column);
         $this->addDefaultAccessorBody($script, $column);
         $this->addDefaultAccessorClose($script);
+
+        if ($column->isPrimaryKey()) {
+            $this->addTryDefaultAccessor($script, $column);
+        }
     }
 
     /**
@@ -1605,7 +1609,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
 
-        $orNull = $this->isNullableInGeneratedObjectApi($column) ? '|null' : '';
+        $orNull = (!$column->isPrimaryKey() && $this->isNullableInGeneratedObjectApi($column)) ? '|null' : '';
 
         $script .= "
     /**
@@ -1654,18 +1658,32 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addDefaultAccessorBody(string &$script, Column $column): void
     {
         $clo = $column->getLowercasedName();
+        $cfc = $column->getPhpName();
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        $fallback = '';
-        $unsetValue = $column->isPrimaryKey() ? null : $this->getUnsetValueForAccessor($column);
-        if ($unsetValue !== null) {
-            $fallback = " ?? {$unsetValue}";
+        if ($column->isPrimaryKey()) {
+            $script .= "
+        if (\$this->$clo === null) {
+            throw new PropelException('Cannot return a null primary key from get$cfc(). Use tryGet$cfc() if you need the nullable value.');
+        }
+
+        return \$this->$clo;";
+
+            return;
+        }
+
+        $unsetValue = $this->getUnsetValueForAccessor($column);
+        if ($unsetValue === null) {
+            $script .= "
+        return \$this->$clo;";
+
+            return;
         }
 
         $script .= "
-        return \$this->$clo$fallback;";
+        return \$this->$clo ?? {$unsetValue};";
     }
 
     /**
@@ -1678,6 +1696,51 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addDefaultAccessorClose(string &$script): void
     {
         $script .= "
+    }
+";
+    }
+
+    /**
+     * Adds a nullable accessor for primary key columns.
+     *
+     * @param string $script
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return void
+     */
+    protected function addTryDefaultAccessor(string &$script, Column $column): void
+    {
+        $clo = $column->getLowercasedName();
+        $cfc = $column->getPhpName();
+        $visibility = $column->getAccessorVisibility();
+        $type = $column->getTypeHint() ?: ($column->getPhpType() ?: 'mixed');
+
+        $script .= "
+
+    /**
+     * Try to get the [$clo] column value.
+     * " . $column->getDescription();
+        if ($column->isLazyLoad()) {
+            $script .= "
+     * @param ?ConnectionInterface \$con An optional ConnectionInterface connection to use for fetching this lazy-loaded column.";
+        }
+        $script .= "
+     * @return {$type}|null
+     */
+    {$visibility} function tryGet{$cfc}(";
+        if ($column->isLazyLoad()) {
+            $script .= '?ConnectionInterface $con = null';
+        }
+
+        $script .= ")
+    {";
+
+        if ($column->isLazyLoad()) {
+            $script .= $this->getAccessorLazyLoadSnippet($column);
+        }
+
+        $script .= "
+        return \$this->$clo;
     }
 ";
     }
@@ -4006,7 +4069,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function getPrimaryKey()
     {
-        return \$this->get" . $pkeys[0]->getPhpName() . "();
+        return \$this->tryGet" . $pkeys[0]->getPhpName() . "();
     }
 ";
     }
@@ -4172,7 +4235,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {";
         if (count($pkeys) === 1) {
             $script .= "
-        return {$this->getPrimaryKeyUnsetValue($pkeys[0])} === \$this->get" . $pkeys[0]->getPhpName() . '();';
+        return {$this->getPrimaryKeyUnsetValue($pkeys[0])} === \$this->tryGet" . $pkeys[0]->getPhpName() . '();';
         } elseif ($pkeys) {
             $tests = [];
             foreach ($pkeys as $ind => $pkey) {

@@ -21,6 +21,7 @@ use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Platform\SqlitePlatform;
 use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
+use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Propel;
 use Propel\Tests\TestCase;
 
@@ -189,5 +190,106 @@ EOF;
         $this->assertDirectoryExists(
             sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . substr(sha1(getcwd()), 0, 10)
         );
+    }
+
+    public function testGeneratedCrudWithAutoIncrementPrimaryKeyAccessors(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_4" namespace="MyNameSpace4">
+    <table name="quick_build_foo_4">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="bar" type="INTEGER"/>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $foo = new \MyNameSpace4\QuickBuildFoo4();
+
+        $this->assertNull($foo->tryGetId());
+        $this->assertNull($foo->getPrimaryKey());
+        $this->assertTrue($foo->isPrimaryKeyNull());
+
+        try {
+            $foo->getId();
+            $this->fail('Expected getId() to throw when the auto-increment primary key is unset.');
+        } catch (PropelException $exception) {
+            $this->assertSame(
+                'Cannot return a null primary key from getId(). Use tryGetId() if you need the nullable value.',
+                $exception->getMessage()
+            );
+        }
+
+        $foo->setBar(3);
+        $foo->save();
+
+        $id = $foo->getId();
+        $this->assertIsInt($id);
+        $this->assertSame($id, $foo->tryGetId());
+        $this->assertSame($id, $foo->getPrimaryKey());
+        $this->assertFalse($foo->isPrimaryKeyNull());
+
+        $found = \MyNameSpace4\QuickBuildFoo4Query::create()->findPk($id);
+        $this->assertNotNull($found);
+        $this->assertSame($id, $found->getId());
+        $this->assertSame(3, $found->getBar());
+
+        $found->setBar(5);
+        $found->save();
+        $this->assertSame($id, $found->getId());
+
+        $found->reload();
+        $this->assertSame($id, $found->getId());
+        $this->assertSame(5, $found->getBar());
+
+        $found->delete();
+        $this->assertSame(0, \MyNameSpace4\QuickBuildFoo4Query::create()->count());
+        $this->assertSame($id, $found->getId());
+        $this->assertSame($id, $found->tryGetId());
+    }
+
+    public function testGeneratedCrudWithAssignedPrimaryKeyAccessors(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_5" namespace="MyNameSpace5">
+    <table name="quick_build_foo_5">
+        <column name="id" primaryKey="true" type="INTEGER" required="true"/>
+        <column name="bar" type="INTEGER"/>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $foo = new \MyNameSpace5\QuickBuildFoo5();
+        $foo->setId(42);
+        $foo->setBar(7);
+
+        $this->assertSame(42, $foo->getId());
+        $this->assertSame(42, $foo->tryGetId());
+        $this->assertSame(42, $foo->getPrimaryKey());
+        $this->assertFalse($foo->isPrimaryKeyNull());
+
+        $foo->save();
+
+        $found = \MyNameSpace5\QuickBuildFoo5Query::create()->findPk(42);
+        $this->assertNotNull($found);
+        $this->assertSame(42, $found->getId());
+        $this->assertSame(7, $found->getBar());
+
+        $found->setBar(9);
+        $found->save();
+        $found->reload();
+
+        $this->assertSame(42, $found->getId());
+        $this->assertSame(9, $found->getBar());
+
+        $found->delete();
+        $this->assertSame(0, \MyNameSpace5\QuickBuildFoo5Query::create()->count());
+        $this->assertSame(42, $found->getId());
+        $this->assertSame(42, $found->tryGetId());
     }
 }
