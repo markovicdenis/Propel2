@@ -170,7 +170,15 @@ XML;
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
-            'public function useAuthorExistsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfExists = \'EXISTS\'): \Example\Books\AuthorQuery',
+            '@return \Example\Books\AuthorQuery|ModelCriteria The inner query object of the EXISTS statement',
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            '@psalm-return ($queryClass is null ? \Example\Books\AuthorQuery : TQuery)',
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            'public function useAuthorExistsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfExists = \'EXISTS\'): ModelCriteria',
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
@@ -178,11 +186,15 @@ XML;
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
-            'public function useAuthorNotExistsQuery(?string $modelAlias = null, ?string $queryClass = null): \Example\Books\AuthorQuery',
+            'public function useAuthorNotExistsQuery(?string $modelAlias = null, ?string $queryClass = null): ModelCriteria',
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
-            'public function useInAuthorQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfIn = \' IN \'): \Example\Books\AuthorQuery',
+            '@return \Example\Books\AuthorQuery|ModelCriteria The inner query object of the IN statement',
+            $relatedQueryDefinition
+        );
+        $this->assertStringContainsString(
+            'public function useInAuthorQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfIn = \' IN \'): ModelCriteria',
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
@@ -190,7 +202,7 @@ XML;
             $relatedQueryDefinition
         );
         $this->assertStringContainsString(
-            'public function useNotInAuthorQuery(?string $modelAlias = null, ?string $queryClass = null): \Example\Books\AuthorQuery',
+            'public function useNotInAuthorQuery(?string $modelAlias = null, ?string $queryClass = null): ModelCriteria',
             $relatedQueryDefinition
         );
     }

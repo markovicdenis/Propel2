@@ -18,6 +18,11 @@ use Propel\Generator\Model\Index;
  */
 class IndexTest extends ModelTestCase
 {
+    protected static function createProviderInstance(): self
+    {
+        return new self('provider');
+    }
+
     /**
      * @return void
      */
@@ -101,10 +106,12 @@ class IndexTest extends ModelTestCase
 
     public static function provideColumnDefinitions()
     {
+        $test = self::createProviderInstance();
+
         $dataset[0][] = [
-            $this->getColumnMock('foo', [ 'size' => 100 ]),
-            $this->getColumnMock('bar', [ 'size' => 5   ]),
-            $this->getColumnMock('baz', [ 'size' => 0   ]),
+            $test->getColumnMock('foo', [ 'size' => 100 ]),
+            $test->getColumnMock('bar', [ 'size' => 5   ]),
+            $test->getColumnMock('baz', [ 'size' => 0   ]),
         ];
 
         $dataset[1][] = [

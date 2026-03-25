@@ -80,11 +80,11 @@ EOF;
     {
         $r = new ComplexColumnTypeEntity5();
         $r->setBar1(new DateTime('1602-02-02'));
-        $this->assertEquals('1602-02-02', $r->getBar1(null)->format('Y-m-d'));
+        $this->assertEquals('1602-02-02', $r->getBar1()->format('Y-m-d'));
 
         $r->setBar1('1702-02-02');
         $this->assertTrue($r->isModified());
-        $this->assertEquals('1702-02-02', $r->getBar1(null)->format('Y-m-d'));
+        $this->assertEquals('1702-02-02', $r->getBar1()->format('Y-m-d'));
     }
 
     /**
@@ -109,7 +109,7 @@ EOF;
 
         $r = new ComplexColumnTypeEntity5();
         $r->setBar2(strtotime('12:55'));
-        $this->assertEquals('12:55', $r->getBar2(null)->format('H:i'));
+        $this->assertEquals('12:55', $r->getBar2()->format('H:i'));
 
         $r = new ComplexColumnTypeEntity5();
         $r->setBar3(time());
@@ -118,6 +118,28 @@ EOF;
         $r = new ComplexColumnTypeEntity5();
         $r->setDatetimecolumn(time());
         $this->assertEquals(date('Y-m-d H:i'), $r->getDatetimecolumn()->format('Y-m-d H:i'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testGenericTemporalAccessorsNormalizeValues()
+    {
+        $r = new ComplexColumnTypeEntity5();
+
+        $returned = $r->fromArray([
+            'Bar1' => '1999-12-20',
+            'Bar2' => '12:55:00',
+            'Bar3' => '1999-12-20 12:55:00',
+        ]);
+
+        $this->assertSame($r, $returned);
+        $this->assertInstanceOf(DateTime::class, $r->getByName('Bar1'));
+        $this->assertInstanceOf(DateTime::class, $r->getByName('Bar2'));
+        $this->assertInstanceOf(DateTime::class, $r->getByName('Bar3'));
+        $this->assertSame('1999-12-20', $r->toArray()['Bar1']);
+        $this->assertSame('12:55:00.000000', $r->toArray()['Bar2']);
+        $this->assertSame('1999-12-20 12:55:00.000000', $r->toArray()['Bar3']);
     }
 
     public static function persistenceDataProvider()

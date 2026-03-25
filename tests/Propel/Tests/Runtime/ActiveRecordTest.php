@@ -8,12 +8,15 @@
 
 namespace Propel\Tests\Runtime\ActiveRecord;
 
+use DateTime;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
+use ReflectionMethod;
 use Propel\Tests\TestCase;
 use ReflectionProperty;
 use RuntimeException;
 use stdClass;
+use Closure;
 
 /**
  * Test class for ActiveRecord.
@@ -142,6 +145,94 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(7, $record->resolveFromTestRow([7, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn ($v) => (int) $v));
         $this->assertSame('nick', $record->resolveFromTestRow(['Id' => 7, 'Nick' => 'nick'], 1, 0, TableMap::TYPE_PHPNAME, static fn ($v) => (string) $v));
         $this->assertNull($record->resolveFromTestRow([null, 'nick'], 0, 0, TableMap::TYPE_NUM, static fn () => throw new RuntimeException('should not run')));
+    }
+
+    /**
+     * @return void
+     */
+    public function testCastToCastsScalarValues()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->assertSame('7', $record->castToTestValue(7, 'string', true));
+        $this->assertSame(7, $record->castToTestValue('7', 'int', true));
+        $this->assertSame(7.5, $record->castToTestValue('7.5', 'float', true));
+        $this->assertTrue($record->castToTestValue(1, 'bool', true));
+        $this->assertNull($record->castToTestValue(null, 'string', true));
+        $this->assertNull($record->castToTestValue(null, 'string', false));
+    }
+
+    /**
+     * @return void
+     */
+    public function testValidatePrimaryKeyUsesGeneratedUnsetValue()
+    {
+        $record = new TestableActiveRecord();
+        $method = new ReflectionMethod($record, 'validatePrimaryKey');
+        $method->setAccessible(true);
+
+        $this->assertFalse($method->invoke($record, null, null));
+        $this->assertFalse($method->invoke($record, '', ''));
+        $this->assertTrue($method->invoke($record, 7, null));
+    }
+
+    /**
+     * @return void
+     */
+    public function testValidatePrimaryKeysUsesGeneratedUnsetValues()
+    {
+        $record = new TestableActiveRecord();
+        $method = new ReflectionMethod($record, 'validatePrimaryKeys');
+        $method->setAccessible(true);
+
+        $this->assertFalse($method->invoke($record, [7], [null, '']));
+        $this->assertFalse($method->invoke($record, [7, ''], [null, '']));
+        $this->assertTrue($method->invoke($record, [7, 'code'], [null, '']));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetTemporalValueNormalizesClonesAndMarksColumnModified()
+    {
+        $record = new TestableActiveRecord();
+        $source = new DateTime('2024-01-02 03:04:05.123456');
+        $setter = Closure::bind(
+            function ($value, string $dateTimeClass, string $columnConstant, string $comparisonFormat, ?string $defaultValue = null, ?string $defaultValueFormat = null): void {
+                $this->setTemporalValue($this->temporalValue, $value, $dateTimeClass, $columnConstant, $comparisonFormat, $defaultValue, $defaultValueFormat);
+            },
+            $record,
+            $record
+        );
+
+        $setter($source, '\\DateTime', TestableActiveRecordTableMap::COL_CREATED_AT, 'Y-m-d H:i:s.u');
+
+        $this->assertInstanceOf(DateTime::class, $record->temporalValue);
+        $this->assertNotSame($source, $record->temporalValue);
+        $this->assertSame(['testable_active_record.created_at'], $record->getModifiedColumns());
+
+        $source->modify('+1 day');
+        $this->assertSame('2024-01-02 03:04:05.123456', $record->temporalValue->format('Y-m-d H:i:s.u'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetTemporalValueSkipsModificationWhenValueDoesNotChange()
+    {
+        $record = new TestableActiveRecord();
+        $record->temporalValue = new DateTime('2024-01-02 03:04:05.123456');
+        $setter = Closure::bind(
+            function ($value, string $dateTimeClass, string $columnConstant, string $comparisonFormat, ?string $defaultValue = null, ?string $defaultValueFormat = null): void {
+                $this->setTemporalValue($this->temporalValue, $value, $dateTimeClass, $columnConstant, $comparisonFormat, $defaultValue, $defaultValueFormat);
+            },
+            $record,
+            $record
+        );
+
+        $setter('2024-01-02 03:04:05.123456', '\\DateTime', TestableActiveRecordTableMap::COL_CREATED_AT, 'Y-m-d H:i:s.u');
+
+        $this->assertSame([], $record->getModifiedColumns());
     }
 
     /**

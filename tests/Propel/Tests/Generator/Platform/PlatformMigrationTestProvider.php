@@ -21,6 +21,11 @@ use Propel\Generator\Model\Table;
  */
 abstract class PlatformMigrationTestProvider extends PlatformTestBase
 {
+    protected static function createProviderInstance(): static
+    {
+        return new static('provider');
+    }
+
     /**
      * @return array
      */
@@ -62,8 +67,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $d1 = $this->getDatabaseFromSchema($schema1);
-        $d2 = $this->getDatabaseFromSchema($schema2);
+        $provider = static::createProviderInstance();
+        $d1 = $provider->getDatabaseFromSchema($schema1);
+        $d2 = $provider->getDatabaseFromSchema($schema2);
 
         return [[DatabaseComparator::computeDiff($d1, $d2, $caseInsensitive = false, $withRenaming = true)]];
     }
@@ -126,8 +132,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo');
 
         return [[TableComparator::computeDiff($t1, $t2)]];
     }
@@ -153,8 +160,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -183,8 +191,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -238,8 +247,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -292,8 +302,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo1');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo1');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo1');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo1');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -334,8 +345,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo1');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo1');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo1');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo1');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -373,8 +385,9 @@ EOF;
     </table>
 </database>
 EOF;
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable('foo1');
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable('foo1');
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable('foo1');
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable('foo1');
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -419,13 +432,14 @@ EOF;
         $t1 = new Table('foo');
         $t1->setIdentifierQuoting(true);
         $c1 = new Column('bar');
-        $c1->getDomain()->copy($this->getPlatform()->getDomainForType('DOUBLE'));
+        $provider = static::createProviderInstance();
+        $c1->getDomain()->copy($provider->getPlatform()->getDomainForType('DOUBLE'));
         $c1->getDomain()->replaceSize(2);
         $t1->addColumn($c1);
         $t2 = new Table('foo');
         $t2->setIdentifierQuoting(true);
         $c2 = new Column('bar');
-        $c2->getDomain()->copy($this->getPlatform()->getDomainForType('DOUBLE'));
+        $c2->getDomain()->copy($provider->getPlatform()->getDomainForType('DOUBLE'));
         $c2->getDomain()->replaceSize(3);
         $t2->addColumn($c2);
 
@@ -437,7 +451,8 @@ EOF;
         $t1 = new Table('foo');
         $t1->setIdentifierQuoting(true);
         $c1 = new Column('bar1');
-        $c1->getDomain()->copy($this->getPlatform()->getDomainForType('DOUBLE'));
+        $provider = static::createProviderInstance();
+        $c1->getDomain()->copy($provider->getPlatform()->getDomainForType('DOUBLE'));
         $c1->getDomain()->replaceSize(2);
         $t1->addColumn($c1);
         $c2 = new Column('bar2');
@@ -449,7 +464,7 @@ EOF;
         $t2->setIdentifierQuoting(true);
         $t2->setIdentifierQuoting(true);
         $c3 = new Column('bar1');
-        $c3->getDomain()->copy($this->getPlatform()->getDomainForType('DOUBLE'));
+        $c3->getDomain()->copy($provider->getPlatform()->getDomainForType('DOUBLE'));
         $c3->getDomain()->replaceSize(3);
         $t2->addColumn($c3);
         $c4 = new Column('bar2');
@@ -474,7 +489,8 @@ EOF;
     </table>
 </database>
 EOF;
-        $column = $this->getDatabaseFromSchema($schema)->getTable('foo')->getColumn('bar');
+        $provider = static::createProviderInstance();
+        $column = $provider->getDatabaseFromSchema($schema)->getTable('foo')->getColumn('bar');
 
         return [[$column]];
     }
@@ -490,7 +506,8 @@ EOF;
     </table>
 </database>
 EOF;
-        $table = $this->getDatabaseFromSchema($schema)->getTable('foo');
+        $provider = static::createProviderInstance();
+        $table = $provider->getDatabaseFromSchema($schema)->getTable('foo');
 
         return [[[$table->getColumn('bar1'), $table->getColumn('bar2')]]];
     }
@@ -541,8 +558,9 @@ EOF;
   </table>
 </database>
 EOF;
-        $d1 = $this->getDatabaseFromSchema($schema1);
-        $d2 = $this->getDatabaseFromSchema($schema2);
+        $provider = static::createProviderInstance();
+        $d1 = $provider->getDatabaseFromSchema($schema1);
+        $d2 = $provider->getDatabaseFromSchema($schema2);
         $diff = DatabaseComparator::computeDiff($d1, $d2);
 
         return [[$diff]];
@@ -575,8 +593,9 @@ EOF;
   </table>
 </database>
 EOF;
-        $d1 = $this->getDatabaseFromSchema($schema1);
-        $d2 = $this->getDatabaseFromSchema($schema2);
+        $provider = static::createProviderInstance();
+        $d1 = $provider->getDatabaseFromSchema($schema1);
+        $d2 = $provider->getDatabaseFromSchema($schema2);
         $diff = DatabaseComparator::computeDiff($d2, $d1);
 
         return [[$diff]];
@@ -599,8 +618,9 @@ EOF;
 </database>
 EOF;
 
-        $t1 = $this->getDatabaseFromSchema($schema1)->getTable($tableName);
-        $t2 = $this->getDatabaseFromSchema($schema2)->getTable($tableName);
+        $provider = static::createProviderInstance();
+        $t1 = $provider->getDatabaseFromSchema($schema1)->getTable($tableName);
+        $t2 = $provider->getDatabaseFromSchema($schema2)->getTable($tableName);
         $tc = new TableComparator();
         $tc->setFromTable($t1);
         $tc->setToTable($t2);
@@ -618,7 +638,7 @@ EOF;
         <column name="id" primaryKey="true" type="UUID" default="vendor_specific_uuid_generator_function()"/>
 EOF;
 
-        return [[$this->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
 
     public static function providerForTestMigrateToUuidBinColumn()
@@ -630,7 +650,7 @@ EOF;
         <column name="id" primaryKey="true" type="UUID_BINARY" default="vendor_specific_uuid_generator_function()"/>
 EOF;
 
-        return [[$this->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
 
     public static function providerForTestMigrateFromUuidBinColumn()
@@ -642,6 +662,6 @@ EOF;
         <column name="id" primaryKey="true" type="VARCHAR" size="36" content="UUID"/>
 EOF;
 
-        return [[$this->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
 }

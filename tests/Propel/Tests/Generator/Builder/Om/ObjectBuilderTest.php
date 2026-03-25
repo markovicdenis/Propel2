@@ -9,8 +9,10 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use Propel\Generator\Builder\Om\ObjectBuilder;
+use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
+use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Domain;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
@@ -217,6 +219,344 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringNotContainsString('match ($columnName)', $script);
     }
 
+    /**
+     * @return void
+     */
+    public function testDefaultMutatorUsesSharedCastHelper()
+    {
+        $table = new Table('Foo');
+
+        $resolution = new Column('resolution');
+        $resolution->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($resolution);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addDefaultMutatorToScript($script, $resolution);
+
+        $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'string', true);", $script);
+        $this->assertStringNotContainsString("\$v = (string) \$v;", $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testReadOnlyModelsDoNotGenerateCopyMethods()
+    {
+        $database = new Database('test');
+
+        $table = new Table('ReadOnlyThing');
+        $table->setReadOnly(true);
+        $database->addTable($table);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $table->addColumn($id);
+
+        $name = new Column('name');
+        $name->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($name);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addClassBodyToScript($script);
+
+        $this->assertStringNotContainsString('public function copy(bool $deepCopy = false)', $script);
+        $this->assertStringNotContainsString('public function copyInto(object $copyObj, bool $deepCopy = false, bool $makeNew = true): void', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashCodeUsesTraitPrimaryKeyValidatorForSinglePrimaryKey()
+    {
+        $table = new Table('Author');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setAutoIncrement(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addHashCodeToScript($script);
+
+        $this->assertStringContainsString('$validPk = $this->validatePrimaryKey($this->getPrimaryKey(), null);', $script);
+        $this->assertStringNotContainsString('null !== $this->getId()', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashCodeUsesTraitPrimaryKeyValidatorForCompositePrimaryKey()
+    {
+        $table = new Table('Widget');
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setNotNull(true);
+        $table->addColumn($id);
+
+        $code = new Column('code');
+        $code->setDomain(new Domain('VARCHAR'));
+        $code->setPrimaryKey(true);
+        $code->setNotNull(true);
+        $table->addColumn($code);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addHashCodeToScript($script);
+
+        $this->assertStringContainsString('$validPk = $this->validatePrimaryKeys($this->getPrimaryKey(), [0, \'\']);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testForeignKeyScalarAccessorsAndMutatorsStayNullableInGeneratedApi()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $database->addTable($affiliateTable);
+
+        $affiliateGroupId = new Column('affiliate_group_id');
+        $affiliateGroupId->setDomain(new Domain('INTEGER'));
+        $affiliateGroupId->setNotNull(true);
+        $affiliateTable->addColumn($affiliateGroupId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('affiliate_group_id', 'id');
+
+        $builder = new TestableObjectBuilder($affiliateTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $accessorComment = '';
+        $builder->addDefaultAccessorCommentToScript($accessorComment, $affiliateGroupId);
+
+        $mutatorComment = '';
+        $builder->addMutatorCommentToScript($mutatorComment, $affiliateGroupId);
+
+        $mutator = '';
+        $builder->addDefaultMutatorToScript($mutator, $affiliateGroupId);
+
+        $this->assertStringContainsString('* @return int|null', $accessorComment);
+        $this->assertStringContainsString('* @param int|null $v New value', $mutatorComment);
+        $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+    }
+
+    /**
+     * @return void
+     */
+    public function testForeignKeyObjectMethodsUseBaseRelatedTypes()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $groupTable->setNamespace('Model');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateId->setAutoIncrement(true);
+        $affiliateTable->addColumn($affiliateId);
+
+        $affiliateGroupId = new Column('affiliate_group_id');
+        $affiliateGroupId->setDomain(new Domain('INTEGER'));
+        $affiliateTable->addColumn($affiliateGroupId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('affiliate_group_id', 'id');
+
+        $affiliateBuilder = new TestableObjectBuilder($affiliateTable);
+        $affiliateBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $affiliateBuilder->setPlatform(new MysqlPlatform());
+
+        $fk = $affiliateTable->getForeignKeys()[0];
+
+        $fkMutator = '';
+        $affiliateBuilder->addFKMutatorToScript($fkMutator, $fk);
+
+        $fkAccessor = '';
+        $affiliateBuilder->addFKAccessorToScript($fkAccessor, $fk);
+
+        $groupBuilder = new TestableObjectBuilder($groupTable);
+        $groupBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $groupBuilder->setPlatform(new MysqlPlatform());
+
+        $refFk = $fk;
+
+        $refFkAdd = '';
+        $groupBuilder->addRefFKAddToScript($refFkAdd, $refFk);
+
+        $refFkDoAdd = '';
+        $groupBuilder->addRefFKDoAddToScript($refFkDoAdd, $refFk);
+
+        $this->assertStringContainsString('public function setAffiliateGroup(?AffiliateGroup $v = null)', $fkMutator);
+        $this->assertStringNotContainsString('ChildAffiliateGroup', $fkMutator);
+        $this->assertStringContainsString('@return AffiliateGroup|null', $fkAccessor);
+        $this->assertStringNotContainsString('@return ChildAffiliateGroup', $fkAccessor);
+        $this->assertStringContainsString('public function addAffiliate(Affiliate $l)', $refFkAdd);
+        $this->assertStringNotContainsString('ChildAffiliate', $refFkAdd);
+        $this->assertStringContainsString('protected function doAddAffiliate(Affiliate $affiliate): void', $refFkDoAdd);
+        $this->assertStringNotContainsString('ChildAffiliate', $refFkDoAdd);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetPrimaryKeyUsesNullUnsetValueForForeignPrimaryKeys()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('Parent');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentId->setAutoIncrement(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('Child');
+        $database->addTable($childTable);
+        $childId = clone $parentId;
+        $childId->setAutoIncrement(false);
+        $childTable->addColumn($childId);
+        $childTable->addForeignKey([
+            'foreignTable' => 'Parent',
+            'onDelete' => 'CASCADE',
+        ])->addReference('id', 'id');
+
+        $builder = new TestableObjectBuilder($childTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addSetPrimaryKeyToScript($script);
+
+        $this->assertStringContainsString('public function setPrimaryKey(?int $key = null): void', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTemporalAccessorCommentUsesNullableReturnTypeWithoutThrows()
+    {
+        $column = new Column('created_at');
+        $column->setDomain(new Domain('TIMESTAMP'));
+
+        $script = '';
+        $this->builder->addTemporalAccessorCommentToScript($script, $column);
+
+        $this->assertStringContainsString('* @return \DateTime|null', $script);
+        $this->assertStringNotContainsString('@throws \Propel\Runtime\Exception\PropelException', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTemporalAccessorCommentUsesNonNullReturnTypeWhenRequired()
+    {
+        $column = new Column('created_at');
+        $column->setDomain(new Domain('TIMESTAMP'));
+        $column->setNotNull(true);
+
+        $script = '';
+        $this->builder->addTemporalAccessorCommentToScript($script, $column);
+
+        $this->assertStringContainsString('* @return \DateTime', $script);
+        $this->assertStringNotContainsString('* @return \DateTime|null', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTemporalAccessorOpenDoesNotUsePhpReturnTypeForNullableColumn()
+    {
+        $column = new Column('blocking_limit');
+        $column->setDomain(new Domain('TIMESTAMP'));
+
+        $script = '';
+        $this->builder->addTemporalAccessorOpenToScript($script, $column);
+
+        $this->assertStringContainsString('public function getBlockingLimit()', $script);
+        $this->assertStringNotContainsString(': ?\DateTime', $script);
+        $this->assertStringNotContainsString(': \DateTime', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTemporalAccessorOpenDoesNotUsePhpReturnTypeWhenRequired()
+    {
+        $column = new Column('blocking_limit');
+        $column->setDomain(new Domain('TIMESTAMP'));
+        $column->setNotNull(true);
+
+        $script = '';
+        $this->builder->addTemporalAccessorOpenToScript($script, $column);
+
+        $this->assertStringContainsString('public function getBlockingLimit()', $script);
+        $this->assertStringNotContainsString(': ?\DateTime', $script);
+        $this->assertStringNotContainsString(': \DateTime', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testTemporalMutatorAcceptsLegacyScalarInputs()
+    {
+        $table = new Table('Foo');
+
+        $column = new Column('register_stamp');
+        $column->setDomain(new Domain('TIMESTAMP'));
+        $table->addColumn($column);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addTemporalMutatorToScript($script, $column);
+
+        $this->assertStringContainsString('@param string|integer|\DateTimeInterface|null $v string, integer (timestamp), or \DateTimeInterface value.', $script);
+        $this->assertStringContainsString('public function setRegisterStamp($v)', $script);
+        $this->assertStringContainsString("\$this->setTemporalValue(\$this->register_stamp, \$v, '\\DateTime', FooTableMap::COL_REGISTER_STAMP, 'Y-m-d H:i:s.u');", $script);
+    }
+
 }
 
 class TestableObjectBuilder extends ObjectBuilder
@@ -261,6 +601,21 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addBaseObjectMethods($script);
     }
 
+    public function addHashCodeToScript(string &$script): void
+    {
+        $this->addHashCode($script);
+    }
+
+    public function addClassBodyToScript(string &$script): void
+    {
+        $this->addClassBody($script);
+    }
+
+    public function addSetPrimaryKeyToScript(string &$script): void
+    {
+        $this->addSetPrimaryKey($script);
+    }
+
     public function addCommonTraitUsesToScript(string &$script): void
     {
         $this->addCommonTraitUses($script);
@@ -269,5 +624,63 @@ class TestableObjectBuilder extends ObjectBuilder
     public function getResolveFromRowExpressionForColumn(Column $column, int $position): ?string
     {
         return $this->getResolveFromRowExpression($column, $position);
+    }
+
+    public function addTemporalAccessorCommentToScript(string &$script, Column $column): void
+    {
+        $this->addTemporalAccessorComment($script, $column);
+    }
+
+    public function addTemporalAccessorOpenToScript(string &$script, Column $column): void
+    {
+        $this->addTemporalAccessorOpen($script, $column);
+    }
+
+    public function addTemporalMutatorToScript(string &$script, Column $column): void
+    {
+        $this->addTemporalMutator($script, $column);
+    }
+
+    public function addFKMutatorToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addFKMutator($script, $foreignKey);
+    }
+
+    public function addFKAccessorToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addFKAccessor($script, $foreignKey);
+    }
+
+    public function addRefFKAddToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addRefFKAdd($script, $foreignKey);
+    }
+
+    public function addRefFKDoAddToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addRefFKDoAdd($script, $foreignKey);
+    }
+
+    public function addDefaultAccessorCommentToScript(string &$script, Column $column): void
+    {
+        $this->addDefaultAccessorComment($script, $column);
+    }
+
+    public function addMutatorCommentToScript(string &$script, Column $column): void
+    {
+        $this->addMutatorComment($script, $column);
+    }
+
+    public function addDefaultMutatorToScript(string &$script, Column $column): void
+    {
+        $this->addDefaultMutator($script, $column);
     }
 }

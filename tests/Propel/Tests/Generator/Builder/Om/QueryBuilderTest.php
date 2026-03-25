@@ -890,7 +890,7 @@ class QueryBuilderTest extends BookstoreTestBase
             ->limit(2)
             ->find($this->con);
 
-        $this->assertInstanceOf(\Propel\Tests\Bookstore\RecordLabel::class, $testLabel);
+        $this->assertInstanceOf(\Propel\Runtime\Collection\ObjectCollection::class, $testLabel);
 
         ReleasePoolQuery::create()
             ->addJoin(ReleasePoolTableMap::COL_RECORD_LABEL_ID, RecordLabelTableMap::COL_ID)

@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
+use DateTime;
 use Exception;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Propel;
@@ -186,13 +187,13 @@ class GeneratedQueryDoDeleteTest extends BookstoreEmptyTestBase
         $bc2->save();
 
         $bce1 = new BookstoreContestEntry();
-        $bce1->setEntryDate('now');
+        $bce1->setEntryDate(new DateTime('now'));
         $bce1->setCustomer($cust1);
         $bce1->setBookstoreContest($bc1);
         $bce1->save();
 
         $bce2 = new BookstoreContestEntry();
-        $bce2->setEntryDate('now');
+        $bce2->setEntryDate(new DateTime('now'));
         $bce2->setCustomer($cust1);
         $bce2->setBookstoreContest($bc2);
         $bce2->save();

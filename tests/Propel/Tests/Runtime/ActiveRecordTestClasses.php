@@ -31,6 +31,8 @@ class TestableActiveRecord implements ActiveRecordInterface
 
     public $primaryKey;
 
+    public $temporalValue;
+
     public function isPrimaryKeyNull(): bool
     {
         return $this->primaryKey === null;
@@ -56,9 +58,13 @@ class TestableActiveRecord implements ActiveRecordInterface
         int $startcol = 0,
         string $indexType = TableMap::TYPE_NUM,
         ?callable $transformer = null
-    )
-    {
+    ) {
         return $this->resolveFromRow($row, $position, $startcol, $indexType, $transformer);
+    }
+
+    public function castToTestValue($value, string $type, bool $isNullable)
+    {
+        return $this->castTo($value, $type, $isNullable);
     }
 }
 
@@ -67,6 +73,7 @@ class TestableActiveRecordTableMap extends TableMap
     use TableMapTrait;
 
     public const TABLE_NAME = 'testable_active_record';
+    public const COL_CREATED_AT = 'testable_active_record.created_at';
 
     protected static array $fieldNames = [
         TableMap::TYPE_PHPNAME => ['Id', 'Nick'],

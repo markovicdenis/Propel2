@@ -107,7 +107,7 @@ class GeneratedObjectTest extends BookstoreTestBase
         // 2) check date/time values
         $review = new Review();
         // note that this is different from how it's represented in schema, but should resolve to same unix timestamp
-        $review->setReviewDate('2001-01-01');
+        $review->setReviewDate(new DateTime('2001-01-01'));
         $this->assertTrue($review->isModified(), "Expect Review to have been marked 'modified' after default date/time value set.");
     }
 
@@ -148,7 +148,7 @@ class GeneratedObjectTest extends BookstoreTestBase
     public function testDefaultValues()
     {
         $r = new Review();
-        $this->assertEquals('2001-01-01', $r->getReviewDate('Y-m-d'));
+        $this->assertInstanceOf(DateTime::class, $r->getReviewDate());
 
         $this->assertFalse($r->isModified(), 'expected isModified() to be false');
 
@@ -199,10 +199,10 @@ class GeneratedObjectTest extends BookstoreTestBase
         $this->assertNotNull($acct->getCreated(), 'Expected a valid date after retrieving saved object.');
 
         $now = new DateTime('now');
-        $this->assertEquals($now->format('Y-m-d'), $acct->getCreated('Y-m-d'));
+        $this->assertEquals($now->format('Y-m-d'), $acct->getCreated()->format('Y-m-d'));
 
         $acct->setCreated($now);
-        $this->assertEquals($now->format('Y-m-d'), $acct->getCreated('Y-m-d'));
+        $this->assertEquals($now->format('Y-m-d'), $acct->getCreated()->format('Y-m-d'));
 
         // Unfortunately we can't really test the conjunction of reloadOnInsert and reloadOnUpdate when using just
         // default values. (At least not in a cross-db way.)

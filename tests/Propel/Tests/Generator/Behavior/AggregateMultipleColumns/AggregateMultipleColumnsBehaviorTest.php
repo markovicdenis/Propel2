@@ -19,6 +19,8 @@ use Propel\Tests\Bookstore\Behavior\Map\AggregateMultipleScoreGroupTableMap;
 use Propel\Tests\Bookstore\Behavior\Map\AggregateMultipleScoreTableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 
+use function count;
+
 /**
  * Tests for AggregateColumnBehavior class.
  *
@@ -169,7 +171,7 @@ EOF;
      * @param string $exceptionClass
      * @param string $expectedMessage
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return void
      */
@@ -331,7 +333,7 @@ EOF;
         $this->assertEquals($scoreSum, $group->getTotalScore(), 'Score sum did not match after ' . $testDescription);
         $this->assertEquals($minScore, $group->getMinScore(), 'Min score did not match after ' . $testDescription);
         $this->assertEquals($maxScore, $group->getMaxScore(), 'Max score did not match after ' . $testDescription);
-        $this->assertEquals($firstScoreAt, $group->getFirstScoreAt('Y-m-d'), 'Max date did not match after ' . $testDescription);
-        $this->assertEquals($lastScoreAt, $group->getLastScoreAt('Y-m-d'), 'Min date did not match after ' . $testDescription);
+        $this->assertEquals($firstScoreAt, $group->getFirstScoreAt()?->format('Y-m-d'), 'Max date did not match after ' . $testDescription);
+        $this->assertEquals($lastScoreAt, $group->getLastScoreAt()?->format('Y-m-d'), 'Min date did not match after ' . $testDescription);
     }
 }

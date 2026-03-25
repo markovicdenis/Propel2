@@ -26,7 +26,8 @@ class MysqlPlatformMigrationTestProvider extends PlatformMigrationTestProvider
     </table>
 </database>
 EOF;
-        $column = $this->getDatabaseFromSchema($schema)->getTable('foo')->getColumn('bar');
+        $provider = static::createProviderInstance();
+        $column = $provider->getDatabaseFromSchema($schema)->getTable('foo')->getColumn('bar');
 
         return [[$column]];
     }

@@ -436,6 +436,7 @@ class TableMapBuilderTest extends BookstoreTestBase
      *
      * @return void
      */
+    #[\PHPUnit\Framework\Attributes\DataProvider('stringifyDataProvider')]
     public function testStringify($scalarData, string $message): void
     {
         $builder = new class (new Table('any')) extends TableMapBuilder {

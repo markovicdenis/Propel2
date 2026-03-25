@@ -12,13 +12,113 @@ use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
+use Propel\Runtime\Util\PropelDateTime;
 
 use function array_key_exists;
+use function count;
 use function get_class;
 use function sprintf;
 
 trait ActiveRecordCommonTrait
 {
+    /**
+     * Validate a single-column primary key against its generated unset value.
+     *
+     * @param mixed $primaryKey
+     * @param mixed $unsetValue
+     *
+     * @return bool
+     */
+    protected function validatePrimaryKey($primaryKey, $unsetValue): bool
+    {
+        return $primaryKey !== $unsetValue;
+    }
+
+    /**
+     * Validate a composite primary key against its generated unset values.
+     *
+     * @param array $primaryKeys
+     * @param array $unsetValues
+     *
+     * @return bool
+     */
+    protected function validatePrimaryKeys(array $primaryKeys, array $unsetValues): bool
+    {
+        if (count($primaryKeys) !== count($unsetValues)) {
+            return false;
+        }
+
+        foreach ($unsetValues as $index => $unsetValue) {
+            if (($primaryKeys[$index] ?? null) === $unsetValue) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Cast a value to the configured PHP scalar type while preserving nulls.
+     *
+     * @param mixed $value
+     * @param string $type
+     * @param bool $isNullable
+     *
+     * @return mixed
+     */
+    protected function castTo($value, string $type, bool $isNullable)
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return match ($type) {
+            'int', 'integer' => (int)$value,
+            'float', 'double' => (float)$value,
+            'string' => (string)$value,
+            'bool', 'boolean' => (bool)$value,
+            default => $value,
+        };
+    }
+
+    /**
+     * Normalize and assign a temporal value while tracking modifications.
+     *
+     * @param mixed $currentValue
+     * @param mixed $value
+     * @param string $dateTimeClass
+     * @param string $columnConstant
+     * @param string $comparisonFormat
+     * @param string|null $defaultValue
+     * @param string|null $defaultValueFormat
+     *
+     * @return void
+     */
+    protected function setTemporalValue(&$currentValue, $value, string $dateTimeClass, string $columnConstant, string $comparisonFormat, ?string $defaultValue = null, ?string $defaultValueFormat = null): void
+    {
+        $dt = PropelDateTime::newInstance($value, null, $dateTimeClass);
+
+        if ($currentValue === null && $dt === null) {
+            return;
+        }
+
+        if ($defaultValue !== null) {
+            $format = $defaultValueFormat ?? $comparisonFormat;
+            $hasChanged = ($dt != $currentValue) || ($dt?->format($format) === $defaultValue);
+        } else {
+            $hasChanged = $currentValue === null
+                || $dt === null
+                || $dt->format($comparisonFormat) !== $currentValue->format($comparisonFormat);
+        }
+
+        if (!$hasChanged) {
+            return;
+        }
+
+        $currentValue = $dt === null ? null : clone $dt;
+        $this->modifiedColumns[$columnConstant] = true;
+    }
+
     /**
      * Returns whether the object has been modified.
      *

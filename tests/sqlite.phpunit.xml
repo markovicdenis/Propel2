@@ -9,6 +9,7 @@
     <testsuites>
         <testsuite name="propel2">
             <directory>Propel/Tests/</directory>
+            <exclude>Propel/Tests/Generator/Reverse/AbstractSchemaParserTest.php</exclude>
         </testsuite>
     </testsuites>
 

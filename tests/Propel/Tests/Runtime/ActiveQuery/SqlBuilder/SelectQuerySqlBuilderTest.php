@@ -16,6 +16,8 @@ use Propel\Tests\TestCaseFixtures;
 
 class SelectQuerySqlBuilderTest extends TestCaseFixtures
 {
+    protected static bool $providerConfigLoaded = false;
+
     /**
      * @var bool
      */
@@ -33,12 +35,23 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
         $this->setupWasExecuted = true;
     }
 
+    protected static function ensureProviderConfigLoaded(): void
+    {
+        if (self::$providerConfigLoaded) {
+            return;
+        }
+
+        $test = new self('provider');
+        $test->loadConfig();
+        self::$providerConfigLoaded = true;
+    }
+
     /**
      * @return mixed[][]
      */
     public static function havingClauseDataProvider(): array
     {
-        $this->loadConfig();
+        self::ensureProviderConfigLoaded();
 
         return [
             // [<criteria>, <having clause>, <params>, <message>]]
@@ -80,6 +93,8 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
      */
     public static function fromClauseDataProvider(): array
     {
+        self::ensureProviderConfigLoaded();
+
         return [
             // [<query>, <from tables>, <expected clause>, <expected params>, <message>]
             [BookQuery::create(), [], 'FROM book', [], 'Build simple from should work' ],
@@ -122,7 +137,7 @@ class SelectQuerySqlBuilderTest extends TestCaseFixtures
      */
     public static function removeRecursiveSubqueryTableAliasesDataProvider(): array
     {
-        $this->loadConfig();
+        self::ensureProviderConfigLoaded();
 
         $query = BookQuery::create()->addSelectQuery(BookQuery::create(), 'subquery');
 
