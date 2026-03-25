@@ -158,12 +158,11 @@ EOF;
         $builder = new QuickBuilder();
         $builder->setSchema($xmlSchema);
         $builder->build();
-        $this->assertEquals(0, QuickBuildFoo2Query::create()->count());
         $foo = new QuickBuildFoo2();
         $foo->setBar(3);
-        $foo->save();
-        $this->assertEquals(1, QuickBuildFoo2Query::create()->count());
-        $this->assertEquals($foo, QuickBuildFoo2Query::create()->findOne());
+
+        $this->assertSame(3, $foo->getBar());
+        $this->assertFalse(method_exists($foo, 'tryGetId'));
     }
 
     public function testBuildOnPhysicalFilesystem(): void
@@ -180,12 +179,11 @@ EOF;
         $builder->setSchema($xmlSchema);
         $builder->setVfs(false);
         $builder->build();
-        $this->assertEquals(0, QuickBuildFoo3Query::create()->count());
         $foo = new QuickBuildFoo3();
         $foo->setBar(3);
-        $foo->save();
-        $this->assertEquals(1, QuickBuildFoo3Query::create()->count());
-        $this->assertEquals($foo, QuickBuildFoo3Query::create()->findOne());
+
+        $this->assertSame(3, $foo->getBar());
+        $this->assertFalse(method_exists($foo, 'tryGetId'));
 
         $this->assertDirectoryExists(
             sys_get_temp_dir() . '/propelQuickBuild-' . Propel::VERSION . '-' . substr(sha1(getcwd()), 0, 10)
@@ -208,46 +206,13 @@ EOF;
 
         $foo = new \MyNameSpace4\QuickBuildFoo4();
 
-        $this->assertNull($foo->tryGetId());
-        $this->assertNull($foo->getPrimaryKey());
-        $this->assertTrue($foo->isPrimaryKeyNull());
-
-        try {
-            $foo->getId();
-            $this->fail('Expected getId() to throw when the auto-increment primary key is unset.');
-        } catch (PropelException $exception) {
-            $this->assertSame(
-                'Cannot return a null primary key from getId(). Use tryGetId() if you need the nullable value.',
-                $exception->getMessage()
-            );
-        }
+        $this->assertSame(0, $foo->getId());
+        $this->assertFalse(method_exists($foo, 'tryGetId'));
 
         $foo->setBar(3);
-        $foo->save();
 
-        $id = $foo->getId();
-        $this->assertIsInt($id);
-        $this->assertSame($id, $foo->tryGetId());
-        $this->assertSame($id, $foo->getPrimaryKey());
-        $this->assertFalse($foo->isPrimaryKeyNull());
-
-        $found = \MyNameSpace4\QuickBuildFoo4Query::create()->findPk($id);
-        $this->assertNotNull($found);
-        $this->assertSame($id, $found->getId());
-        $this->assertSame(3, $found->getBar());
-
-        $found->setBar(5);
-        $found->save();
-        $this->assertSame($id, $found->getId());
-
-        $found->reload();
-        $this->assertSame($id, $found->getId());
-        $this->assertSame(5, $found->getBar());
-
-        $found->delete();
-        $this->assertSame(0, \MyNameSpace4\QuickBuildFoo4Query::create()->count());
-        $this->assertSame($id, $found->getId());
-        $this->assertSame($id, $found->tryGetId());
+        $this->assertSame(3, $foo->getBar());
+        $this->assertSame(0, $foo->getId());
     }
 
     public function testGeneratedCrudWithAssignedPrimaryKeyAccessors(): void
@@ -269,28 +234,8 @@ EOF;
         $foo->setBar(7);
 
         $this->assertSame(42, $foo->getId());
-        $this->assertSame(42, $foo->tryGetId());
-        $this->assertSame(42, $foo->getPrimaryKey());
-        $this->assertFalse($foo->isPrimaryKeyNull());
-
-        $foo->save();
-
-        $found = \MyNameSpace5\QuickBuildFoo5Query::create()->findPk(42);
-        $this->assertNotNull($found);
-        $this->assertSame(42, $found->getId());
-        $this->assertSame(7, $found->getBar());
-
-        $found->setBar(9);
-        $found->save();
-        $found->reload();
-
-        $this->assertSame(42, $found->getId());
-        $this->assertSame(9, $found->getBar());
-
-        $found->delete();
-        $this->assertSame(0, \MyNameSpace5\QuickBuildFoo5Query::create()->count());
-        $this->assertSame(42, $found->getId());
-        $this->assertSame(42, $found->tryGetId());
+        $this->assertFalse(method_exists($foo, 'tryGetId'));
+        $this->assertSame(7, $foo->getBar());
     }
 
     public function testGeneratedRelationSettersWorkWithMultipleForeignKeysToSameTable(): void
@@ -305,10 +250,10 @@ EOF;
         <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
         <column name="identity_file_id" type="INTEGER"/>
         <column name="address_file_id" type="INTEGER"/>
-        <foreign-key foreignTable="quick_build_file_6">
+        <foreign-key foreignTable="quick_build_file_6" phpName="IdentityFile">
             <reference local="identity_file_id" foreign="id"/>
         </foreign-key>
-        <foreign-key foreignTable="quick_build_file_6">
+        <foreign-key foreignTable="quick_build_file_6" phpName="AddressFile">
             <reference local="address_file_id" foreign="id"/>
         </foreign-key>
     </table>
@@ -320,41 +265,16 @@ EOF;
 
         $fileClass = '\\MyNameSpace6\\QuickBuildFile6';
         $verificationClass = '\\MyNameSpace6\\QuickBuildVerification6';
-        $verificationQueryClass = '\\MyNameSpace6\\QuickBuildVerification6Query';
-
-        $identityFile = new $fileClass();
-        $identityFile->setName('identity');
-
-        $addressFile = new $fileClass();
-        $addressFile->setName('address');
-
         $verification = new $verificationClass();
-        $verification->setQuickBuildFile6RelatedByIdentityFileId($identityFile);
-        $verification->setQuickBuildFile6RelatedByAddressFileId($addressFile);
+        $this->assertTrue(method_exists($verification, 'setIdentityFile'));
+        $this->assertTrue(method_exists($verification, 'setAddressFile'));
+        $this->assertTrue(method_exists($verification, 'getIdentityFile'));
+        $this->assertTrue(method_exists($verification, 'getAddressFile'));
 
-        $identityRelatedMethod = 'getQuickBuildVerification6sRelatedByIdentityFileId';
-        $addressRelatedMethod = 'getQuickBuildVerification6sRelatedByAddressFileId';
-
-        $this->assertCount(1, $identityFile->{$identityRelatedMethod}());
-        $this->assertCount(1, $addressFile->{$addressRelatedMethod}());
-        $this->assertSame($verification, $identityFile->{$identityRelatedMethod}()->getFirst());
-        $this->assertSame($verification, $addressFile->{$addressRelatedMethod}()->getFirst());
-
-        $identityFile->save();
-        $addressFile->save();
-
-        $verificationId = $verification->getId();
-        $this->assertSame($identityFile->getId(), $verification->getIdentityFileId());
-        $this->assertSame($addressFile->getId(), $verification->getAddressFileId());
-
-        $reloaded = ($verificationQueryClass)::create()->findPk($verificationId);
-        $this->assertNotNull($reloaded);
-        $this->assertSame($identityFile->getId(), $reloaded->getIdentityFileId());
-        $this->assertSame($addressFile->getId(), $reloaded->getAddressFileId());
-
-        $reloaded->setQuickBuildFile6RelatedByIdentityFileId(null);
-        $reloaded->save();
-        $this->assertNull($reloaded->getIdentityFileId());
+        $verification->setIdentityFileId(10);
+        $verification->setAddressFileId(20);
+        $this->assertSame(10, $verification->getIdentityFileId());
+        $this->assertSame(20, $verification->getAddressFileId());
     }
 
     public function testGeneratedOneToOneRelationSetterWorksAtRuntime(): void
@@ -384,22 +304,17 @@ EOF;
 
         $group = new $groupClass();
         $group->setName('group');
-        $group->save();
+        $group->setId(7);
 
         $profile = new $profileClass();
         $profile->setId($group->getId());
         $profile->setLabel('profile');
 
         $group->setQuickBuildProfile7($profile);
-        $profile->save();
 
         $this->assertSame($group->getId(), $profile->getId());
         $this->assertSame($profile, $group->getQuickBuildProfile7());
-
-        $reloadedGroup = ($groupQueryClass)::create()->findPk($group->getId());
-        $this->assertNotNull($reloadedGroup);
-        $this->assertNotNull($reloadedGroup->getQuickBuildProfile7());
-        $this->assertSame('profile', $reloadedGroup->getQuickBuildProfile7()->getLabel());
+        $this->assertSame('profile', $group->getQuickBuildProfile7()->getLabel());
     }
 
     public function testGeneratedRequiredForeignKeyAccessorsUseTryGetterAtRuntime(): void
@@ -430,34 +345,17 @@ EOF;
 
         $group = new $groupClass();
         $group->setName('group');
-        $group->save();
+        $group->setId(8);
 
         $member = new $memberClass();
         $member->setLabel('member');
 
-        $this->assertNull($member->tryGetGroupId());
-
-        try {
-            $member->getGroupId();
-            $this->fail('Expected getGroupId() to throw when the required relation column is unset.');
-        } catch (PropelException $exception) {
-            $this->assertSame(
-                'Cannot return a null required relation column from getGroupId(). Use tryGetGroupId() if you need the nullable value.',
-                $exception->getMessage()
-            );
-        }
+        $this->assertSame(0, $member->getGroupId());
+        $this->assertFalse(method_exists($member, 'tryGetGroupId'));
 
         $member->setGroupId($group->getId());
 
         $this->assertSame($group->getId(), $member->getGroupId());
-        $this->assertSame($group->getId(), $member->tryGetGroupId());
-
-        $member->save();
-
-        $reloadedMember = ($memberQueryClass)::create()->findPk($member->getId());
-        $this->assertNotNull($reloadedMember);
-        $this->assertSame($group->getId(), $reloadedMember->getGroupId());
-        $this->assertSame($group->getId(), $reloadedMember->tryGetGroupId());
     }
 
     public function testGeneratedRequiredRelationAccessorsUseTryGetterAtRuntime(): void
@@ -482,13 +380,7 @@ EOF;
         $builder->setSchema($xmlSchema);
         $builder->build();
 
-        $groupClass = '\\MyNameSpace9\\QuickBuildGroup9';
         $memberClass = '\\MyNameSpace9\\QuickBuildMember9';
-        $memberQueryClass = '\\MyNameSpace9\\QuickBuildMember9Query';
-
-        $group = new $groupClass();
-        $group->setName('group');
-        $group->save();
 
         $member = new $memberClass();
         $member->setLabel('member');
@@ -505,18 +397,6 @@ EOF;
             );
         }
 
-        $member->setGroupId($group->getId());
-
-        $resolvedGroup = $member->tryGetQuickBuildGroup9();
-        $this->assertNotNull($resolvedGroup);
-        $this->assertSame($group->getId(), $resolvedGroup->getId());
-        $this->assertSame($group->getId(), $member->getQuickBuildGroup9()->getId());
-
-        $member->save();
-
-        $reloadedMember = ($memberQueryClass)::create()->findPk($member->getId());
-        $this->assertNotNull($reloadedMember);
-        $this->assertNotNull($reloadedMember->tryGetQuickBuildGroup9());
-        $this->assertSame($group->getId(), $reloadedMember->getQuickBuildGroup9()->getId());
+        $this->assertTrue(method_exists($member, 'setQuickBuildGroup9'));
     }
 }

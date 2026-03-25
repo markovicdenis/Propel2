@@ -34,15 +34,41 @@ trait ObjectBuilderTrait
         return 'null';
     }
 
+    protected function triggerDebugger(string $table, string $col, Column $column): void
+    {
+        $colName = $column->getPhpName();
+        $tableName = $column->getTable()->getPhpName();
+        if ($colName === $col && $tableName === $table) {
+            $debugger = 1;
+        }
+    }
+
+    private function escapeValueForPhpCode(string $value, Column $col): string
+    {
+        return match($col->getType()) {
+            'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
+            'FLOAT', 'DOUBLE', 'REAL' => (string)(float)$value,
+            'BOOLEAN' => $value === 'true' ? 'true' : 'false',
+            default => var_export($value, true),
+        };
+    }
+
+    private function normalizedDefaultValueForColumn(Column $column): string
+    {
+        $defaultValue = $column->getPhpDefaultValue();
+        return $this->escapeValueForPhpCode($defaultValue, $column);
+    }
+
     protected function getUnsetValueForAccessor(Column $column): ?string
     {
         if ($column->hasDefaultValue()) {
-            return $this->getDefaultValueForColumn($column);
+            // return $this->getDefaultValueForColumn($column);
+            return $this->normalizedDefaultValueForColumn($column);
         }
 
-        if ($column->isPrimaryKey() && $column->isAutoIncrement()) {
-            return null;
-        }
+        // if ($column->isPrimaryKey() && $column->isAutoIncrement()) {
+        //     return null;
+        // }
 
         if ($column->isForeignKey() && !$column->isNotNull()) {
             return null;

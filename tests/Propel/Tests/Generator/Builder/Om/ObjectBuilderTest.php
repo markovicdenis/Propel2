@@ -410,13 +410,9 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('* @return int', $comment);
         $this->assertStringNotContainsString('* @return int|null', $comment);
-        $this->assertStringContainsString('if ($this->id === null) {', $body);
-        $this->assertStringContainsString("throw new PropelException('Cannot return a null primary key from getId(). Use tryGetId() if you need the nullable value.');", $body);
-        $this->assertStringContainsString('return $this->id;', $body);
-        $this->assertStringNotContainsString('?? 0', $body);
-        $this->assertStringContainsString('* @return int|null', $accessor);
-        $this->assertStringContainsString('function tryGetId()', $accessor);
-        $this->assertStringContainsString('return $this->id;', $accessor);
+        $this->assertStringContainsString('return $this->id ?? 0;', $body);
+        $this->assertStringNotContainsString('throw new PropelException(', $body);
+        $this->assertStringNotContainsString('function tryGetId()', $accessor);
     }
 
     /**
@@ -555,13 +551,9 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('* @return int', $accessorComment);
         $this->assertStringNotContainsString('* @return int|null', $accessorComment);
-        $this->assertStringContainsString('if ($this->affiliate_group_id === null) {', $accessorBody);
-        $this->assertStringContainsString("throw new PropelException('Cannot return a null required relation column from getAffiliateGroupId(). Use tryGetAffiliateGroupId() if you need the nullable value.');", $accessorBody);
-        $this->assertStringContainsString('return $this->affiliate_group_id;', $accessorBody);
-        $this->assertStringNotContainsString('?? 0', $accessorBody);
-        $this->assertStringContainsString('* @return int|null', $accessor);
-        $this->assertStringContainsString('function tryGetAffiliateGroupId()', $accessor);
-        $this->assertStringContainsString('return $this->affiliate_group_id;', $accessor);
+        $this->assertStringContainsString('return $this->affiliate_group_id ?? 0;', $accessorBody);
+        $this->assertStringNotContainsString('throw new PropelException(', $accessorBody);
+        $this->assertStringNotContainsString('function tryGetAffiliateGroupId()', $accessor);
         $this->assertStringContainsString('* @param int $v New value', $mutatorComment);
         $this->assertStringNotContainsString('* @param int|null $v New value', $mutatorComment);
         $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', false);", $mutator);

@@ -1584,6 +1584,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
+        $this->triggerDebugger('User', 'Email', $column);
+
         $nullGuardException = $this->getNullGuardExceptionForAccessor($column);
         if ($nullGuardException !== null) {
             $script .= "
