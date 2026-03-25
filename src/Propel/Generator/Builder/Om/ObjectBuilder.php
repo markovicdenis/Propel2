@@ -276,6 +276,21 @@ class ObjectBuilder extends AbstractObjectBuilder
         return $this->getBaseObjectClassNameForTable($fk->getForeignTable());
     }
 
+    protected function getRelationGetterClassName(ForeignKey $fk): string
+    {
+        $interface = $fk->getInterface();
+        if ($interface) {
+            return $this->declareClass($interface);
+        }
+
+        return $this->getClassNameFromBuilder($this->getNewStubObjectBuilder($fk->getForeignTable()));
+    }
+
+    protected function getRefRelationGetterClassName(ForeignKey $fk): string
+    {
+        return $this->getClassNameFromBuilder($this->getNewStubObjectBuilder($fk->getTable()));
+    }
+
     protected function getPrimaryKeyUnsetValue(Column $column): string
     {
         if (($column->isAutoIncrement() || $column->isForeignKey()) && !$column->hasDefaultValue()) {
@@ -4231,7 +4246,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addFKAttributes(string &$script, ForeignKey $fk): void
     {
-        $className = $this->getRelationObjectClassName($fk);
+        $className = $this->getRelationGetterClassName($fk);
         $varName = $this->getFKVarName($fk);
 
         $script .= "
@@ -4429,7 +4444,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $varName = $this->getFKVarName($fk);
         $fkQueryBuilder = $this->getNewStubQueryBuilder($fk->getForeignTable());
         $returnDesc = '';
-        $className = $this->getRelationObjectClassName($fk);
+        $className = $this->getRelationGetterClassName($fk);
         if (!$fk->getInterface()) {
             $returnDesc = "The associated $className object.";
         }
@@ -4607,6 +4622,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $className = $this->getBaseObjectClassNameForTable($refFK->getTable());
 
         if ($refFK->isLocalPrimaryKey()) {
+            $className = $this->getRefRelationGetterClassName($refFK);
             $script .= "
     /**
      * @var ?$className one-to-one related $className object
@@ -5127,7 +5143,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addPKRefFKGet(string &$script, ForeignKey $refFK): void
     {
-        $className = $this->getBaseObjectClassNameForTable($refFK->getTable());
+        $className = $this->getRefRelationGetterClassName($refFK);
 
         $queryClassName = $this->getClassNameFromBuilder($this->getNewStubQueryBuilder($refFK->getTable()));
 

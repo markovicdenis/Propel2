@@ -369,7 +369,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testForeignKeyObjectMethodsUseBaseRelatedTypes()
+    public function testForeignKeyGettersUseChildRelatedTypes()
     {
         $database = new Database('test');
 
@@ -407,6 +407,9 @@ class ObjectBuilderTest extends TestCase
 
         $fk = $affiliateTable->getForeignKeys()[0];
 
+        $fkAttributes = '';
+        $affiliateBuilder->addFKAttributesToScript($fkAttributes, $fk);
+
         $fkMutator = '';
         $affiliateBuilder->addFKMutatorToScript($fkMutator, $fk);
 
@@ -425,14 +428,54 @@ class ObjectBuilderTest extends TestCase
         $refFkDoAdd = '';
         $groupBuilder->addRefFKDoAddToScript($refFkDoAdd, $refFk);
 
+        $this->assertStringContainsString('@var ?ChildAffiliateGroup', $fkAttributes);
         $this->assertStringContainsString('public function setAffiliateGroup(?AffiliateGroup $v = null)', $fkMutator);
         $this->assertStringNotContainsString('ChildAffiliateGroup', $fkMutator);
-        $this->assertStringContainsString('@return AffiliateGroup|null', $fkAccessor);
-        $this->assertStringNotContainsString('@return ChildAffiliateGroup', $fkAccessor);
+        $this->assertStringContainsString('@return ChildAffiliateGroup|null', $fkAccessor);
         $this->assertStringContainsString('public function addAffiliate(Affiliate $l)', $refFkAdd);
         $this->assertStringNotContainsString('ChildAffiliate', $refFkAdd);
         $this->assertStringContainsString('protected function doAddAffiliate(Affiliate $affiliate): void', $refFkDoAdd);
         $this->assertStringNotContainsString('ChildAffiliate', $refFkDoAdd);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOneToOneRefFkAttributesUseChildRelatedTypeInDocComment()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $groupTable->setNamespace('Model');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateTable->addColumn($affiliateId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('id', 'id');
+
+        $groupBuilder = new TestableObjectBuilder($groupTable);
+        $groupBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $groupBuilder->setPlatform(new MysqlPlatform());
+
+        $refFkAttributes = '';
+        $groupBuilder->addRefFKAttributesToScript($refFkAttributes, $affiliateTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('@var ?ChildAffiliate one-to-one related ChildAffiliate object', $refFkAttributes);
     }
 
     /**
@@ -648,6 +691,13 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addFKMutator($script, $foreignKey);
     }
 
+    public function addFKAttributesToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addFKAttributes($script, $foreignKey);
+    }
+
     public function addFKAccessorToScript(
         string &$script,
         \Propel\Generator\Model\ForeignKey $foreignKey
@@ -660,6 +710,13 @@ class TestableObjectBuilder extends ObjectBuilder
         \Propel\Generator\Model\ForeignKey $foreignKey
     ): void {
         $this->addRefFKAdd($script, $foreignKey);
+    }
+
+    public function addRefFKAttributesToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addRefFKAttributes($script, $foreignKey);
     }
 
     public function addRefFKDoAddToScript(
