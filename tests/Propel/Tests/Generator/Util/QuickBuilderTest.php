@@ -292,4 +292,113 @@ EOF;
         $this->assertSame(42, $found->getId());
         $this->assertSame(42, $found->tryGetId());
     }
+
+    public function testGeneratedRelationSettersWorkWithMultipleForeignKeysToSameTable(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_6" namespace="MyNameSpace6">
+    <table name="quick_build_file_6">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="name" type="VARCHAR" required="true"/>
+    </table>
+    <table name="quick_build_verification_6">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="identity_file_id" type="INTEGER"/>
+        <column name="address_file_id" type="INTEGER"/>
+        <foreign-key foreignTable="quick_build_file_6">
+            <reference local="identity_file_id" foreign="id"/>
+        </foreign-key>
+        <foreign-key foreignTable="quick_build_file_6">
+            <reference local="address_file_id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $fileClass = '\\MyNameSpace6\\QuickBuildFile6';
+        $verificationClass = '\\MyNameSpace6\\QuickBuildVerification6';
+        $verificationQueryClass = '\\MyNameSpace6\\QuickBuildVerification6Query';
+
+        $identityFile = new $fileClass();
+        $identityFile->setName('identity');
+
+        $addressFile = new $fileClass();
+        $addressFile->setName('address');
+
+        $verification = new $verificationClass();
+        $verification->setQuickBuildFile6RelatedByIdentityFileId($identityFile);
+        $verification->setQuickBuildFile6RelatedByAddressFileId($addressFile);
+
+        $identityRelatedMethod = 'getQuickBuildVerification6sRelatedByIdentityFileId';
+        $addressRelatedMethod = 'getQuickBuildVerification6sRelatedByAddressFileId';
+
+        $this->assertCount(1, $identityFile->{$identityRelatedMethod}());
+        $this->assertCount(1, $addressFile->{$addressRelatedMethod}());
+        $this->assertSame($verification, $identityFile->{$identityRelatedMethod}()->getFirst());
+        $this->assertSame($verification, $addressFile->{$addressRelatedMethod}()->getFirst());
+
+        $identityFile->save();
+        $addressFile->save();
+
+        $verificationId = $verification->getId();
+        $this->assertSame($identityFile->getId(), $verification->getIdentityFileId());
+        $this->assertSame($addressFile->getId(), $verification->getAddressFileId());
+
+        $reloaded = ($verificationQueryClass)::create()->findPk($verificationId);
+        $this->assertNotNull($reloaded);
+        $this->assertSame($identityFile->getId(), $reloaded->getIdentityFileId());
+        $this->assertSame($addressFile->getId(), $reloaded->getAddressFileId());
+
+        $reloaded->setQuickBuildFile6RelatedByIdentityFileId(null);
+        $reloaded->save();
+        $this->assertNull($reloaded->getIdentityFileId());
+    }
+
+    public function testGeneratedOneToOneRelationSetterWorksAtRuntime(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_7" namespace="MyNameSpace7">
+    <table name="quick_build_group_7">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="name" type="VARCHAR" required="true"/>
+    </table>
+    <table name="quick_build_profile_7">
+        <column name="id" primaryKey="true" type="INTEGER" required="true"/>
+        <column name="label" type="VARCHAR" required="true"/>
+        <foreign-key foreignTable="quick_build_group_7">
+            <reference local="id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $groupClass = '\\MyNameSpace7\\QuickBuildGroup7';
+        $profileClass = '\\MyNameSpace7\\QuickBuildProfile7';
+        $groupQueryClass = '\\MyNameSpace7\\QuickBuildGroup7Query';
+
+        $group = new $groupClass();
+        $group->setName('group');
+        $group->save();
+
+        $profile = new $profileClass();
+        $profile->setId($group->getId());
+        $profile->setLabel('profile');
+
+        $group->setQuickBuildProfile7($profile);
+        $profile->save();
+
+        $this->assertSame($group->getId(), $profile->getId());
+        $this->assertSame($profile, $group->getQuickBuildProfile7());
+
+        $reloadedGroup = ($groupQueryClass)::create()->findPk($group->getId());
+        $this->assertNotNull($reloadedGroup);
+        $this->assertNotNull($reloadedGroup->getQuickBuildProfile7());
+        $this->assertSame('profile', $reloadedGroup->getQuickBuildProfile7()->getLabel());
+    }
 }

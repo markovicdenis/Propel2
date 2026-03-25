@@ -274,6 +274,67 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testReadOnlyModelsDoNotRouteMagicFromCallsToImportFrom()
+    {
+        $database = new Database('test');
+
+        $table = new Table('ReadOnlyThing');
+        $table->setReadOnly(true);
+        $database->addTable($table);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addClassBodyToScript($script);
+
+        $this->assertStringNotContainsString('return $this->importFrom($format, $inputData, $keyType);', $script);
+        $this->assertStringContainsString('return $this->exportTo($format, $includeLazyLoadColumns, $keyType);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testModelsWithoutGenericAccessorsDoNotRouteMagicToCallsToExportTo()
+    {
+        $database = new Database('test');
+
+        $table = new Table('Thing');
+        $database->addTable($table);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig([
+            'propel' => [
+                'generator' => [
+                    'objectModel' => [
+                        'addGenericAccessors' => false,
+                    ],
+                ],
+            ],
+        ]));
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addClassBodyToScript($script);
+
+        $this->assertStringNotContainsString('return $this->exportTo($format, $includeLazyLoadColumns, $keyType);', $script);
+        $this->assertStringContainsString('return $this->importFrom($format, $inputData, $keyType);', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testHashCodeUsesTraitPrimaryKeyValidatorForSinglePrimaryKey()
     {
         $table = new Table('Author');
@@ -407,7 +468,50 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testForeignKeyScalarAccessorsAndMutatorsStayNullableInGeneratedApi()
+    public function testOptionalForeignKeyScalarAccessorsAndMutatorsStayNullableInGeneratedApi()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $database->addTable($affiliateTable);
+
+        $affiliateGroupId = new Column('affiliate_group_id');
+        $affiliateGroupId->setDomain(new Domain('INTEGER'));
+        $affiliateTable->addColumn($affiliateGroupId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('affiliate_group_id', 'id');
+
+        $builder = new TestableObjectBuilder($affiliateTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $accessorComment = '';
+        $builder->addDefaultAccessorCommentToScript($accessorComment, $affiliateGroupId);
+
+        $mutatorComment = '';
+        $builder->addMutatorCommentToScript($mutatorComment, $affiliateGroupId);
+
+        $mutator = '';
+        $builder->addDefaultMutatorToScript($mutator, $affiliateGroupId);
+
+        $this->assertStringContainsString('* @return int|null', $accessorComment);
+        $this->assertStringContainsString('* @param int|null $v New value', $mutatorComment);
+        $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRequiredForeignKeyScalarAccessorsAndMutatorsStayNonNullableInGeneratedApi()
     {
         $database = new Database('test');
 
@@ -437,15 +541,21 @@ class ObjectBuilderTest extends TestCase
         $accessorComment = '';
         $builder->addDefaultAccessorCommentToScript($accessorComment, $affiliateGroupId);
 
+        $accessorBody = '';
+        $builder->addDefaultAccessorBodyToScript($accessorBody, $affiliateGroupId);
+
         $mutatorComment = '';
         $builder->addMutatorCommentToScript($mutatorComment, $affiliateGroupId);
 
         $mutator = '';
         $builder->addDefaultMutatorToScript($mutator, $affiliateGroupId);
 
-        $this->assertStringContainsString('* @return int|null', $accessorComment);
-        $this->assertStringContainsString('* @param int|null $v New value', $mutatorComment);
-        $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', true);", $mutator);
+        $this->assertStringContainsString('* @return int', $accessorComment);
+        $this->assertStringNotContainsString('* @return int|null', $accessorComment);
+        $this->assertStringContainsString('return $this->affiliate_group_id ?? 0;', $accessorBody);
+        $this->assertStringContainsString('* @param int $v New value', $mutatorComment);
+        $this->assertStringNotContainsString('* @param int|null $v New value', $mutatorComment);
+        $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', false);", $mutator);
     }
 
     /**
@@ -522,7 +632,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testForeignKeyGettersUseChildRelatedTypes()
+    public function testRelationWriteMethodsUseChildRelatedTypes()
     {
         $database = new Database('test');
 
@@ -581,14 +691,20 @@ class ObjectBuilderTest extends TestCase
         $refFkDoAdd = '';
         $groupBuilder->addRefFKDoAddToScript($refFkDoAdd, $refFk);
 
+        $refFkRemove = '';
+        $groupBuilder->addRefFKRemoveToScript($refFkRemove, $refFk);
+
         $this->assertStringContainsString('@var ?ChildAffiliateGroup', $fkAttributes);
-        $this->assertStringContainsString('public function setAffiliateGroup(?AffiliateGroup $v = null)', $fkMutator);
-        $this->assertStringNotContainsString('ChildAffiliateGroup', $fkMutator);
+        $this->assertStringContainsString('public function setAffiliateGroup(?ChildAffiliateGroup $v = null)', $fkMutator);
+        $this->assertStringContainsString('$currentObject = $this;', $fkMutator);
+        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliate);', $fkMutator);
+        $this->assertStringContainsString('$v?->addAffiliate($currentObject);', $fkMutator);
         $this->assertStringContainsString('@return ChildAffiliateGroup|null', $fkAccessor);
-        $this->assertStringContainsString('public function addAffiliate(Affiliate $l)', $refFkAdd);
-        $this->assertStringNotContainsString('ChildAffiliate', $refFkAdd);
-        $this->assertStringContainsString('protected function doAddAffiliate(Affiliate $affiliate): void', $refFkDoAdd);
-        $this->assertStringNotContainsString('ChildAffiliate', $refFkDoAdd);
+        $this->assertStringContainsString('public function addAffiliate(ChildAffiliate $l)', $refFkAdd);
+        $this->assertStringContainsString('protected function doAddAffiliate(ChildAffiliate $affiliate): void', $refFkDoAdd);
+        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliateGroup);', $refFkDoAdd);
+        $this->assertStringContainsString('$affiliate->setAffiliateGroup($currentObject);', $refFkDoAdd);
+        $this->assertStringContainsString('public function removeAffiliate(ChildAffiliate $affiliate)', $refFkRemove);
     }
 
     /**
@@ -629,6 +745,138 @@ class ObjectBuilderTest extends TestCase
         $groupBuilder->addRefFKAttributesToScript($refFkAttributes, $affiliateTable->getForeignKeys()[0]);
 
         $this->assertStringContainsString('@var ?ChildAffiliate one-to-one related ChildAffiliate object', $refFkAttributes);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOneToOneRelationSetterUsesChildRelatedType()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $groupTable->setNamespace('Model');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateTable->addColumn($affiliateId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('id', 'id');
+
+        $groupBuilder = new TestableObjectBuilder($groupTable);
+        $groupBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $groupBuilder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $groupBuilder->addPKRefFKSetToScript($script, $affiliateTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('public function setAffiliate(?ChildAffiliate $v = null)', $script);
+        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliateGroup);', $script);
+        $this->assertStringContainsString('$v->setAffiliateGroup($currentObject);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOneToOneRelationAccessorUsesCurrentObjectWithoutEscaping()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $groupTable->setNamespace('Model');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateTable->addColumn($affiliateId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('id', 'id');
+
+        $affiliateBuilder = new TestableObjectBuilder($affiliateTable);
+        $affiliateBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $affiliateBuilder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $affiliateBuilder->addFKAccessorToScript($script, $affiliateTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('assert($currentObject instanceof ChildAffiliate);', $script);
+        $this->assertStringContainsString('$this->aAffiliateGroup?->setAffiliate($currentObject);', $script);
+        $this->assertStringNotContainsString('$this->aAffiliateGroup?->setAffiliate(\$currentObject);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRequiredRelationAccessorThrowsWhenRelationCannotBeResolved()
+    {
+        $database = new Database('test');
+
+        $groupTable = new Table('affiliate_group');
+        $groupTable->setNamespace('Model');
+        $database->addTable($groupTable);
+
+        $groupId = new Column('id');
+        $groupId->setDomain(new Domain('INTEGER'));
+        $groupId->setPrimaryKey(true);
+        $groupId->setNotNull(true);
+        $groupId->setAutoIncrement(true);
+        $groupTable->addColumn($groupId);
+
+        $affiliateTable = new Table('affiliate');
+        $affiliateTable->setNamespace('Model');
+        $database->addTable($affiliateTable);
+
+        $affiliateId = new Column('id');
+        $affiliateId->setDomain(new Domain('INTEGER'));
+        $affiliateId->setPrimaryKey(true);
+        $affiliateId->setNotNull(true);
+        $affiliateId->setAutoIncrement(true);
+        $affiliateTable->addColumn($affiliateId);
+
+        $affiliateGroupId = new Column('affiliate_group_id');
+        $affiliateGroupId->setDomain(new Domain('INTEGER'));
+        $affiliateGroupId->setNotNull(true);
+        $affiliateTable->addColumn($affiliateGroupId);
+        $affiliateTable->addForeignKey(['foreignTable' => 'affiliate_group'])
+            ->addReference('affiliate_group_id', 'id');
+
+        $affiliateBuilder = new TestableObjectBuilder($affiliateTable);
+        $affiliateBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $affiliateBuilder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $affiliateBuilder->addFKAccessorToScript($script, $affiliateTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('@return ChildAffiliateGroup The associated ChildAffiliateGroup object.', $script);
+        $this->assertStringContainsString("throw new PropelException('Cannot return a null related object from getAffiliateGroup() because the relation is required.');", $script);
+        $this->assertStringContainsString('return $this->aAffiliateGroup;', $script);
     }
 
     /**
@@ -934,6 +1182,20 @@ class TestableObjectBuilder extends ObjectBuilder
         \Propel\Generator\Model\ForeignKey $foreignKey
     ): void {
         $this->addRefFKDoAdd($script, $foreignKey);
+    }
+
+    public function addRefFKRemoveToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addRefFKRemove($script, $foreignKey);
+    }
+
+    public function addPKRefFKSetToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addPKRefFKSet($script, $foreignKey);
     }
 
     public function addDefaultAccessorCommentToScript(string &$script, Column $column): void

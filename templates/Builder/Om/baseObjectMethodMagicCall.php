@@ -44,6 +44,7 @@
             }
         }
 
+    <?php if ($supportsMagicImportFrom) : ?>
         if (0 === strpos($name, 'from')) {
             $format = substr($name, 4);
             $inputData = $params[0];
@@ -51,7 +52,9 @@
 
             return $this->importFrom($format, $inputData, $keyType);
         }
+    <?php endif ?>
 
+    <?php if ($supportsMagicExportTo) : ?>
         if (0 === strpos($name, 'to')) {
             $format = substr($name, 2);
             $includeLazyLoadColumns = $params[0] ?? true;
@@ -59,6 +62,7 @@
 
             return $this->exportTo($format, $includeLazyLoadColumns, $keyType);
         }
+    <?php endif ?>
 
         throw new BadMethodCallException(sprintf('Call to undefined method: %s.', $name));
     }
