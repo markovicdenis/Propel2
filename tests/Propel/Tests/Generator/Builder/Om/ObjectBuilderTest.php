@@ -544,6 +544,9 @@ class ObjectBuilderTest extends TestCase
         $accessorBody = '';
         $builder->addDefaultAccessorBodyToScript($accessorBody, $affiliateGroupId);
 
+        $accessor = '';
+        $builder->addDefaultAccessorToScript($accessor, $affiliateGroupId);
+
         $mutatorComment = '';
         $builder->addMutatorCommentToScript($mutatorComment, $affiliateGroupId);
 
@@ -552,7 +555,13 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('* @return int', $accessorComment);
         $this->assertStringNotContainsString('* @return int|null', $accessorComment);
-        $this->assertStringContainsString('return $this->affiliate_group_id ?? 0;', $accessorBody);
+        $this->assertStringContainsString('if ($this->affiliate_group_id === null) {', $accessorBody);
+        $this->assertStringContainsString("throw new PropelException('Cannot return a null required relation column from getAffiliateGroupId(). Use tryGetAffiliateGroupId() if you need the nullable value.');", $accessorBody);
+        $this->assertStringContainsString('return $this->affiliate_group_id;', $accessorBody);
+        $this->assertStringNotContainsString('?? 0', $accessorBody);
+        $this->assertStringContainsString('* @return int|null', $accessor);
+        $this->assertStringContainsString('function tryGetAffiliateGroupId()', $accessor);
+        $this->assertStringContainsString('return $this->affiliate_group_id;', $accessor);
         $this->assertStringContainsString('* @param int $v New value', $mutatorComment);
         $this->assertStringNotContainsString('* @param int|null $v New value', $mutatorComment);
         $this->assertStringContainsString("\$v = \$this->castTo(\$v, 'int', false);", $mutator);
@@ -877,6 +886,9 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringContainsString('@return ChildAffiliateGroup The associated ChildAffiliateGroup object.', $script);
         $this->assertStringContainsString("throw new PropelException('Cannot return a null related object from getAffiliateGroup() because the relation is required.');", $script);
         $this->assertStringContainsString('return $this->aAffiliateGroup;', $script);
+        $this->assertStringContainsString('* Try to get the associated ChildAffiliateGroup object', $script);
+        $this->assertStringContainsString('@return ChildAffiliateGroup|null The associated ChildAffiliateGroup object.', $script);
+        $this->assertStringContainsString('public function tryGetAffiliateGroup(?ConnectionInterface $con = null)', $script);
     }
 
     /**

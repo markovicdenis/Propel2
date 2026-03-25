@@ -1606,9 +1606,29 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $this->addDefaultAccessorBody($script, $column);
         $this->addDefaultAccessorClose($script);
 
-        if ($column->isPrimaryKey()) {
+        if ($this->shouldGenerateTryDefaultAccessor($column)) {
             $this->addTryDefaultAccessor($script, $column);
         }
+    }
+
+    protected function shouldGenerateTryDefaultAccessor(Column $column): bool
+    {
+        return $column->isPrimaryKey() || ($column->isForeignKey() && $column->isNotNull());
+    }
+
+    protected function getNullGuardExceptionForAccessor(Column $column): ?string
+    {
+        $cfc = $column->getPhpName();
+
+        if ($column->isPrimaryKey()) {
+            return "Cannot return a null primary key from get$cfc(). Use tryGet$cfc() if you need the nullable value.";
+        }
+
+        if ($column->isForeignKey() && $column->isNotNull()) {
+            return "Cannot return a null required relation column from get$cfc(). Use tryGet$cfc() if you need the nullable value.";
+        }
+
+        return null;
     }
 
     /**
@@ -1672,15 +1692,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addDefaultAccessorBody(string &$script, Column $column): void
     {
         $clo = $column->getLowercasedName();
-        $cfc = $column->getPhpName();
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        if ($column->isPrimaryKey()) {
+        $nullGuardException = $this->getNullGuardExceptionForAccessor($column);
+        if ($nullGuardException !== null) {
             $script .= "
         if (\$this->$clo === null) {
-            throw new PropelException('Cannot return a null primary key from get$cfc(). Use tryGet$cfc() if you need the nullable value.');
+            throw new PropelException('$nullGuardException');
         }
 
         return \$this->$clo;";
@@ -4055,8 +4075,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } elseif (count($pkeys) > 1) {
             $this->addGetPrimaryKeyMultiPK($script);
         } else {
-            // no primary key -- this is deprecated, since we don't *need* this method anymore
-            $this->addGetPrimaryKeyNoPK($script);
+            $script .= "
+    /**
+     * Returns the primary key for this object (row).
+     * @return null
+     */
+    public function getPrimaryKey()
+    {
+        return null;
+    }
+";
         }
     }
 
@@ -4572,8 +4600,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         ksort($localColumns); // restoring the order of the foreign PK
-        $localColumns = count($localColumns) > 1 ?
-            ('[' . implode(', ', $localColumns) . ']') : reset($localColumns);
+        if ($localColumns === []) {
+            throw new EngineException(sprintf('Foreign key %s must define at least one local column.', $fk->getName()));
+        }
+
+        $orderedLocalColumns = array_values($localColumns);
+        $localColumns = count($orderedLocalColumns) > 1
+            ? '[' . implode(', ', $orderedLocalColumns) . ']'
+            : $orderedLocalColumns[0];
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
 
@@ -4590,8 +4624,51 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function get" . $phpName . "(?ConnectionInterface \$con = null)
     {";
+        $script .= $this->getFKAccessorLoadSnippet($fk, $varName, $conditional, $findPk, $localColumns, $fkQueryBuilder);
+
+        if (!$orNull) {
+            $script .= "
+        if (\$this->$varName === null) {
+            throw new PropelException('Cannot return a null related object from get{$phpName}() because the relation is required.');
+        }
+        ";
+        }
+
         $script .= "
+        return \$this->$varName;
+    }
+";
+
+        if (!$orNull) {
+            $script .= "
+
+    /**
+     * Try to get the associated $className object
+     *
+     * @param ?ConnectionInterface \$con Optional Connection object.
+     * @return {$className}|null $returnDesc
+     */
+    public function tryGet" . $phpName . "(?ConnectionInterface \$con = null)
+    {";
+            $script .= $this->getFKAccessorLoadSnippet($fk, $varName, $conditional, $findPk, $localColumns, $fkQueryBuilder);
+            $script .= "
+        return \$this->$varName;
+    }
+";
+        }
+    }
+
+    protected function getFKAccessorLoadSnippet(
+        ForeignKey $fk,
+        string $varName,
+        string $conditional,
+        bool $findPk,
+        string $localColumns,
+        AbstractOMBuilder $fkQueryBuilder
+    ): string {
+        $script = "
         if (\$this->$varName === null && ($conditional)) {";
+
         if ($findPk) {
             $script .= "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()->findPk($localColumns, \$con);";
@@ -4602,6 +4679,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$currentObject) // here
                 ->findOne(\$con);";
         }
+
         if ($fk->isLocalPrimaryKey()) {
             $script .= "
             " . $this->getAssertedCurrentChildObjectSnippet() . "
@@ -4618,22 +4696,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
              */";
         }
 
-        $script .= "
+        return $script . "
         }
         ";
-
-        if (!$orNull) {
-            $script .= "
-        if (\$this->$varName === null) {
-            throw new PropelException('Cannot return a null related object from get{$phpName}() because the relation is required.');
-        }
-        ";
-        }
-
-        $script .= "
-        return \$this->$varName;
-    }
-";
     }
 
     /**

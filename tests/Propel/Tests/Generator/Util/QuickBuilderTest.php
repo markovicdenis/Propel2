@@ -401,4 +401,122 @@ EOF;
         $this->assertNotNull($reloadedGroup->getQuickBuildProfile7());
         $this->assertSame('profile', $reloadedGroup->getQuickBuildProfile7()->getLabel());
     }
+
+    public function testGeneratedRequiredForeignKeyAccessorsUseTryGetterAtRuntime(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_8" namespace="MyNameSpace8">
+    <table name="quick_build_group_8">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="name" type="VARCHAR" required="true"/>
+    </table>
+    <table name="quick_build_member_8">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="group_id" type="INTEGER" required="true"/>
+        <column name="label" type="VARCHAR" required="true"/>
+        <foreign-key foreignTable="quick_build_group_8">
+            <reference local="group_id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $groupClass = '\\MyNameSpace8\\QuickBuildGroup8';
+        $memberClass = '\\MyNameSpace8\\QuickBuildMember8';
+        $memberQueryClass = '\\MyNameSpace8\\QuickBuildMember8Query';
+
+        $group = new $groupClass();
+        $group->setName('group');
+        $group->save();
+
+        $member = new $memberClass();
+        $member->setLabel('member');
+
+        $this->assertNull($member->tryGetGroupId());
+
+        try {
+            $member->getGroupId();
+            $this->fail('Expected getGroupId() to throw when the required relation column is unset.');
+        } catch (PropelException $exception) {
+            $this->assertSame(
+                'Cannot return a null required relation column from getGroupId(). Use tryGetGroupId() if you need the nullable value.',
+                $exception->getMessage()
+            );
+        }
+
+        $member->setGroupId($group->getId());
+
+        $this->assertSame($group->getId(), $member->getGroupId());
+        $this->assertSame($group->getId(), $member->tryGetGroupId());
+
+        $member->save();
+
+        $reloadedMember = ($memberQueryClass)::create()->findPk($member->getId());
+        $this->assertNotNull($reloadedMember);
+        $this->assertSame($group->getId(), $reloadedMember->getGroupId());
+        $this->assertSame($group->getId(), $reloadedMember->tryGetGroupId());
+    }
+
+    public function testGeneratedRequiredRelationAccessorsUseTryGetterAtRuntime(): void
+    {
+        $xmlSchema = <<<EOF
+<database name="test_quick_build_9" namespace="MyNameSpace9">
+    <table name="quick_build_group_9">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="name" type="VARCHAR" required="true"/>
+    </table>
+    <table name="quick_build_member_9">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true" required="true"/>
+        <column name="group_id" type="INTEGER" required="true"/>
+        <column name="label" type="VARCHAR" required="true"/>
+        <foreign-key foreignTable="quick_build_group_9">
+            <reference local="group_id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($xmlSchema);
+        $builder->build();
+
+        $groupClass = '\\MyNameSpace9\\QuickBuildGroup9';
+        $memberClass = '\\MyNameSpace9\\QuickBuildMember9';
+        $memberQueryClass = '\\MyNameSpace9\\QuickBuildMember9Query';
+
+        $group = new $groupClass();
+        $group->setName('group');
+        $group->save();
+
+        $member = new $memberClass();
+        $member->setLabel('member');
+
+        $this->assertNull($member->tryGetQuickBuildGroup9());
+
+        try {
+            $member->getQuickBuildGroup9();
+            $this->fail('Expected getQuickBuildGroup9() to throw when the required relation is unresolved.');
+        } catch (PropelException $exception) {
+            $this->assertSame(
+                'Cannot return a null related object from getQuickBuildGroup9() because the relation is required.',
+                $exception->getMessage()
+            );
+        }
+
+        $member->setGroupId($group->getId());
+
+        $resolvedGroup = $member->tryGetQuickBuildGroup9();
+        $this->assertNotNull($resolvedGroup);
+        $this->assertSame($group->getId(), $resolvedGroup->getId());
+        $this->assertSame($group->getId(), $member->getQuickBuildGroup9()->getId());
+
+        $member->save();
+
+        $reloadedMember = ($memberQueryClass)::create()->findPk($member->getId());
+        $this->assertNotNull($reloadedMember);
+        $this->assertNotNull($reloadedMember->tryGetQuickBuildGroup9());
+        $this->assertSame($group->getId(), $reloadedMember->getQuickBuildGroup9()->getId());
+    }
 }

@@ -9,8 +9,12 @@
 namespace Propel\Runtime\Collection;
 
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
+use Propel\Runtime\Exception\UnexpectedValueException;
 
 use function func_get_args;
+use function call_user_func;
+use function is_callable;
+use function sprintf;
 
 /**
  * Class for iterating over a list of Propel objects
@@ -32,9 +36,9 @@ class ObjectCombinationCollection extends ObjectCollection
 
         foreach ($this as $combination) {
             $pkCombo = [];
-            /** @var \Propel\Runtime\ActiveRecord\ActiveRecordInterface $obj */
+            /** @var object $obj */
             foreach ($combination as $key => $obj) {
-                $pkCombo[$key] = $obj->getPrimaryKey();
+                $pkCombo[$key] = $this->getPrimaryKeyForObject($obj);
             }
             $ret[] = $pkCombo;
         }
@@ -76,7 +80,7 @@ class ObjectCombinationCollection extends ObjectCollection
         $isActiveRecord = [];
         foreach (func_get_args() as $pos => $obj) {
             if ($obj instanceof ActiveRecordInterface) {
-                $hashes[$pos] = $obj->hashCode();
+                $hashes[$pos] = $this->getHashCode($obj);
                 $isActiveRecord[$pos] = true;
             } else {
                 $hashes[$pos] = $obj;
@@ -92,7 +96,7 @@ class ObjectCombinationCollection extends ObjectCollection
 
                         break;
                     }
-                } elseif ($isActiveRecord[$idx] ? $obj->hashCode() !== $hashes[$idx] : $obj !== $hashes[$idx]) {
+                } elseif ($isActiveRecord[$idx] ? $this->getHashCode($obj) !== $hashes[$idx] : $obj !== $hashes[$idx]) {
                     $found = false;
 
                     break;
@@ -109,7 +113,7 @@ class ObjectCombinationCollection extends ObjectCollection
     /**
      * @inheritDoc
      */
-    public function removeObject($element): void
+    public function removeObject(mixed $element): void
     {
         $pos = $this->search(...func_get_args());
         if ($pos !== false) {
@@ -123,5 +127,17 @@ class ObjectCombinationCollection extends ObjectCollection
     public function contains($element): bool
     {
         return $this->search(...func_get_args()) !== false;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function getPrimaryKeyForObject(object $object)
+    {
+        if (!is_callable([$object, 'getPrimaryKey'])) {
+            throw new UnexpectedValueException(sprintf('Object of class %s does not provide getPrimaryKey().', $object::class));
+        }
+
+        return call_user_func([$object, 'getPrimaryKey']);
     }
 }
