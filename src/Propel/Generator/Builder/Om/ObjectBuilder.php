@@ -4381,16 +4381,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         foreach ($fk->getMapping() as $map) {
             [$column, $rightValueOrColumn] = $map;
+            $clo = $column->getLowercasedName();
 
             if ($rightValueOrColumn instanceof Column) {
                 $unsetValue = $column->hasDefaultValue() ? $this->getDefaultValueString($column, false) : 'null';
                 $script .= "
-        \$this->set" . $column->getPhpName() . "($unsetValue);
+        \$this->$clo = $unsetValue;
 ";
             } else {
-                $val = var_export($rightValueOrColumn, true);
                 $script .= "
-        \$this->set" . $column->getPhpName() . "(null);
+        \$this->$clo = null;
             ";
             }
         } /* foreach local col */

@@ -68,7 +68,7 @@ trait ActiveRecordCommonTrait
      */
     protected function castTo($value, string $type, bool $isNullable)
     {
-        if ($value === null) {
+        if ($value === null && $isNullable) {
             return null;
         }
 

@@ -49,3 +49,4 @@ tests/test.sq3
 
 validation
 .phpunit.cache
+.php-cs-fixer.cache
