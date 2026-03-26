@@ -330,6 +330,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $this->addConstructor($script);
 
         $this->addBaseObjectMethods($script);
+        if ($this->needsPhpTypeMethods()) {
+            $this->addPhpTypeMethods($script);
+        }
 
         $this->addColumnAccessorMethods($script);
         $this->addColumnMutatorMethods($script);
@@ -721,6 +724,45 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addBaseObjectMethods(string &$script): void
     {
         $script .= $this->renderTemplate('baseObjectMethods', ['className' => $this->getUnqualifiedClassName()]);
+    }
+
+    protected function needsPhpTypeMethods(): bool
+    {
+        foreach ($this->getTable()->getColumns() as $column) {
+            if ($column->isPrimaryKey()) {
+                continue;
+            }
+
+            if ($this->getColumnMutatorType($column) === null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Adds PHP-type conversion and comparison hooks that generated models can override.
+     * convertValueToPhpType() Convert a value to the configured PHP type while preserving nulls.
+     * arePhpTypeValuesEqual() Compare two values using PHP-type-aware equality.
+     *
+     * @param string $script
+     *
+     * @return void
+     */
+    protected function addPhpTypeMethods(string &$script): void
+    {
+        $script .= "
+    protected function convertValueToPhpType(mixed \$value, string \$phpType): mixed
+    {
+        return \$this->defaultConvertValueToPhpType(\$value, \$phpType);
+    }
+
+    protected function arePhpTypeValuesEqual(mixed \$currentValue, mixed \$newValue, string \$phpType): bool
+    {
+        return \$this->defaultArePhpTypeValuesEqual(\$currentValue, \$newValue, \$phpType);
+    }
+";
     }
 
     /**
@@ -2527,20 +2569,28 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addDefaultMutator(string &$script, Column $col): void
     {
         $clo = $col->getLowercasedName();
+        $phpTypeReference = var_export($col->getPhpType(), true);
+
+        if ($col->isPhpObjectType()) {
+            $phpTypeReference = $this->declareClass($col->getPhpType()) . '::class';
+        }
 
         $this->addMutatorOpen($script, $col);
 
-        // Perform type-casting to ensure that we can use type-sensitive
-        // checking in mutators.
-        if ($col->isPhpPrimitiveType() && !$col->isPrimaryKey()) {
-            $isNullable = $this->isNullableInGeneratedObjectApi($col) ? 'true' : 'false';
+        // Normalize values before comparison so consumer projects can override
+        // conversion for custom PHP types such as enums or value objects.
+        if (!$col->isPrimaryKey()) {
             $script .= "
-        \$v = \$this->castTo(\$v, '" . $col->getPhpType() . "', $isNullable);
-";
+        \$v = \$this->convertValueToPhpType(\$v, $phpTypeReference);
+    ";
         }
 
+        $comparison = $col->isPrimaryKey()
+            ? "\$this->$clo !== \$v"
+            : "!\$this->arePhpTypeValuesEqual(\$this->$clo, \$v, $phpTypeReference)";
+
         $script .= "
-        if (\$this->$clo !== \$v) {
+        if ($comparison) {
             \$this->$clo = \$v;
             \$this->modifiedColumns[" . $this->getColumnConstant($col) . "] = true;
         }
@@ -3920,6 +3970,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if ($foreignKeyPKCount) {
             $script .= "
+
         \$primaryKeyForeignHashes = [];
 ";
             foreach ($primaryKeyFKs as $foreignKey) {
@@ -3935,10 +3986,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
             $script .= "
         return \$this->hashCodeFromValue(\$primaryKeyForeignHashes);";
-        }
-        $script .= "
+        } else {
+            $script .= "
 
-        return spl_object_hash(\$this);
+        return spl_object_hash(\$this);";
+        }
+
+        $script .= "    
     }
         ";
     }

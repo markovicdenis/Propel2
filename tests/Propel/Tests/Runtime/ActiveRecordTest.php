@@ -8,6 +8,8 @@
 
 namespace Propel\Tests\Runtime\ActiveRecord;
 
+require_once __DIR__ . '/ActiveRecordTestClasses.php';
+
 use DateTime;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
@@ -149,19 +151,38 @@ class ActiveRecordTest extends TestCase
     /**
      * @return void
      */
-    public function testCastToCastsScalarValues()
+    public function testDefaultConvertValueToPhpTypeCastsKnownPrimitiveValues()
     {
         $record = new TestableActiveRecord();
 
-        $this->assertSame('7', $record->castToTestValue(7, 'string', true));
-        $this->assertSame(7, $record->castToTestValue('7', 'int', true));
-        $this->assertSame(7.5, $record->castToTestValue('7.5', 'float', true));
-        $this->assertTrue($record->castToTestValue(1, 'bool', true));
-        $this->assertNull($record->castToTestValue(null, 'string', true));
-        $this->assertNull($record->castToTestValue(null, 'string', false));
-        $this->assertNull($record->castToTestValue(null, 'int', false));
-        $this->assertNull($record->castToTestValue(null, 'float', false));
-        $this->assertNull($record->castToTestValue(null, 'bool', false));
+        $this->assertSame('7', $record->defaultConvertValueToPhpTypeTestValue(7, 'string'));
+        $this->assertSame(7, $record->defaultConvertValueToPhpTypeTestValue('7', 'int'));
+        $this->assertSame(7.5, $record->defaultConvertValueToPhpTypeTestValue('7.5', 'float'));
+        $this->assertTrue($record->defaultConvertValueToPhpTypeTestValue(1, 'bool'));
+        $this->assertNull($record->defaultConvertValueToPhpTypeTestValue(null, 'string'));
+        $this->assertNull($record->defaultConvertValueToPhpTypeTestValue(null, 'int'));
+        $this->assertNull($record->defaultConvertValueToPhpTypeTestValue(null, 'float'));
+        $this->assertNull($record->defaultConvertValueToPhpTypeTestValue(null, 'bool'));
+        $this->assertSame('raw', $record->defaultConvertValueToPhpTypeTestValue('raw', 'App\\ValueObject'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testDefaultArePhpTypeValuesEqualUsesValueEqualityForObjects()
+    {
+        $record = new TestableActiveRecord();
+
+        $left = new ComparableValueObject('same');
+        $right = new ComparableValueObject('same');
+        $other = new ComparableValueObject('other');
+
+        $this->assertTrue($record->defaultArePhpTypeValuesEqualTestValue('7', '7', 'string'));
+        $this->assertFalse($record->defaultArePhpTypeValuesEqualTestValue('7', 7, 'string'));
+        $this->assertTrue($record->defaultArePhpTypeValuesEqualTestValue(null, null, 'App\\ValueObject'));
+        $this->assertFalse($record->defaultArePhpTypeValuesEqualTestValue($left, null, 'App\\ValueObject'));
+        $this->assertTrue($record->defaultArePhpTypeValuesEqualTestValue($left, $right, ComparableValueObject::class));
+        $this->assertFalse($record->defaultArePhpTypeValuesEqualTestValue($left, $other, ComparableValueObject::class));
     }
 
     /**

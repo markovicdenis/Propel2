@@ -170,39 +170,100 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
     protected function addColumnMutatorMethods(string &$script): void
     {
         foreach ($this->getTable()->getColumns() as $col) {
-            if ($col->getType() === PropelTypes::OBJECT) {
-                $this->addObjectMutator($script, $col);
-            } elseif ($col->isLobType()) {
-                $this->addLobMutator($script, $col);
-            } elseif (
-                $col->getType() === PropelTypes::DATE
-                || $col->getType() === PropelTypes::DATETIME
-                || $col->getType() === PropelTypes::TIME
-                || $col->getType() === PropelTypes::TIMESTAMP
-            ) {
-                $this->addTemporalMutator($script, $col);
-            } elseif ($col->getType() === PropelTypes::PHP_ARRAY) {
-                $this->addArrayMutator($script, $col);
-                if ($col->isNamePlural()) {
-                    $this->addAddArrayElement($script, $col);
-                    $this->addRemoveArrayElement($script, $col);
-                }
-            } elseif ($col->getType() === PropelTypes::JSON) {
-                $this->addJsonMutator($script, $col);
-            } elseif ($col->isEnumType()) {
-                $this->addEnumMutator($script, $col);
-            } elseif ($col->isSetType()) {
-                $this->addSetMutator($script, $col);
-                if ($col->isNamePlural()) {
-                    $this->addAddArrayElement($script, $col);
-                    $this->addRemoveArrayElement($script, $col);
-                }
-            } elseif ($col->isBooleanType()) {
-                $this->addBooleanMutator($script, $col);
-            } else {
-                $this->addDefaultMutator($script, $col);
+            switch ($this->getColumnMutatorType($col)) {
+                case PropelTypes::OBJECT:
+                    $this->addObjectMutator($script, $col);
+
+                    break;
+                case PropelTypes::VARBINARY:
+                case PropelTypes::LONGVARBINARY:
+                case PropelTypes::BLOB:
+                case PropelTypes::GEOMETRY:
+                    $this->addLobMutator($script, $col);
+
+                    break;
+                case PropelTypes::DATE:
+                case PropelTypes::DATETIME:
+                case PropelTypes::TIME:
+                case PropelTypes::TIMESTAMP:
+                    $this->addTemporalMutator($script, $col);
+
+                    break;
+                case PropelTypes::PHP_ARRAY:
+                    $this->addArrayMutator($script, $col);
+                    if ($col->isNamePlural()) {
+                        $this->addAddArrayElement($script, $col);
+                        $this->addRemoveArrayElement($script, $col);
+                    }
+
+                    break;
+                case PropelTypes::JSON:
+                    $this->addJsonMutator($script, $col);
+
+                    break;
+                case PropelTypes::ENUM:
+                    $this->addEnumMutator($script, $col);
+
+                    break;
+                case PropelTypes::SET:
+                    $this->addSetMutator($script, $col);
+                    if ($col->isNamePlural()) {
+                        $this->addAddArrayElement($script, $col);
+                        $this->addRemoveArrayElement($script, $col);
+                    }
+
+                    break;
+                case PropelTypes::BOOLEAN:
+                case PropelTypes::BOOLEAN_EMU:
+                    $this->addBooleanMutator($script, $col);
+
+                    break;
+                default:
+                    $this->addDefaultMutator($script, $col);
             }
         }
+    }
+
+    protected function getColumnMutatorType(Column $col): ?string
+    {
+        if ($col->getType() === PropelTypes::OBJECT) {
+            return PropelTypes::OBJECT;
+        }
+
+        if ($col->isLobType()) {
+            return $col->getType();
+        }
+
+        if (
+            $col->getType() === PropelTypes::DATE
+            || $col->getType() === PropelTypes::DATETIME
+            || $col->getType() === PropelTypes::TIME
+            || $col->getType() === PropelTypes::TIMESTAMP
+        ) {
+            return $col->getType();
+        }
+
+        if ($col->getType() === PropelTypes::PHP_ARRAY) {
+            return PropelTypes::PHP_ARRAY;
+        }
+
+        if ($col->getType() === PropelTypes::JSON) {
+            return PropelTypes::JSON;
+        }
+
+        if ($col->isEnumType()) {
+            return PropelTypes::ENUM;
+        }
+
+        if ($col->isSetType()) {
+            return PropelTypes::SET;
+        }
+
+        if ($col->isBooleanType()) {
+            return $col->getType();
+        }
+
+        return null;
     }
 
     /**

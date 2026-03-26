@@ -16,7 +16,10 @@ use Propel\Runtime\Map\TableMapTrait;
 
 class TestableActiveRecord implements ActiveRecordInterface
 {
-    use ActiveRecordCommonTrait;
+    use ActiveRecordCommonTrait {
+        defaultConvertValueToPhpType as protected traitDefaultConvertValueToPhpType;
+        defaultArePhpTypeValuesEqual as protected traitDefaultArePhpTypeValuesEqual;
+    }
     use ActiveRecordHydrationTrait;
 
     public const TABLE_MAP = TestableActiveRecordTableMap::class;
@@ -62,9 +65,14 @@ class TestableActiveRecord implements ActiveRecordInterface
         return $this->resolveFromRow($row, $position, $startcol, $indexType, $transformer);
     }
 
-    public function castToTestValue($value, string $type, bool $isNullable)
+    public function defaultConvertValueToPhpTypeTestValue($value, string $phpType)
     {
-        return $this->castTo($value, $type, $isNullable);
+        return $this->traitDefaultConvertValueToPhpType($value, $phpType);
+    }
+
+    public function defaultArePhpTypeValuesEqualTestValue($currentValue, $newValue, string $phpType): bool
+    {
+        return $this->traitDefaultArePhpTypeValuesEqual($currentValue, $newValue, $phpType);
     }
 
     public function hashCodeFromTestValue($value): int
@@ -80,6 +88,18 @@ class TestableActiveRecord implements ActiveRecordInterface
     public function validatePrimaryKeysTestValue(array $primaryKeys, array $unsetValues): bool
     {
         return $this->validatePrimaryKeys($primaryKeys, $unsetValues);
+    }
+}
+
+class ComparableValueObject
+{
+    public function __construct(protected string $value)
+    {
+    }
+
+    public function equals($other): bool
+    {
+        return $other instanceof self && $other->value === $this->value;
     }
 }
 

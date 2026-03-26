@@ -18,6 +18,8 @@ use function array_key_exists;
 use function count;
 use function crc32;
 use function get_class;
+use function is_object;
+use function method_exists;
 use function serialize;
 use function sprintf;
 
@@ -71,27 +73,66 @@ trait ActiveRecordCommonTrait
     }
 
     /**
-     * Cast a value to the configured PHP scalar type while preserving nulls.
+     * Convert a value to the configured PHP type while preserving nulls.
+     *
+     * Consumer projects may override this to support richer PHP types such as
+     * enums or value objects for generated model setters.
      *
      * @param mixed $value
-     * @param string $type
-     * @param bool $isNullable
+     * @param string $phpType
      *
      * @return mixed
      */
-    protected function castTo($value, string $type, bool $isNullable)
+    protected function defaultConvertValueToPhpType($value, string $phpType)
     {
         if ($value === null) {
             return null;
         }
 
-        return match ($type) {
+        return match ($phpType) {
             'int', 'integer' => (int)$value,
             'float', 'double' => (float)$value,
             'string' => (string)$value,
             'bool', 'boolean' => (bool)$value,
             default => $value,
         };
+    }
+
+    /**
+     * Compare two values using PHP-type-aware equality.
+     *
+     * Consumer projects may override this to define domain-specific equality
+     * for generated model setters, for example for enums or value objects.
+     *
+     * @param mixed $currentValue
+     * @param mixed $newValue
+     * @param string $phpType
+     *
+     * @return bool
+     */
+    protected function defaultArePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool
+    {
+        if ($currentValue === $newValue) {
+            return true;
+        }
+
+        if ($currentValue === null || $newValue === null) {
+            return false;
+        }
+
+        if (is_object($currentValue) && is_object($newValue)) {
+            if (method_exists($currentValue, 'equals')) {
+                return $currentValue->equals($newValue);
+            }
+
+            if (method_exists($newValue, 'equals')) {
+                return $newValue->equals($currentValue);
+            }
+
+            return $currentValue == $newValue;
+        }
+
+        return false;
     }
 
     /**
