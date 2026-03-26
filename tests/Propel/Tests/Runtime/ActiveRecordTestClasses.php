@@ -66,6 +66,11 @@ class TestableActiveRecord implements ActiveRecordInterface
     {
         return $this->castTo($value, $type, $isNullable);
     }
+
+    public function hashCodeFromTestValue($value): int
+    {
+        return $this->hashCodeFromValue($value);
+    }
 }
 
 class TestableActiveRecordTableMap extends TableMap

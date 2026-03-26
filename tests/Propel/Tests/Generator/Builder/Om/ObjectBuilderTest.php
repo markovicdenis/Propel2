@@ -351,7 +351,9 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addHashCodeToScript($script);
 
-        $this->assertStringContainsString('$validPk = $this->validatePrimaryKey($this->getPrimaryKey(), null);', $script);
+        $this->assertStringContainsString('$primaryKey = $this->getPrimaryKey();', $script);
+        $this->assertStringContainsString('if ($this->validatePrimaryKey($primaryKey, null)) {', $script);
+        $this->assertStringContainsString('return $this->hashCodeFromValue($primaryKey);', $script);
         $this->assertStringNotContainsString('null !== $this->getId()', $script);
     }
 
@@ -380,7 +382,113 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addHashCodeToScript($script);
 
-        $this->assertStringContainsString('$validPk = $this->validatePrimaryKeys($this->getPrimaryKey(), [0, \'\']);', $script);
+        $this->assertStringContainsString('$primaryKey = $this->getPrimaryKey();', $script);
+        $this->assertStringContainsString('if ($this->validatePrimaryKeys($primaryKey, [0, \'\'])) {', $script);
+        $this->assertStringContainsString('return $this->hashCodeFromValue($primaryKey);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashCodeIncludesForeignKeyFallbackForSharedPrimaryKeyRelation()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('Parent');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('Child');
+        $database->addTable($childTable);
+
+        $childId = new Column('id');
+        $childId->setDomain(new Domain('INTEGER'));
+        $childId->setPrimaryKey(true);
+        $childId->setNotNull(true);
+        $childTable->addColumn($childId);
+        $childTable->addForeignKey([
+            'foreignTable' => 'Parent',
+        ])->addReference('id', 'id');
+
+        $builder = new TestableObjectBuilder($childTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addHashCodeToScript($script);
+
+        $this->assertStringContainsString('if ($this->validatePrimaryKey($primaryKey, null)) {', $script);
+        $this->assertStringContainsString('$primaryKeyForeignHashes = [];', $script);
+        $this->assertStringContainsString('// relation Child_fk_', $script);
+        $this->assertStringContainsString('if (!$this->aParent) {', $script);
+        $this->assertStringContainsString('$primaryKeyForeignHashes[] = spl_object_hash($this->aParent);', $script);
+        $this->assertStringContainsString('return $this->hashCodeFromValue($primaryKeyForeignHashes);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashCodeIncludesForeignKeyFallbackForCompositeForeignPrimaryKey()
+    {
+        $database = new Database('test');
+
+        $bookTable = new Table('Book');
+        $database->addTable($bookTable);
+
+        $bookId = new Column('id');
+        $bookId->setDomain(new Domain('INTEGER'));
+        $bookId->setPrimaryKey(true);
+        $bookId->setNotNull(true);
+        $bookTable->addColumn($bookId);
+
+        $listTable = new Table('BookClubList');
+        $database->addTable($listTable);
+
+        $listId = new Column('id');
+        $listId->setDomain(new Domain('INTEGER'));
+        $listId->setPrimaryKey(true);
+        $listId->setNotNull(true);
+        $listTable->addColumn($listId);
+
+        $joinTable = new Table('BookListRel');
+        $database->addTable($joinTable);
+
+        $joinBookId = new Column('book_id');
+        $joinBookId->setDomain(new Domain('INTEGER'));
+        $joinBookId->setPrimaryKey(true);
+        $joinBookId->setNotNull(true);
+        $joinTable->addColumn($joinBookId);
+
+        $joinListId = new Column('book_club_list_id');
+        $joinListId->setDomain(new Domain('INTEGER'));
+        $joinListId->setPrimaryKey(true);
+        $joinListId->setNotNull(true);
+        $joinTable->addColumn($joinListId);
+
+        $joinTable->addForeignKey([
+            'foreignTable' => 'Book',
+        ])->addReference('book_id', 'id');
+        $joinTable->addForeignKey([
+            'foreignTable' => 'BookClubList',
+        ])->addReference('book_club_list_id', 'id');
+
+        $builder = new TestableObjectBuilder($joinTable);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addHashCodeToScript($script);
+
+        $this->assertStringContainsString('if ($this->validatePrimaryKeys($primaryKey, [null, null])) {', $script);
+        $this->assertStringContainsString('$primaryKeyForeignHashes = [];', $script);
+        $this->assertStringContainsString('if (!$this->aBook) {', $script);
+        $this->assertStringContainsString('$primaryKeyForeignHashes[] = spl_object_hash($this->aBook);', $script);
+        $this->assertStringContainsString('if (!$this->aBookclublist) {', $script);
+        $this->assertStringContainsString('$primaryKeyForeignHashes[] = spl_object_hash($this->aBookclublist);', $script);
+        $this->assertStringContainsString('return $this->hashCodeFromValue($primaryKeyForeignHashes);', $script);
     }
 
     /**

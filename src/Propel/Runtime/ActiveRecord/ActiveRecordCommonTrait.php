@@ -16,7 +16,9 @@ use Propel\Runtime\Util\PropelDateTime;
 
 use function array_key_exists;
 use function count;
+use function crc32;
 use function get_class;
+use function json_encode;
 use function sprintf;
 
 trait ActiveRecordCommonTrait
@@ -56,6 +58,16 @@ trait ActiveRecordCommonTrait
         }
 
         return true;
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return int
+     */
+    protected function hashCodeFromValue($value): int
+    {
+        return crc32(json_encode($value, JSON_UNESCAPED_UNICODE) ?: '');
     }
 
     /**

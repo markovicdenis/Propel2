@@ -3886,23 +3886,26 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @return int|string Hashcode
      */
     public function hashCode()
-    {
-        \$validPk = ";
+    {";
 
         $pks = $this->getTable()->getPrimaryKey();
         if (count($pks) === 1) {
-            $script .= "\$this->validatePrimaryKey(\$this->getPrimaryKey(), " . $this->getPrimaryKeyUnsetValue($pks[0]) . ')';
+            $script .= "
+        \$primaryKey = \$this->getPrimaryKey();
+        if (\$this->validatePrimaryKey(\$primaryKey, " . $this->getPrimaryKeyUnsetValue($pks[0]) . ")) {
+            return \$this->hashCodeFromValue(\$primaryKey);
+        }";
         } elseif ($pks) {
             $unsetValues = [];
             foreach ($pks as $pk) {
                 $unsetValues[] = $this->getPrimaryKeyUnsetValue($pk);
             }
-            $script .= "\$this->validatePrimaryKeys(\$this->getPrimaryKey(), [" . implode(', ', $unsetValues) . '])';
-        } else {
-            $script .= 'false';
+            $script .= "
+        \$primaryKey = \$this->getPrimaryKey();
+        if (\$this->validatePrimaryKeys(\$primaryKey, [" . implode(', ', $unsetValues) . "])) {
+            return \$this->hashCodeFromValue(\$primaryKey);
+        }";
         }
-
-        $script .= ";\n";
 
         /** @var array<\Propel\Generator\Model\ForeignKey> $primaryKeyFKs */
         $primaryKeyFKs = [];
@@ -3917,31 +3920,21 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if ($foreignKeyPKCount) {
             $script .= "
-        \$validPrimaryKeyFKs = " . var_export($foreignKeyPKCount, true) . ";
-        \$primaryKeyFKs = [];
+        \$primaryKeyForeignHashes = [];
 ";
             foreach ($primaryKeyFKs as $foreignKey) {
                 $name = '$this->a' . $this->getFKPhpNameAffix($foreignKey);
                 $script .= "
-        //relation {$foreignKey->getName()} to table {$foreignKey->getForeignTableName()}
-        if ($name && \$hash = spl_object_hash($name)) {
-            \$primaryKeyFKs[] = \$hash;
-        } else {
-            \$validPrimaryKeyFKs = false;
-        }
-";
-            }
+        // relation {$foreignKey->getName()} to table {$foreignKey->getForeignTableName()}
+        if (!$name) {
+            return spl_object_hash(\$this);
         }
 
-        $script .= "
-        if (\$validPk) {
-            return crc32(json_encode(\$this->getPrimaryKey(), JSON_UNESCAPED_UNICODE) ?: '');
-        }";
-        if ($foreignKeyPKCount) {
+        \$primaryKeyForeignHashes[] = spl_object_hash($name);
+";
+            }
             $script .= "
-        if (\$validPrimaryKeyFKs) {
-            return crc32(json_encode(\$primaryKeyFKs, JSON_UNESCAPED_UNICODE) ?: '');
-        }";
+        return \$this->hashCodeFromValue(\$primaryKeyForeignHashes);";
         }
         $script .= "
 

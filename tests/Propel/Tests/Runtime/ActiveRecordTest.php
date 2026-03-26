@@ -168,6 +168,20 @@ class ActiveRecordTest extends TestCase
     /**
      * @return void
      */
+    public function testHashCodeFromValueBuildsStableHashes()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->assertSame(crc32(json_encode(7, JSON_UNESCAPED_UNICODE) ?: ''), $record->hashCodeFromTestValue(7));
+        $this->assertSame(
+            crc32(json_encode(['id' => 7, 'code' => 'A'], JSON_UNESCAPED_UNICODE) ?: ''),
+            $record->hashCodeFromTestValue(['id' => 7, 'code' => 'A'])
+        );
+    }
+
+    /**
+     * @return void
+     */
     public function testValidatePrimaryKeyUsesGeneratedUnsetValue()
     {
         $record = new TestableActiveRecord();
