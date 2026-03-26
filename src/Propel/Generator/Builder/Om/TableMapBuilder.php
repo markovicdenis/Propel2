@@ -11,6 +11,7 @@ namespace Propel\Generator\Builder\Om;
 use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Platform\PlatformInterface;
+use Propel\Generator\Util\PhpValueExporter;
 
 use function count;
 use function is_array;
@@ -656,7 +657,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $stringifiedBehaviors = [];
         foreach ($behaviors as $behavior) {
             $id = $behavior->getId();
-            $params = $this->stringify($behavior->getParameters());
+            $params = $this->stringify($behavior->getParameters(), 3);
             $stringifiedBehaviors[] = "'$id' => $params,";
         }
         $itemsString = implode(PHP_EOL . '            ', $stringifiedBehaviors);
@@ -679,24 +680,13 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
     /**
      * @param array|string|float|int|bool|null $value
+     * @param int $indentLevel
      *
      * @return string
      */
-    protected function stringify($value): string
+    protected function stringify($value, int $indentLevel = 0): string
     {
-        if (!is_array($value)) {
-            return var_export($value, true);
-        }
-
-        $items = [];
-        foreach ($value as $key => $arrayValue) {
-            $keyString = var_export($key, true);
-            $valString = $this->stringify($arrayValue);
-            $items[] = "$keyString => $valString";
-        }
-        $itemsCsv = implode(', ', $items);
-
-        return "[$itemsCsv]";
+        return PhpValueExporter::export($value, $indentLevel);
     }
 
     /**

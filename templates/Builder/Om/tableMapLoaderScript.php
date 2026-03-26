@@ -1,4 +1,4 @@
 <?= '<?php'?>
 
-$serviceContainer = \Propel\Runtime\Propel::getServiceContainer();
-$serviceContainer->initDatabaseMapFromDumps(<?= var_export($databaseNameToTableMapDumps, true) ?>);
+$serviceContainer = \Propel\Runtime\Propel::getStandardServiceContainer();
+$serviceContainer->initDatabaseMapFromDumps(<?= $databaseNameToTableMapDumpsExport ?>);

@@ -14,6 +14,7 @@ use Propel\Generator\Config\GeneratorConfigInterface;
 use Propel\Generator\Exception\BuildException;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Table;
+use Propel\Generator\Util\PhpValueExporter;
 use Propel\Runtime\Map\DatabaseMap;
 use SplFileInfo;
 
@@ -57,8 +58,9 @@ class TableMapLoaderScriptBuilder
         $template = new PropelTemplate();
         $template->setTemplateFile($filePath);
 
+        $databaseNameToTableMapDumps = $this->buildDatabaseNameToTableMapDumps($schemas);
         $vars = [
-            'databaseNameToTableMapDumps' => $this->buildDatabaseNameToTableMapDumps($schemas),
+            'databaseNameToTableMapDumpsExport' => PhpValueExporter::export($databaseNameToTableMapDumps),
         ];
 
         return $template->render($vars);
