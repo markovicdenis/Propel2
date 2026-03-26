@@ -159,7 +159,10 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(7.5, $record->castToTestValue('7.5', 'float', true));
         $this->assertTrue($record->castToTestValue(1, 'bool', true));
         $this->assertNull($record->castToTestValue(null, 'string', true));
-        $this->assertNull($record->castToTestValue(null, 'string', false));
+        $this->assertSame('', $record->castToTestValue(null, 'string', false));
+        $this->assertSame(0, $record->castToTestValue(null, 'int', false));
+        $this->assertSame(0.0, $record->castToTestValue(null, 'float', false));
+        $this->assertFalse($record->castToTestValue(null, 'bool', false));
     }
 
     /**
@@ -172,6 +175,7 @@ class ActiveRecordTest extends TestCase
         $method->setAccessible(true);
 
         $this->assertFalse($method->invoke($record, null, null));
+        $this->assertFalse($method->invoke($record, null, 'unset'));
         $this->assertFalse($method->invoke($record, '', ''));
         $this->assertTrue($method->invoke($record, 7, null));
     }
@@ -186,6 +190,7 @@ class ActiveRecordTest extends TestCase
         $method->setAccessible(true);
 
         $this->assertFalse($method->invoke($record, [7], [null, '']));
+        $this->assertFalse($method->invoke($record, [7, null], [null, 'unset']));
         $this->assertFalse($method->invoke($record, [7, ''], [null, '']));
         $this->assertTrue($method->invoke($record, [7, 'code'], [null, '']));
     }

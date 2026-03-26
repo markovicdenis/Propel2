@@ -30,7 +30,7 @@ class PhpValueExporterTest extends TestCase
 [
     'bookstore' => [
         'tablesByName' => [
-            'author' => '\ExampleNamespace\Bookstore\Map\AuthorTableMap',
+            'author' => '\\ExampleNamespace\\Bookstore\\Map\\AuthorTableMap',
         ],
     ],
 ]

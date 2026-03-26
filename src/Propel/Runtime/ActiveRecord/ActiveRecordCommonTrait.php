@@ -31,7 +31,7 @@ trait ActiveRecordCommonTrait
      */
     protected function validatePrimaryKey($primaryKey, $unsetValue): bool
     {
-        return $primaryKey !== $unsetValue;
+        return $primaryKey !== $unsetValue && $primaryKey !== null;
     }
 
     /**
@@ -49,7 +49,8 @@ trait ActiveRecordCommonTrait
         }
 
         foreach ($unsetValues as $index => $unsetValue) {
-            if (($primaryKeys[$index] ?? null) === $unsetValue) {
+            $primaryKey = $primaryKeys[$index] ?? null;
+            if (!$this->validatePrimaryKey($primaryKey, $unsetValue)) {
                 return false;
             }
         }
@@ -275,6 +276,18 @@ trait ActiveRecordCommonTrait
         }
 
         return $this->virtualColumns[$name];
+    }
+
+    /**
+     * Get the value of a virtual column in this object or return the default if it doesn't exist.
+     *
+     * @param string $name The virtual column name.
+     *
+     * @return mixed
+     */
+    public function tryGetVirtualColumn(string $name, mixed $default = null)
+    {
+        return $this->hasVirtualColumn($name) ? $this->virtualColumns[$name] : $default;
     }
 
     /**

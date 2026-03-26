@@ -1004,6 +1004,52 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testFkRemoverResetsForeignKeyColumnsByDirectPropertyAssignment()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('parent');
+        $parentTable->setNamespace('Model');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('child');
+        $childTable->setNamespace('Model');
+        $database->addTable($childTable);
+
+        $childId = new Column('id');
+        $childId->setDomain(new Domain('INTEGER'));
+        $childId->setPrimaryKey(true);
+        $childId->setNotNull(true);
+        $childTable->addColumn($childId);
+
+        $parentForeignKey = new Column('parent_id');
+        $parentForeignKey->setDomain(new Domain('INTEGER'));
+        $childTable->addColumn($parentForeignKey);
+        $childTable->addForeignKey(['foreignTable' => 'parent'])
+            ->addReference('parent_id', 'id');
+
+        $builder = new TestableObjectBuilder($childTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addFKRemoverToScript($script, $childTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('public function unsetParent()', $script);
+        $this->assertStringContainsString('$this->parent_id = null;', $script);
+        $this->assertStringContainsString('$this->aParent = null;', $script);
+        $this->assertStringNotContainsString('$this->setParentId(', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testSetPrimaryKeyUsesNullUnsetValueForForeignPrimaryKeys()
     {
         $database = new Database('test');
@@ -1311,6 +1357,13 @@ class TestableObjectBuilder extends ObjectBuilder
         \Propel\Generator\Model\ForeignKey $foreignKey
     ): void {
         $this->addFKAccessor($script, $foreignKey);
+    }
+
+    public function addFKRemoverToScript(
+        string &$script,
+        \Propel\Generator\Model\ForeignKey $foreignKey
+    ): void {
+        $this->addFKRemover($script, $foreignKey);
     }
 
     public function addRefFKAddToScript(
