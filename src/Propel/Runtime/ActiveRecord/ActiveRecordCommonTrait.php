@@ -18,7 +18,7 @@ use function array_key_exists;
 use function count;
 use function crc32;
 use function get_class;
-use function json_encode;
+use function serialize;
 use function sprintf;
 
 trait ActiveRecordCommonTrait
@@ -67,7 +67,7 @@ trait ActiveRecordCommonTrait
      */
     protected function hashCodeFromValue($value): int
     {
-        return crc32(json_encode($value, JSON_UNESCAPED_UNICODE) ?: '');
+        return crc32(serialize($value));
     }
 
     /**
@@ -81,7 +81,7 @@ trait ActiveRecordCommonTrait
      */
     protected function castTo($value, string $type, bool $isNullable)
     {
-        if ($value === null && $isNullable) {
+        if ($value === null) {
             return null;
         }
 

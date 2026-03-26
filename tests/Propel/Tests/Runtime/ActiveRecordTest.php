@@ -11,7 +11,6 @@ namespace Propel\Tests\Runtime\ActiveRecord;
 use DateTime;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
-use ReflectionMethod;
 use Propel\Tests\TestCase;
 use ReflectionProperty;
 use RuntimeException;
@@ -159,10 +158,10 @@ class ActiveRecordTest extends TestCase
         $this->assertSame(7.5, $record->castToTestValue('7.5', 'float', true));
         $this->assertTrue($record->castToTestValue(1, 'bool', true));
         $this->assertNull($record->castToTestValue(null, 'string', true));
-        $this->assertSame('', $record->castToTestValue(null, 'string', false));
-        $this->assertSame(0, $record->castToTestValue(null, 'int', false));
-        $this->assertSame(0.0, $record->castToTestValue(null, 'float', false));
-        $this->assertFalse($record->castToTestValue(null, 'bool', false));
+        $this->assertNull($record->castToTestValue(null, 'string', false));
+        $this->assertNull($record->castToTestValue(null, 'int', false));
+        $this->assertNull($record->castToTestValue(null, 'float', false));
+        $this->assertNull($record->castToTestValue(null, 'bool', false));
     }
 
     /**
@@ -172,9 +171,9 @@ class ActiveRecordTest extends TestCase
     {
         $record = new TestableActiveRecord();
 
-        $this->assertSame(crc32(json_encode(7, JSON_UNESCAPED_UNICODE) ?: ''), $record->hashCodeFromTestValue(7));
+        $this->assertSame(crc32(serialize(7)), $record->hashCodeFromTestValue(7));
         $this->assertSame(
-            crc32(json_encode(['id' => 7, 'code' => 'A'], JSON_UNESCAPED_UNICODE) ?: ''),
+            crc32(serialize(['id' => 7, 'code' => 'A'])),
             $record->hashCodeFromTestValue(['id' => 7, 'code' => 'A'])
         );
     }
@@ -185,13 +184,11 @@ class ActiveRecordTest extends TestCase
     public function testValidatePrimaryKeyUsesGeneratedUnsetValue()
     {
         $record = new TestableActiveRecord();
-        $method = new ReflectionMethod($record, 'validatePrimaryKey');
-        $method->setAccessible(true);
 
-        $this->assertFalse($method->invoke($record, null, null));
-        $this->assertFalse($method->invoke($record, null, 'unset'));
-        $this->assertFalse($method->invoke($record, '', ''));
-        $this->assertTrue($method->invoke($record, 7, null));
+        $this->assertFalse($record->validatePrimaryKeyTestValue(null, null));
+        $this->assertFalse($record->validatePrimaryKeyTestValue(null, 'unset'));
+        $this->assertFalse($record->validatePrimaryKeyTestValue('', ''));
+        $this->assertTrue($record->validatePrimaryKeyTestValue(7, null));
     }
 
     /**
@@ -200,13 +197,11 @@ class ActiveRecordTest extends TestCase
     public function testValidatePrimaryKeysUsesGeneratedUnsetValues()
     {
         $record = new TestableActiveRecord();
-        $method = new ReflectionMethod($record, 'validatePrimaryKeys');
-        $method->setAccessible(true);
 
-        $this->assertFalse($method->invoke($record, [7], [null, '']));
-        $this->assertFalse($method->invoke($record, [7, null], [null, 'unset']));
-        $this->assertFalse($method->invoke($record, [7, ''], [null, '']));
-        $this->assertTrue($method->invoke($record, [7, 'code'], [null, '']));
+        $this->assertFalse($record->validatePrimaryKeysTestValue([7], [null, '']));
+        $this->assertFalse($record->validatePrimaryKeysTestValue([7, null], [null, 'unset']));
+        $this->assertFalse($record->validatePrimaryKeysTestValue([7, ''], [null, '']));
+        $this->assertTrue($record->validatePrimaryKeysTestValue([7, 'code'], [null, '']));
     }
 
     /**

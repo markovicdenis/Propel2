@@ -71,6 +71,16 @@ class TestableActiveRecord implements ActiveRecordInterface
     {
         return $this->hashCodeFromValue($value);
     }
+
+    public function validatePrimaryKeyTestValue($primaryKey, $unsetValue): bool
+    {
+        return $this->validatePrimaryKey($primaryKey, $unsetValue);
+    }
+
+    public function validatePrimaryKeysTestValue(array $primaryKeys, array $unsetValues): bool
+    {
+        return $this->validatePrimaryKeys($primaryKeys, $unsetValues);
+    }
 }
 
 class TestableActiveRecordTableMap extends TableMap
