@@ -9,6 +9,7 @@
 namespace Propel\Runtime\Collection;
 
 use ArrayIterator;
+use Override;
 
 use function count;
 
@@ -137,8 +138,70 @@ class CollectionIterator extends ArrayIterator
         return !$this->isOdd();
     }
 
+    #[Override]
+    public function asort(int $flags = SORT_REGULAR): true
+    {
+        parent::asort($flags);
+        $this->refreshPositions();
+
+        return true;
+    }
+
+    #[Override]
+    public function ksort(int $flags = SORT_REGULAR): true
+    {
+        parent::ksort($flags);
+        $this->refreshPositions();
+
+        return true;
+    }
+
+    #[Override]
+    public function uasort(callable $callback): true
+    {
+        parent::uasort($callback);
+        $this->refreshPositions();
+
+        return true;
+    }
+
+    #[Override]
+    public function uksort(callable $callback): true
+    {
+        parent::uksort($callback);
+        $this->refreshPositions();
+
+        return true;
+    }
+
+    #[Override]
+    public function natsort(): true
+    {
+        parent::natsort();
+        $this->refreshPositions();
+
+        return true;
+    }
+
+    #[Override]
+    public function natcasesort(): true
+    {
+        parent::natcasesort();
+        $this->refreshPositions();
+
+        return true;
+    }
+
     private function refreshPositions(): void
     {
-        $this->positions = array_flip(array_keys($this->getArrayCopy()));
+        $positions = [];
+        $position = 0;
+
+        foreach ($this->getArrayCopy() as $key => $_) {
+            $positions[$key] = $position;
+            $position++;
+        }
+
+        $this->positions = $positions;
     }
 }

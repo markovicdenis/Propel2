@@ -103,11 +103,11 @@ class ProfilerConnectionWrapper extends ConnectionWrapper
     /**
      * @inheritDoc
      */
-    public function query($statement = '', ...$args): DataFetcherInterface
+    public function query(string $statement): DataFetcherInterface
     {
         $this->getProfiler()->start();
 
-        return parent::query($statement, ...$args);
+        return parent::query($statement);
     }
 
     /**

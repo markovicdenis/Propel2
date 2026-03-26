@@ -6105,6 +6105,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $crossFK = $crossFKs->getCrossForeignKeys()[0];
             $relatedObjectClassName = $this->getNewStubObjectBuilder($crossFK->getForeignTable())->getUnqualifiedClassName();
             $collName = $this->getCrossFKVarName($crossFK);
+            $containsCurrentRelatedObject = "\$current{$relatedNamePlural} instanceof \\Propel\\Runtime\\Collection\\ObjectCollection\n"
+                . "                ? \$current{$relatedNamePlural}->containsInstance(\${$foreachItem})\n"
+                . "                : \$current{$relatedNamePlural}->contains(\${$foreachItem})";
         }
 
         $script .= "
@@ -6144,7 +6147,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }";
         } else {
             $script .= "
-            if (!\$current{$relatedNamePlural}->contains(\${$foreachItem})) {
+            if (!({$containsCurrentRelatedObject})) {
                 \$this->doAdd{$relatedName}(\${$foreachItem});
             }";
         }
@@ -6289,6 +6292,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $relatedObjectClassName = $this->getFKPhpNameAffix($crossFK, false);
             $crossObjectClassName = $this->getClassNameFromTable($crossFK->getForeignTable());
             [$signature, $shortSignature, $normalizedShortSignature, $phpDoc] = $this->getCrossFKAddMethodInformation($crossFKs, $crossFK);
+            $containsRelatedObject = "\$this->get{$relNamePlural}() instanceof \\Propel\\Runtime\\Collection\\ObjectCollection\n"
+                . "            ? \$this->get{$relNamePlural}()->containsInstance({$normalizedShortSignature})\n"
+                . "            : \$this->get{$relNamePlural}()->contains({$normalizedShortSignature})";
 
             $script .= "
     /**
@@ -6303,7 +6309,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->init" . $relNamePlural . "();
         }
 
-        if (!\$this->get" . $relNamePlural . '()->contains(' . $normalizedShortSignature . ")) {
+        if (!({$containsRelatedObject})) {
             // only add it if the **same** object is not already associated
             \$this->" . $collName . '->push(' . $normalizedShortSignature . ");
             \$this->doAdd{$relName}($normalizedShortSignature);
@@ -6404,8 +6410,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // set the back reference to this object directly as using provided method either results
         // in endless loop or in multiple relations
         if (\${$lowerRelatedObjectClassName}->is{$getterName}Loaded()) {
-            \${$lowerRelatedObjectClassName}->init{$getterName}();
-            \${$lowerRelatedObjectClassName}->get{$getterName}()->push($getterRemoveObjectName);
+            if (!\${$lowerRelatedObjectClassName}->get{$getterName}()->contains($getterRemoveObjectName)) {
+                \${$lowerRelatedObjectClassName}->get{$getterName}()->push($getterRemoveObjectName);
+            }
         } elseif (!\${$lowerRelatedObjectClassName}->get{$getterName}()->contains($getterRemoveObjectName)) {
             \${$lowerRelatedObjectClassName}->get{$getterName}()->push($getterRemoveObjectName);
         }\n";
@@ -6414,13 +6421,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $relatedObjectClassName = $this->getFKPhpNameAffix($crossFK, false);
             $lowerRelatedObjectClassName = lcfirst($relatedObjectClassName);
             $getterSignature = $this->getCrossFKGetterSignature($crossFKs, '$' . $lowerRelatedObjectClassName);
+            $containsBackReference = "\${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature) instanceof \\Propel\\Runtime\\Collection\\ObjectCollection\n"
+                . "            ? \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->containsInstance(\$this)\n"
+                . "            : \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->contains(\$this)";
             $script .= "
         // set the back reference to this object directly as using provided method either results
         // in endless loop or in multiple relations
         if (!\${$lowerRelatedObjectClassName}->is{$selfRelationNamePlural}Loaded()) {
             \${$lowerRelatedObjectClassName}->init{$selfRelationNamePlural}();
             \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$this);
-        } elseif (!\${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->contains(\$this)) {
+        } elseif (!({$containsBackReference})) {
             \${$lowerRelatedObjectClassName}->get{$selfRelationNamePlural}($getterSignature)->push(\$this);
         }\n";
         }

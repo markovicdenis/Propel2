@@ -46,3 +46,6 @@ tests/graphviztest/
 tests/migrationdiff/
 tests/reversecommand/
 tests/test.sq3
+
+validation
+.phpunit.cache

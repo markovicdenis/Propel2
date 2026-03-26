@@ -438,7 +438,7 @@ class ObjectCollection extends Collection
      */
     public function containsSameRecord(object $object): bool
     {
-        return isset($this->index[$this->getHashCode($object)]);
+        return $this->indexOfSameRecord($object) !== null;
     }
 
     /**
@@ -454,7 +454,28 @@ class ObjectCollection extends Collection
      */
     public function indexOfSameRecord(object $object): ?int
     {
-        return $this->index[$this->getHashCode($object)] ?? null;
+        $hash = $this->getHashCode($object);
+        $position = $this->index[$hash] ?? null;
+
+        if ($position !== null && isset($this->data[$position]) && is_object($this->data[$position])) {
+            if ($this->getHashCode($this->data[$position]) === $hash) {
+                return $position;
+            }
+        }
+
+        foreach ($this->data as $position => $value) {
+            if (!is_object($value)) {
+                continue;
+            }
+
+            if ($this->getHashCode($value) === $hash) {
+                $this->rebuildIndex();
+
+                return $position;
+            }
+        }
+
+        return null;
     }
 
     /**

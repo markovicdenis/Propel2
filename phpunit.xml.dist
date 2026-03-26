@@ -2,11 +2,9 @@
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
     bootstrap="tests/bootstrap.php"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd"
+    cacheDirectory=".phpunit.cache"
 >
 
     <testsuites>
@@ -28,14 +26,17 @@
         <env name="DB_PW" value=""/>
     </php>
 
-    <logging />
+    <logging/>
 
-    <coverage>
+    <source>
         <include>
             <directory>src/Propel/</directory>
         </include>
+    </source>
+
+    <coverage>
         <report>
-            <php outputFile="tests/clover.cov" />
+            <php outputFile="tests/clover.cov"/>
         </report>
     </coverage>
 

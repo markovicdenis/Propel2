@@ -15,6 +15,7 @@ use function func_get_args;
 use function call_user_func;
 use function is_callable;
 use function sprintf;
+use function count;
 
 /**
  * Class for iterating over a list of Propel objects
@@ -23,6 +24,38 @@ use function sprintf;
  */
 class ObjectCombinationCollection extends ObjectCollection
 {
+    /**
+     * True if the exact same object tuple is present.
+     */
+    public function containsInstance(object $object): bool
+    {
+        $objects = func_get_args();
+        if (count($objects) === 1) {
+            return parent::containsInstance($object);
+        }
+
+        foreach ($this as $combination) {
+            if (count($combination) !== count($objects)) {
+                continue;
+            }
+
+            $matches = true;
+            foreach ($objects as $index => $currentObject) {
+                if (!isset($combination[$index]) || $combination[$index] !== $currentObject) {
+                    $matches = false;
+
+                    break;
+                }
+            }
+
+            if ($matches) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Get an array of the primary keys of all the objects in the collection
      *

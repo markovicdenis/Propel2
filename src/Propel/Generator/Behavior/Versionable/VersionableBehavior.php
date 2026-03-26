@@ -21,6 +21,11 @@ use Propel\Generator\Model\Table;
 class VersionableBehavior extends Behavior
 {
     /**
+     * @var string
+     */
+    private const VERSION_TABLE_ATTRIBUTE = 'isVersionTable';
+
+    /**
      * Default parameters value
      *
      * @var array<string, mixed>
@@ -67,7 +72,7 @@ class VersionableBehavior extends Behavior
                 // don't add the same behavior twice
                 continue;
             }
-            if (property_exists($table, 'isVersionTable')) {
+            if ($table->getAttribute(self::VERSION_TABLE_ATTRIBUTE)) {
                 // don't add the behavior to version tables
                 continue;
             }
@@ -149,8 +154,8 @@ class VersionableBehavior extends Behavior
                 'namespace' => $table->getNamespace() ? '\\' . $table->getNamespace() : null,
                 'skipSql' => $table->isSkipSql(),
                 'identifierQuoting' => $table->isIdentifierQuotingEnabled(),
+                self::VERSION_TABLE_ATTRIBUTE => true,
             ]);
-            $versionTable->isVersionTable = true;
             // every behavior adding a table should re-execute database behaviors
             foreach ($database->getBehaviors() as $behavior) {
                 $behavior->modifyDatabase();

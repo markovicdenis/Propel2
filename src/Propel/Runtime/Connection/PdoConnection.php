@@ -9,8 +9,10 @@
 namespace Propel\Runtime\Connection;
 
 use PDO;
+use Pdo\Sqlite as SqlitePdo;
 use Propel\Runtime\DataFetcher\DataFetcherInterface;
 use Propel\Runtime\DataFetcher\PDODataFetcher;
+use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Exception\InvalidArgumentException;
 use PDOStatement;
 
@@ -18,6 +20,7 @@ use function constant;
 use function defined;
 use function is_string;
 use function sprintf;
+use function str_starts_with;
 
 /**
  * PDO extension that implements ConnectionInterface and builds StatementInterface statements.
@@ -86,8 +89,23 @@ class PdoConnection implements ConnectionInterface
             }
         }
 
-        $this->pdo = new PDO($dsn, $user, $password, $pdoOptions);
+        $this->pdo = str_starts_with($dsn, 'sqlite:')
+            ? new SqlitePdo($dsn, $user, $password, $pdoOptions)
+            : new PDO($dsn, $user, $password, $pdoOptions);
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
+
+    public function createFunction(
+        string $functionName,
+        callable $callback,
+        int $numArgs = -1,
+        int $flags = 0,
+    ): bool {
+        if (!$this->pdo instanceof SqlitePdo) {
+            throw new LogicException('SQLite user-defined functions are only available on SQLite connections.');
+        }
+
+        return $this->pdo->createFunction($functionName, $callback, $numArgs, $flags);
     }
 
     /**

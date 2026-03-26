@@ -47,7 +47,7 @@ class SqliteAdapter extends PdoAdapter implements SqlAdapterInterface
         parent::initConnection($con, $settings);
 
         //add regex support
-        $con->sqliteCreateFunction('regexp', function ($pattern, $value) {
+        $con->createFunction('regexp', function ($pattern, $value) {
             mb_regex_encoding('UTF-8');
 
             return (mb_ereg($pattern, $value) !== false) ? 1 : 0;

@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\Connection;
 
 use Exception;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\Connection\ConnectionWrapper;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
 
@@ -114,11 +115,7 @@ class ConnectionWrapperTest extends BookstoreTestBase
         $this->assertEquals(1, $affectedRows, "ConnectionWrapper::exec() should have inserted one rows with $description debug mode");
     }
 
-    /**
-     * @dataProvider debugModeProvider
-     *
-     * @return void
-     */
+    #[DataProvider('debugModeProvider')]
     public function testInstanceAndClassDebugMode(?bool $classState, ?bool $instanceState, bool $expected, string $message): void
     {
         ConnectionWrapper::$useDebugMode = $classState;
@@ -127,7 +124,7 @@ class ConnectionWrapperTest extends BookstoreTestBase
         $this->assertSame($expected, $this->con->isInDebugMode(), $message);
     }
 
-    public static function debugModeProvider()
+    public static function debugModeProvider(): array
     {
         // [class state, instance state, expected state, message]
         return [

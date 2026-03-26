@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\Collection;
 
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Collection\ObjectCombinationCollection;
 use Propel\Runtime\Collection\ObjectCollection;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Exception\RuntimeException;
@@ -368,6 +369,51 @@ class ObjectCollectionTest extends BookstoreTestBase
         $this->assertNull($col->indexOfInstance($book2));
         $this->assertSame(0, $col->indexOfSameRecord($book1));
         $this->assertSame(0, $col->indexOfSameRecord($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testContainsSameRecordRepairsMutableRecordIdentity()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $col = new ObjectCollection([$book1]);
+
+        $book1->save();
+        $book2 = clone $book1;
+
+        $this->assertTrue($col->containsSameRecord($book2));
+        $this->assertSame(0, $col->indexOfSameRecord($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testCombinationCollectionContainsInstanceMatchesEntireTuple()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+        $author1 = new Author();
+        $author1->setFirstName('George');
+        $author1->setLastName('Byron');
+
+        $book2 = new Book();
+        $book2->setTitle('Foo');
+        $book2->setISBN('678901');
+        $author2 = new Author();
+        $author2->setFirstName('Ada');
+        $author2->setLastName('Lovelace');
+
+        $col = new ObjectCombinationCollection();
+        $col->push($book1, $author1);
+
+        $this->assertTrue($col->containsInstance($book1, $author1));
+        $this->assertFalse($col->containsInstance($book1, $author2));
+        $this->assertFalse($col->containsInstance($book2, $author1));
     }
 
     /**

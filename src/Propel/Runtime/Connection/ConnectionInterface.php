@@ -203,4 +203,16 @@ interface ConnectionInterface
      *                quoting in this way.
      */
     public function quote(string $string, int $parameterType = PDO::PARAM_STR): string;
+
+    /**
+     * Register a user-defined SQLite function on the underlying connection.
+     *
+     * @throws \Propel\Runtime\Exception\LogicException When the connection is not SQLite-backed.
+     */
+    public function createFunction(
+        string $functionName,
+        callable $callback,
+        int $numArgs = -1,
+        int $flags = 0,
+    ): bool;
 }

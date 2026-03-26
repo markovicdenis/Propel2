@@ -39,6 +39,11 @@ class SchemaReader
     public const DEBUG = false;
 
     /**
+     * @var string
+     */
+    private const ANONYMOUS_SCHEMA_KEY = '';
+
+    /**
      * @var \Propel\Generator\Model\Schema
      */
     private $schema;
@@ -182,28 +187,33 @@ class SchemaReader
             return null;
         }
 
-        // store current schema file path
-        $this->schemasTagsStack[$xmlFile] = [];
-        $this->currentXmlFile = $xmlFile;
-
+        $schemaKey = $this->getSchemaStackKey($xmlFile);
         $parserStash = $this->parser;
+        $currentXmlFileStash = $this->currentXmlFile;
+
+        // store current schema file path
+        $this->schemasTagsStack[$schemaKey] = [];
+        $this->currentXmlFile = $xmlFile;
 
         $this->parser = xml_parser_create();
         xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
         // xml_set_object($this->parser, $this); // can be commented out
         xml_set_element_handler($this->parser, [$this, 'startElement'], [$this, 'endElement']);
-        if (!xml_parse($this->parser, $xmlString)) {
-            throw new SchemaException(
-                sprintf(
-                    'XML error: %s at line %d',
-                    xml_error_string(xml_get_error_code($this->parser)),
-                    xml_get_current_line_number($this->parser),
-                ),
-            );
+        try {
+            if (!xml_parse($this->parser, $xmlString)) {
+                throw new SchemaException(
+                    sprintf(
+                        'XML error: %s at line %d',
+                        xml_error_string(xml_get_error_code($this->parser)),
+                        xml_get_current_line_number($this->parser),
+                    ),
+                );
+            }
+        } finally {
+            $this->parser = $parserStash;
+            array_pop($this->schemasTagsStack);
+            $this->currentXmlFile = $currentXmlFileStash;
         }
-        $this->parser = $parserStash;
-
-        array_pop($this->schemasTagsStack);
 
         return $this->schema;
     }
@@ -553,6 +563,16 @@ class SchemaReader
     protected function isAlreadyParsed(string $filePath): bool
     {
         return isset($this->schemasTagsStack[$filePath]);
+    }
+
+    /**
+     * @param string|null $xmlFile
+     *
+     * @return string
+     */
+    private function getSchemaStackKey(?string $xmlFile): string
+    {
+        return $xmlFile ?? self::ANONYMOUS_SCHEMA_KEY;
     }
 
     /**

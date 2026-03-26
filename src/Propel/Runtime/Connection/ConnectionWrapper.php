@@ -127,7 +127,7 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     /**
      * Configured logger.
      *
-     * @var \Psr\Log\LoggerInterface
+     * @var \Psr\Log\LoggerInterface|null
      */
     protected $logger;
 
@@ -138,7 +138,11 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
      */
     public function isInDebugMode(): bool
     {
-        return $this->useDebugModeOnInstance ?? static::$useDebugMode;
+        if ($this->useDebugModeOnInstance === null) {
+            return static::$useDebugMode;
+        }
+
+        return $this->useDebugModeOnInstance;
     }
 
     /**
@@ -443,24 +447,21 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     }
 
     /**
-     * Executes an SQL statement, returning a result set as a PDOStatement object.
-     * Despite its signature here, this method takes a variety of parameters.
+     * Executes an SQL statement and returns a Propel data fetcher.
      *
-     * Overrides PDO::query() to log queries when required
-     *
-     * @see http://php.net/manual/en/pdo.query.php for a description of the possible parameters.
+     * ConnectionWrapper normalizes query() to Propel's DataFetcherInterface
+     * rather than exposing PDO's fetch-mode overloads.
      *
      * @param string $statement The SQL statement to prepare and execute.
      *                          Data inside the query should be properly escaped.
-     * @param mixed ...$args
      *
      * @return \Propel\Runtime\DataFetcher\DataFetcherInterface
      */
-    public function query(string $statement, ...$args): DataFetcherInterface
+    public function query(string $statement): DataFetcherInterface
     {
         $statementWrapper = $this->createStatementWrapper($statement);
 
-        return $statementWrapper->query(...$args);
+        return $statementWrapper->query();
     }
 
     /**
@@ -740,5 +741,14 @@ class ConnectionWrapper implements ConnectionInterface, LoggerAwareInterface
     public function __call(string $method, $args)
     {
         return $this->connection->$method(...$args);
+    }
+
+    public function createFunction(
+        string $functionName,
+        callable $callback,
+        int $numArgs = -1,
+        int $flags = 0,
+    ): bool {
+        return $this->connection->createFunction($functionName, $callback, $numArgs, $flags);
     }
 }
