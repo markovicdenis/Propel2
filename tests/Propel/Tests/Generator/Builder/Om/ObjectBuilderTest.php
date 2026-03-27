@@ -104,14 +104,40 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testGeneratedConvertValueToPhpTypeHookDelegatesToTraitDefault()
+    {
+        $script = '';
+        $this->builder->addConvertValueToPhpTypeMethodToScript($script);
+
+        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
+        $this->assertStringContainsString('return $this->convertValueToPhpType($value, $phpType);', $script);
+        $this->assertStringNotContainsString('protected function arePhpTypeValuesEqual(', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testGeneratedArePhpTypeValuesEqualHookDelegatesToTraitDefault()
+    {
+        $script = '';
+        $this->builder->addArePhpTypeValuesEqualMethodToScript($script);
+
+        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('return $this->arePhpTypeValuesEqual($currentValue, $newValue, $phpType);', $script);
+        $this->assertStringNotContainsString('protected function convertValueToPhpType(', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testGeneratedPhpTypeHooksDelegateToTraitDefaults()
     {
         $script = '';
         $this->builder->addPhpTypeMethodsToScript($script);
 
-        $this->assertStringContainsString('protected function convertValueToPhpType($value, string $phpType)', $script);
+        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
         $this->assertStringContainsString('return $this->defaultConvertValueToPhpType($value, $phpType);', $script);
-        $this->assertStringContainsString('protected function arePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
         $this->assertStringContainsString('return $this->defaultArePhpTypeValuesEqual($currentValue, $newValue, $phpType);', $script);
     }
 
@@ -140,8 +166,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addClassBodyToScript($script);
 
-        $this->assertStringContainsString('protected function convertValueToPhpType($value, string $phpType)', $script);
-        $this->assertStringContainsString('protected function arePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
+        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
     }
 
     /**
@@ -173,8 +199,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addClassBodyToScript($script);
 
-        $this->assertStringNotContainsString('protected function convertValueToPhpType($value, string $phpType)', $script);
-        $this->assertStringNotContainsString('protected function arePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool', $script);
+        $this->assertStringNotContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
+        $this->assertStringNotContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
     }
 
     /**
@@ -1503,6 +1529,16 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addPhpTypeMethodsToScript(string &$script): void
     {
         $this->addPhpTypeMethods($script);
+    }
+
+    public function addConvertValueToPhpTypeMethodToScript(string &$script): void
+    {
+        $this->addConvertValueToPhpTypeMethod($script);
+    }
+
+    public function addArePhpTypeValuesEqualMethodToScript(string &$script): void
+    {
+        $this->addArePhpTypeValuesEqualMethod($script);
     }
 
     public function addHashCodeToScript(string &$script): void

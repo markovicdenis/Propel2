@@ -17,8 +17,8 @@ use Propel\Runtime\Map\TableMapTrait;
 class TestableActiveRecord implements ActiveRecordInterface
 {
     use ActiveRecordCommonTrait {
-        defaultConvertValueToPhpType as protected traitDefaultConvertValueToPhpType;
-        defaultArePhpTypeValuesEqual as protected traitDefaultArePhpTypeValuesEqual;
+        convertValueToPhpType as protected traitConvertValueToPhpType;
+        arePhpTypeValuesEqual as protected traitArePhpTypeValuesEqual;
     }
     use ActiveRecordHydrationTrait;
 
@@ -65,14 +65,14 @@ class TestableActiveRecord implements ActiveRecordInterface
         return $this->resolveFromRow($row, $position, $startcol, $indexType, $transformer);
     }
 
-    public function defaultConvertValueToPhpTypeTestValue($value, string $phpType)
+    public function convertValueToPhpTypeTestValue($value, string $phpType, bool $isNullable)
     {
-        return $this->traitDefaultConvertValueToPhpType($value, $phpType);
+        return $this->traitConvertValueToPhpType($value, $phpType, $isNullable);
     }
 
-    public function defaultArePhpTypeValuesEqualTestValue($currentValue, $newValue, string $phpType): bool
+    public function arePhpTypeValuesEqualTestValue($currentValue, $newValue, string $phpType): bool
     {
-        return $this->traitDefaultArePhpTypeValuesEqual($currentValue, $newValue, $phpType);
+        return $this->traitArePhpTypeValuesEqual($currentValue, $newValue, $phpType);
     }
 
     public function hashCodeFromTestValue($value): int

@@ -80,13 +80,14 @@ trait ActiveRecordCommonTrait
      *
      * @param mixed $value
      * @param string $phpType
+     * @param bool $isNullable Whether the column is nullable
      *
      * @return mixed
      */
-    protected function defaultConvertValueToPhpType($value, string $phpType)
+    protected function convertValueToPhpType($value, string $phpType, bool $isNullable)
     {
         if ($value === null) {
-            return null;
+            return $isNullable ? null : $value;
         }
 
         return match ($phpType) {
@@ -110,7 +111,7 @@ trait ActiveRecordCommonTrait
      *
      * @return bool
      */
-    protected function defaultArePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool
+    protected function arePhpTypeValuesEqual($currentValue, $newValue, string $phpType): bool
     {
         if ($currentValue === $newValue) {
             return true;

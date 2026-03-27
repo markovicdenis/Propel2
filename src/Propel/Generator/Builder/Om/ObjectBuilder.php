@@ -752,17 +752,48 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addPhpTypeMethods(string &$script): void
     {
-        $script .= "
-    protected function convertValueToPhpType(mixed \$value, string \$phpType): mixed
-    {
-        return \$this->defaultConvertValueToPhpType(\$value, \$phpType);
+        // Only emit object-type hooks if needed
+        if ($this->needsObjectTypeHooks()) {
+            $this->addConvertValueToObjectTypeMethod($script);
+            $this->addAreObjectTypeValuesEqualMethod($script);
+        }
     }
 
-    protected function arePhpTypeValuesEqual(mixed \$currentValue, mixed \$newValue, string \$phpType): bool
+
+    protected function addConvertValueToObjectTypeMethod(string &$script): void
     {
-        return \$this->defaultArePhpTypeValuesEqual(\$currentValue, \$newValue, \$phpType);
+        $script .= "
+    protected function convertValueToObjectType(mixed \$value, string \$phpType, bool \$isNullable): mixed
+    {
+        // Default object conversion (override in model if needed)
+        return \$this->convertValueToPhpType(\$value, \$phpType, \$isNullable);
     }
 ";
+    }
+
+
+    protected function addAreObjectTypeValuesEqualMethod(string &$script): void
+    {
+        $script .= "
+    protected function areObjectTypeValuesEqual(mixed \$currentValue, mixed \$newValue, string \$phpType): bool
+    {
+        // Default object equality (override in model if needed)
+        return \$this->arePhpTypeValuesEqual(\$currentValue, \$newValue, \$phpType);
+    }
+";
+    }
+
+    protected function needsObjectTypeHooks(): bool
+    {
+        foreach ($this->getTable()->getColumns() as $column) {
+            if ($column->isPrimaryKey()) {
+                continue;
+            }
+            if ($column->isPhpObjectType()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -2576,18 +2607,26 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $this->addMutatorOpen($script, $col);
+        $isNullable = var_export(!$col->isNotNull(), true);
 
-        // Normalize values before comparison so consumer projects can override
-        // conversion for custom PHP types such as enums or value objects.
+        // Use scalar or object conversion/equality as appropriate
         if (!$col->isPrimaryKey()) {
-            $script .= "
-        \$v = \$this->convertValueToPhpType(\$v, $phpTypeReference);
+            if ($col->isPhpObjectType()) {
+                $script .= "
+        \$v = \$this->convertValueToObjectType(\$v, $phpTypeReference, $isNullable); 
     ";
+            } else {
+                $script .= "
+        \$v = \$this->convertValueToPhpType(\$v, $phpTypeReference, $isNullable);
+    ";
+            }
         }
 
         $comparison = $col->isPrimaryKey()
             ? "\$this->$clo !== \$v"
-            : "!\$this->arePhpTypeValuesEqual(\$this->$clo, \$v, $phpTypeReference)";
+            : ($col->isPhpObjectType()
+                ? "!\$this->areObjectTypeValuesEqual(\$this->$clo, \$v, $phpTypeReference)"
+                : "!\$this->arePhpTypeValuesEqual(\$this->$clo, \$v, $phpTypeReference)");
 
         $script .= "
         if ($comparison) {
