@@ -1657,7 +1657,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
 
-        $this->triggerDebugger('User', 'Email', $column);
+        $this->triggerDebugger('UserStatsDaily', 'CasinoCreditRollback', $column);
 
         $nullGuardException = $this->getNullGuardExceptionForAccessor($column);
         if ($nullGuardException !== null) {
@@ -4416,15 +4416,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             // do nothing
         } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
-        " . $this->getAssertedCurrentChildObjectSnippet() . "
         // Add binding for other direction of this 1:1 relationship.
+        " . $this->getAssertedCurrentChildObjectSnippet() . "
         \$v{$mod}->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         } else {
             $script .= "
-        " . $this->getAssertedCurrentChildObjectSnippet() . "
         // Add binding for other direction of this n:n relationship.
         // If this object has already been added to the $className object, it will not be re-added.
+        " . $this->getAssertedCurrentChildObjectSnippet() . "
             \$v{$mod}->add" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);
 ";
         }
@@ -4617,7 +4617,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if (!$orNull) {
             $script .= "
-
     /**
      * Try to get the associated $className object
      *
@@ -4643,14 +4642,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         AbstractOMBuilder $fkQueryBuilder
     ): string {
         $script = "
-        if (\$this->$varName === null && ($conditional)) {";
+        if (\$this->$varName === null && ($conditional)) {
+            " . $this->getAssertedCurrentChildObjectSnippet();
 
         if ($findPk) {
             $script .= "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()->findPk($localColumns, \$con);";
         } else {
             $script .= "
-            " . $this->getAssertedCurrentChildObjectSnippet() . "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()
                 ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this) // here
                 ->findOne(\$con);";
@@ -4658,7 +4657,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         if ($fk->isLocalPrimaryKey()) {
             $script .= "
-            " . $this->getAssertedCurrentChildObjectSnippet() . "
             // Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
             \$this->{$varName}?->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);";
         } else {
@@ -7304,6 +7302,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 }
                 \$this->postSave(\$con);";
             $this->applyBehaviorModifier('postSave', $script, '                ');
+            $script .= "
+                " . $this->getAssertedCurrentChildObjectSnippet();
             $script .= "
                 " . $this->getTableMapClassName() . "::addInstanceToPool(\$this);
             } else {

@@ -47,7 +47,7 @@ trait ObjectBuilderTrait
     {
         return match($col->getType()) {
             'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
-            'FLOAT', 'DOUBLE', 'REAL' => (string)(float)$value,
+            'FLOAT', 'DOUBLE', 'REAL' => number_format((float)$value, 1),
             'BOOLEAN' => $value === 'true' ? 'true' : 'false',
             default => var_export($value, true),
         };

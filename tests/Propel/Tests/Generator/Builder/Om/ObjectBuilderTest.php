@@ -104,27 +104,27 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testGeneratedConvertValueToPhpTypeHookDelegatesToTraitDefault()
+    public function testGeneratedConvertValueToObjectTypeHookDelegatesToSharedPhpTypeHelper()
     {
         $script = '';
-        $this->builder->addConvertValueToPhpTypeMethodToScript($script);
+        $this->builder->addConvertValueToObjectTypeMethodToScript($script);
 
-        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
-        $this->assertStringContainsString('return $this->convertValueToPhpType($value, $phpType);', $script);
-        $this->assertStringNotContainsString('protected function arePhpTypeValuesEqual(', $script);
+        $this->assertStringContainsString('protected function convertValueToObjectType(mixed $value, string $phpType, bool $isNullable): mixed', $script);
+        $this->assertStringContainsString('return $this->convertValueToPhpType($value, $phpType, $isNullable);', $script);
+        $this->assertStringNotContainsString('protected function areObjectTypeValuesEqual(', $script);
     }
 
     /**
      * @return void
      */
-    public function testGeneratedArePhpTypeValuesEqualHookDelegatesToTraitDefault()
+    public function testGeneratedAreObjectTypeValuesEqualHookDelegatesToSharedPhpTypeHelper()
     {
         $script = '';
-        $this->builder->addArePhpTypeValuesEqualMethodToScript($script);
+        $this->builder->addAreObjectTypeValuesEqualMethodToScript($script);
 
-        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('protected function areObjectTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
         $this->assertStringContainsString('return $this->arePhpTypeValuesEqual($currentValue, $newValue, $phpType);', $script);
-        $this->assertStringNotContainsString('protected function convertValueToPhpType(', $script);
+        $this->assertStringNotContainsString('protected function convertValueToObjectType(', $script);
     }
 
     /**
@@ -132,19 +132,34 @@ class ObjectBuilderTest extends TestCase
      */
     public function testGeneratedPhpTypeHooksDelegateToTraitDefaults()
     {
-        $script = '';
-        $this->builder->addPhpTypeMethodsToScript($script);
+        $database = new Database('test');
+        $table = new Table('Promotion');
+        $database->addTable($table);
 
-        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
-        $this->assertStringContainsString('return $this->defaultConvertValueToPhpType($value, $phpType);', $script);
-        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
-        $this->assertStringContainsString('return $this->defaultArePhpTypeValuesEqual($currentValue, $newValue, $phpType);', $script);
+        $limits = new Column('limits');
+        $table->addColumn($limits);
+        $limits->loadMapping([
+            'name' => 'limits',
+            'type' => 'VARCHAR',
+            'phpType' => '\\Internal\\Features\\UserLimits\\UserLimitConfig',
+        ]);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addPhpTypeMethodsToScript($script);
+
+        $this->assertStringContainsString('protected function convertValueToObjectType(mixed $value, string $phpType, bool $isNullable): mixed', $script);
+        $this->assertStringContainsString('return $this->convertValueToPhpType($value, $phpType, $isNullable);', $script);
+        $this->assertStringContainsString('protected function areObjectTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('return $this->arePhpTypeValuesEqual($currentValue, $newValue, $phpType);', $script);
     }
 
     /**
      * @return void
      */
-    public function testClassBodyGeneratesPhpTypeHooksWhenDefaultNonPrimaryKeyMutatorExists()
+    public function testClassBodyGeneratesObjectTypeHooksWhenObjectMutatorExists()
     {
         $database = new Database('test');
         $table = new Table('Foo');
@@ -155,9 +170,13 @@ class ObjectBuilderTest extends TestCase
         $id->setPrimaryKey(true);
         $table->addColumn($id);
 
-        $name = new Column('name');
-        $name->setDomain(new Domain('VARCHAR'));
-        $table->addColumn($name);
+        $limits = new Column('limits');
+        $table->addColumn($limits);
+        $limits->loadMapping([
+            'name' => 'limits',
+            'type' => 'VARCHAR',
+            'phpType' => '\\Internal\\Features\\UserLimits\\UserLimitConfig',
+        ]);
 
         $builder = new TestableObjectBuilder($table);
         $builder->setGeneratorConfig(new QuickGeneratorConfig());
@@ -166,8 +185,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addClassBodyToScript($script);
 
-        $this->assertStringContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
-        $this->assertStringContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
+        $this->assertStringContainsString('protected function convertValueToObjectType(mixed $value, string $phpType, bool $isNullable): mixed', $script);
+        $this->assertStringContainsString('protected function areObjectTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
     }
 
     /**
@@ -199,8 +218,8 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addClassBodyToScript($script);
 
-        $this->assertStringNotContainsString('protected function convertValueToPhpType(mixed $value, string $phpType): mixed', $script);
-        $this->assertStringNotContainsString('protected function arePhpTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
+        $this->assertStringNotContainsString('protected function convertValueToObjectType(mixed $value, string $phpType, bool $isNullable): mixed', $script);
+        $this->assertStringNotContainsString('protected function areObjectTypeValuesEqual(mixed $currentValue, mixed $newValue, string $phpType): bool', $script);
     }
 
     /**
@@ -338,7 +357,7 @@ class ObjectBuilderTest extends TestCase
         $script = '';
         $builder->addDefaultMutatorToScript($script, $resolution);
 
-        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'string');", $script);
+        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'string', true);", $script);
         $this->assertStringNotContainsString("\$v = (string) \$v;", $script);
     }
 
@@ -667,7 +686,7 @@ class ObjectBuilderTest extends TestCase
         $mutator = '';
         $builder->addDefaultMutatorToScript($mutator, $id);
 
-        $this->assertStringNotContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int');", $mutator);
+        $this->assertStringNotContainsString('convertValueToPhpType(', $mutator);
         $this->assertStringContainsString('if ($this->id !== $v) {', $mutator);
     }
 
@@ -711,7 +730,7 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('* @return int|null', $accessorComment);
         $this->assertStringContainsString('* @param int|null $v New value', $mutatorComment);
-        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int');", $mutator);
+        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int', true);", $mutator);
     }
 
     /**
@@ -766,7 +785,7 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringNotContainsString('function tryGetAffiliateGroupId()', $accessor);
         $this->assertStringContainsString('* @param int $v New value', $mutatorComment);
         $this->assertStringNotContainsString('* @param int|null $v New value', $mutatorComment);
-        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int');", $mutator);
+        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int', false);", $mutator);
     }
 
     /**
@@ -815,8 +834,8 @@ class ObjectBuilderTest extends TestCase
         $builder->addDefaultMutatorToScript($mutator, $limits);
 
         $this->assertStringContainsString('* @param \Internal\Features\UserLimits\UserLimitConfig|null $v New value', $mutatorComment);
-        $this->assertStringContainsString("\$v = \$this->convertValueToPhpType(\$v, UserLimitConfig::class);", $mutator);
-        $this->assertStringContainsString("if (!\$this->arePhpTypeValuesEqual(\$this->limits, \$v, UserLimitConfig::class)) {", $mutator);
+        $this->assertStringContainsString("\$v = \$this->convertValueToObjectType(\$v, UserLimitConfig::class, true);", $mutator);
+        $this->assertStringContainsString("if (!\$this->areObjectTypeValuesEqual(\$this->limits, \$v, UserLimitConfig::class)) {", $mutator);
         $this->assertStringNotContainsString('if ($this->limits !== $v) {', $mutator);
     }
 
@@ -907,7 +926,7 @@ class ObjectBuilderTest extends TestCase
         $mutator = '';
         $builder->addDefaultMutatorToScript($mutator, $childId);
 
-        $this->assertStringNotContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int');", $mutator);
+        $this->assertStringNotContainsString('convertValueToPhpType(', $mutator);
         $this->assertStringContainsString('if ($this->parent_id !== $v) {', $mutator);
     }
 
@@ -939,8 +958,8 @@ class ObjectBuilderTest extends TestCase
         $codeMutator = '';
         $builder->addDefaultMutatorToScript($codeMutator, $code);
 
-        $this->assertStringNotContainsString("\$v = \$this->convertValueToPhpType(\$v, 'int');", $idMutator);
-        $this->assertStringNotContainsString("\$v = \$this->convertValueToPhpType(\$v, 'string');", $codeMutator);
+        $this->assertStringNotContainsString('convertValueToPhpType(', $idMutator);
+        $this->assertStringNotContainsString('convertValueToPhpType(', $codeMutator);
         $this->assertStringContainsString('if ($this->id !== $v) {', $idMutator);
         $this->assertStringContainsString('if ($this->code !== $v) {', $codeMutator);
     }
@@ -1531,14 +1550,14 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addPhpTypeMethods($script);
     }
 
-    public function addConvertValueToPhpTypeMethodToScript(string &$script): void
+    public function addConvertValueToObjectTypeMethodToScript(string &$script): void
     {
-        $this->addConvertValueToPhpTypeMethod($script);
+        $this->addConvertValueToObjectTypeMethod($script);
     }
 
-    public function addArePhpTypeValuesEqualMethodToScript(string &$script): void
+    public function addAreObjectTypeValuesEqualMethodToScript(string &$script): void
     {
-        $this->addArePhpTypeValuesEqualMethod($script);
+        $this->addAreObjectTypeValuesEqualMethod($script);
     }
 
     public function addHashCodeToScript(string &$script): void
