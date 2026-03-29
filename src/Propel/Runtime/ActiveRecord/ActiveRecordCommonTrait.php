@@ -178,7 +178,7 @@ trait ActiveRecordCommonTrait
         $this->modifiedColumns[$columnConstant] = true;
     }
 
-    protected function normalizeValueForPersistence(mixed $value, string $phpType): mixed
+    protected function normalizeValueForPersistence(mixed $value): mixed
     {
         return match (true) {
             $value === null => null,
