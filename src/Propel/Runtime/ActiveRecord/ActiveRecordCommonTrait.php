@@ -13,6 +13,8 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
 use Propel\Runtime\Util\PropelDateTime;
+use BackedEnum;
+use UnitEnum;
 
 use function array_key_exists;
 use function count;
@@ -172,6 +174,38 @@ trait ActiveRecordCommonTrait
 
         $currentValue = $dt === null ? null : clone $dt;
         $this->modifiedColumns[$columnConstant] = true;
+    }
+
+    protected function normalizeNonPrimitiveValueForPersistence(mixed $value): mixed
+    {
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string)$value;
+        }
+
+        if ($value instanceof BackedEnum) {
+            return $value->value;
+        }
+
+        if ($value instanceof UnitEnum) {
+            return $value->name;
+        }
+
+        throw new PropelException('Unable to normalize value for persistence: ' . var_export($value, true));
+    }
+
+    protected function normalizeValueForPersistence(mixed $value, string $phpType): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return match ($phpType) {
+            'int', 'integer' => (int)$value,
+            'float', 'double' => (float)$value,
+            'string' => (string)$value,
+            'bool', 'boolean' => (bool)$value,
+            default => $this->normalizeNonPrimitiveValueForPersistence($value),
+        };
     }
 
     /**

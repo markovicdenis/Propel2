@@ -3177,7 +3177,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         foreach (" . $this->getTableMapClass() . "::ALL_COLUMNS as \$columnConstant) {
             if (\$this->isColumnModified(\$columnConstant)) {
                 \$propertyName = " . $this->getTableMapClass() . "::getPropertyName(\$columnConstant);
-                \$criteria->add(\$columnConstant, \$this->{\$propertyName});
+                \$criteria->add(\$columnConstant, \$this->normalizeValueForPersistence(\$this->{\$propertyName}));
             }
         }";
     }
