@@ -299,7 +299,10 @@ class ObjectBuilderTest extends TestCase
 
         $this->assertStringContainsString('foreach (FooTableMap::ALL_COLUMNS as $columnConstant)', $script);
         $this->assertStringContainsString('$propertyName = FooTableMap::getPropertyName($columnConstant);', $script);
-        $this->assertStringContainsString('$criteria->add($columnConstant, $this->{$propertyName});', $script);
+        $this->assertStringContainsString(
+            '$criteria->add($columnConstant, $this->normalizeValueForPersistence($this->{$propertyName}));',
+            $script
+        );
         $this->assertStringNotContainsString('if ($this->isColumnModified(FooTableMap::COL_ID)) {', $script);
         $this->assertStringNotContainsString('match ($position)', $script);
     }
@@ -1044,6 +1047,157 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testHashRelevantForeignKeySetterGeneratesInternalAssociationHelper()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('parent');
+        $parentTable->setNamespace('Model');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('child');
+        $childTable->setNamespace('Model');
+        $database->addTable($childTable);
+
+        $childId = new Column('parent_id');
+        $childId->setDomain(new Domain('INTEGER'));
+        $childId->setPrimaryKey(true);
+        $childId->setNotNull(true);
+        $childTable->addColumn($childId);
+
+        $foreignKey = $childTable->addForeignKey(['foreignTable' => 'parent']);
+        $foreignKey->addReference('parent_id', 'id');
+
+        $builder = new TestableObjectBuilder($childTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addFKMutatorToScript($script, $foreignKey);
+
+        $this->assertStringContainsString('public function associateParentWithoutInverseSync(ChildParent $v): void', $script);
+        $this->assertStringContainsString('$this->aParent = $v;', $script);
+        $this->assertStringContainsString('$this->associateParentWithoutInverseSync($v);', $script);
+        $this->assertStringContainsString('$v->setChild($this);', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashRelevantRefFkDoAddAssociatesBeforeAppend()
+    {
+        $database = new Database('test');
+
+        $parentTable = new Table('parent');
+        $parentTable->setNamespace('Model');
+        $database->addTable($parentTable);
+
+        $parentId = new Column('id');
+        $parentId->setDomain(new Domain('INTEGER'));
+        $parentId->setPrimaryKey(true);
+        $parentId->setNotNull(true);
+        $parentTable->addColumn($parentId);
+
+        $childTable = new Table('child');
+        $childTable->setNamespace('Model');
+        $database->addTable($childTable);
+
+        $childId = new Column('parent_id');
+        $childId->setDomain(new Domain('INTEGER'));
+        $childId->setPrimaryKey(true);
+        $childId->setNotNull(true);
+        $childTable->addColumn($childId);
+
+        $foreignKey = $childTable->addForeignKey(['foreignTable' => 'parent']);
+        $foreignKey->addReference('parent_id', 'id');
+
+        $builder = new TestableObjectBuilder($parentTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addRefFKDoAddToScript($script, $foreignKey);
+
+        $this->assertStringContainsString('$child->associateParentWithoutInverseSync($this);', $script);
+        $this->assertStringContainsString('$this->collChildren?->append($child);', $script);
+        $this->assertStringNotContainsString('$child->setParent($this);', $script);
+        $this->assertLessThan(
+            strpos($script, '$this->collChildren?->append($child);'),
+            strpos($script, '$child->associateParentWithoutInverseSync($this);')
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testHashRelevantCrossRefDoAddUsesInternalAssociationHelpers()
+    {
+        $database = new Database('test');
+
+        $bookTable = new Table('book');
+        $bookTable->setNamespace('Model');
+        $database->addTable($bookTable);
+
+        $bookId = new Column('id');
+        $bookId->setDomain(new Domain('INTEGER'));
+        $bookId->setPrimaryKey(true);
+        $bookId->setNotNull(true);
+        $bookTable->addColumn($bookId);
+
+        $listTable = new Table('book_club_list');
+        $listTable->setNamespace('Model');
+        $database->addTable($listTable);
+
+        $listId = new Column('id');
+        $listId->setDomain(new Domain('INTEGER'));
+        $listId->setPrimaryKey(true);
+        $listId->setNotNull(true);
+        $listTable->addColumn($listId);
+
+        $joinTable = new Table('book_list_rel');
+        $joinTable->setNamespace('Model');
+        $joinTable->setIsCrossRef(true);
+        $database->addTable($joinTable);
+
+        $joinBookId = new Column('book_id');
+        $joinBookId->setDomain(new Domain('INTEGER'));
+        $joinBookId->setPrimaryKey(true);
+        $joinBookId->setNotNull(true);
+        $joinTable->addColumn($joinBookId);
+
+        $joinListId = new Column('book_club_list_id');
+        $joinListId->setDomain(new Domain('INTEGER'));
+        $joinListId->setPrimaryKey(true);
+        $joinListId->setNotNull(true);
+        $joinTable->addColumn($joinListId);
+
+        $joinTable->addForeignKey(['foreignTable' => 'book'])->addReference('book_id', 'id');
+        $joinTable->addForeignKey(['foreignTable' => 'book_club_list'])->addReference('book_club_list_id', 'id');
+        $joinTable->setupReferrers();
+
+        $builder = new TestableObjectBuilder($listTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $crossFks = $listTable->getCrossFks();
+        $this->assertCount(1, $crossFks);
+
+        $script = '';
+        $builder->addCrossFKDoAddToScript($script, $crossFks[0]);
+
+        $this->assertStringContainsString('$bookListRel->associateBookWithoutInverseSync($book);', $script);
+        $this->assertStringContainsString('$bookListRel->associateBookClubListWithoutInverseSync($this);', $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testOneToOneRefFkAttributesUseChildRelatedTypeInDocComment()
     {
         $database = new Database('test');
@@ -1669,6 +1823,13 @@ class TestableObjectBuilder extends ObjectBuilder
         \Propel\Generator\Model\ForeignKey $foreignKey
     ): void {
         $this->addRefFKRemove($script, $foreignKey);
+    }
+
+    public function addCrossFKDoAddToScript(
+        string &$script,
+        \Propel\Generator\Model\CrossForeignKeys $crossForeignKeys
+    ): void {
+        $this->addCrossFKDoAdd($script, $crossForeignKeys);
     }
 
     public function addPKRefFKSetToScript(

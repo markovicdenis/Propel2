@@ -4360,6 +4360,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $className = $this->getRelationObjectClassName($fk);
 
         $varName = $this->getFKVarName($fk);
+        $internalAssociationMethodName = $this->getInternalFKAssociationMethodName($fk);
 
         $orNull = $fk->getLocalColumn()->isNotNull() ? '' : '|null';
         $mod = $orNull ? '?' : '';
@@ -4367,6 +4368,26 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $funcParams = $orNull ? "?$className \$v = null" : "$className \$v";
 
         $currentClassName = $this->getClassNameFromTable($this->getTable());
+
+        if ($this->isForeignKeyPartOfGeneratedHashCode($fk)) {
+            $script .= "
+        /**
+         * Updates this object's association state without synchronizing the inverse collection.
+         *
+         * @internal Generated for relation-management code paths that must finalize identity before appending to a collection.
+         *
+         * @param {$className}{$orNull} \$v
+         * @return void
+         */
+        public function {$internalAssociationMethodName}($funcParams): void
+        {";
+
+            $this->addFKAssociationAssignments($script, $fk, $varName);
+
+            $script .= "
+        }
+    ";
+        }
 
         $script .= "
     /**
@@ -4379,36 +4400,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     public function set" . $this->getFKPhpNameAffix($fk, false) . "($funcParams)
     {";
 
-        foreach ($fk->getMapping() as $map) {
-            [$column, $rightValueOrColumn] = $map;
-
-            if ($rightValueOrColumn instanceof Column) {
-                $suffix = $rightValueOrColumn->isNotNull() ? '' : " ?? " . $this->getDefaultValueForColumn($column, false);
-                if ($orNull) {
-                    $nullValue = $column->hasDefaultValue() ? $this->getDefaultValueString($column, false) : 'null';
-                    $script .= "
-        \$this->set" . $column->getPhpName() . "(\$v === null ? $nullValue : (\$v->isNew() ? null : \$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix));
-    ";
-                } else {
-                    $script .= "
-        \$this->set" . $column->getPhpName() . "(\$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
+        if ($this->isForeignKeyPartOfGeneratedHashCode($fk)) {
+            $script .= "
+        \$this->{$internalAssociationMethodName}(\$v);
 ";
-                }
-            } else {
-                $val = var_export($rightValueOrColumn, true);
-                $script .= "
-        if (\$v === null) {
-            \$this->set" . $column->getPhpName() . "(null);
         } else {
-            \$this->set" . $column->getPhpName() . "($val);
+            $this->addFKAssociationAssignments($script, $fk, $varName);
         }
-                ";
-            }
-        } /* foreach local col */
-
-        $script .= "
-        \$this->$varName = \$v;
-";
 
         // Now add bi-directional relationship binding, taking into account whether this is
         // a one-to-one relationship.
@@ -5204,6 +5202,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $lowerRelatedObjectClassName = lcfirst($relatedObjectClassName);
         $collName = $this->getRefFKCollVarName($refFK);
         $currentClassName = $this->getClassNameFromTable($this->getTable());
+        $setterCall = $this->getForeignKeyAssociationCall($refFK, '$' . $lowerRelatedObjectClassName, '$this');
 
         $script .= "
     /**
@@ -5211,10 +5210,20 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function doAdd{$relatedObjectClassName}($className \${$lowerRelatedObjectClassName}): void
     {
-        \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
         " . $this->getAssertedCurrentChildObjectSnippet() . "
-        \${$lowerRelatedObjectClassName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
-    }
+";
+
+        if ($this->isForeignKeyPartOfGeneratedHashCode($refFK)) {
+            $script .= "        {$setterCall}
+        \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
+";
+        } else {
+            $script .= "        \$this->{$collName}?->append(\${$lowerRelatedObjectClassName});
+        {$setterCall}
+";
+        }
+
+        $script .= "    }
 ";
     }
 
@@ -6457,8 +6466,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             foreach ($crossFKs->getCrossForeignKeys() as $crossFK) {
                 $relatedObjectClassName = $this->getFKPhpNameAffix($crossFK, false);
                 $lowerRelatedObjectClassName = lcfirst($relatedObjectClassName);
+                $setterCall = $this->getForeignKeyAssociationCall($crossFK, $foreignObjectName, '$' . $lowerRelatedObjectClassName);
                 $script .= "
-        {$foreignObjectName}->set{$relatedObjectClassName}(\${$lowerRelatedObjectClassName});";
+        {$setterCall}";
             }
 
             foreach ($crossFKs->getUnclassifiedPrimaryKeys() as $primaryKey) {
@@ -6471,14 +6481,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $crossFK = $crossFKs->getCrossForeignKeys()[0];
             $relatedObjectClassName = $this->getFKPhpNameAffix($crossFK, false);
             $lowerRelatedObjectClassName = lcfirst($relatedObjectClassName);
+            $setterCall = $this->getForeignKeyAssociationCall($crossFK, $foreignObjectName, '$' . $lowerRelatedObjectClassName);
             $script .= "
-        {$foreignObjectName}->set{$relatedObjectClassName}(\${$lowerRelatedObjectClassName});";
+        {$setterCall}";
         }
 
         $refFK = $crossFKs->getIncomingForeignKey();
+        $incomingSetterCall = $this->getForeignKeyAssociationCall($refFK, $foreignObjectName, '$this');
         $script .= "
 
-        {$foreignObjectName}->set" . $this->getFKPhpNameAffix($refFK, false) . "(\$this);
+        {$incomingSetterCall}
 
         \$this->add{$refKObjectClassName}({$foreignObjectName});\n";
 
@@ -6551,6 +6563,61 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         return implode(', ', $names);
+    }
+
+    protected function isForeignKeyPartOfGeneratedHashCode(ForeignKey $fk): bool
+    {
+        return $fk->isAtLeastOneLocalPrimaryKey();
+    }
+
+    protected function getInternalFKAssociationMethodName(ForeignKey $fk): string
+    {
+        return 'associate' . $this->getFKPhpNameAffix($fk, false) . 'WithoutInverseSync';
+    }
+
+    protected function getForeignKeyAssociationCall(ForeignKey $fk, string $targetObjectName, string $relatedObjectName): string
+    {
+        if ($this->isForeignKeyPartOfGeneratedHashCode($fk)) {
+            return $targetObjectName . '->' . $this->getInternalFKAssociationMethodName($fk) . '(' . $relatedObjectName . ');';
+        }
+
+        return $targetObjectName . '->set' . $this->getFKPhpNameAffix($fk, false) . '(' . $relatedObjectName . ');';
+    }
+
+    protected function addFKAssociationAssignments(string &$script, ForeignKey $fk, string $varName): void
+    {
+        $isNullableRelation = !$fk->getLocalColumn()->isNotNull();
+
+        foreach ($fk->getMapping() as $map) {
+            [$column, $rightValueOrColumn] = $map;
+
+            if ($rightValueOrColumn instanceof Column) {
+                $suffix = $rightValueOrColumn->isNotNull() ? '' : ' ?? ' . $this->getDefaultValueForColumn($column, false);
+                if ($isNullableRelation) {
+                    $nullValue = $column->hasDefaultValue() ? $this->getDefaultValueString($column, false) : 'null';
+                    $script .= "
+        \$this->set" . $column->getPhpName() . "(\$v === null ? $nullValue : (\$v->isNew() ? null : \$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix));
+    ";
+                } else {
+                    $script .= "
+        \$this->set" . $column->getPhpName() . "(\$v->get" . $rightValueOrColumn->getPhpName() . "()$suffix);
+";
+                }
+            } else {
+                $val = var_export($rightValueOrColumn, true);
+                $script .= "
+        if (\$v === null) {
+            \$this->set" . $column->getPhpName() . "(null);
+        } else {
+            \$this->set" . $column->getPhpName() . "($val);
+        }
+                ";
+            }
+        }
+
+        $script .= "
+        \$this->$varName = \$v;
+";
     }
 
     /**

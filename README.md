@@ -14,22 +14,24 @@ Propel2 is an open-source Object-Relational Mapping (ORM) for PHP.
 
 Propel uses the following Symfony Components:
 
-* [Config](https://github.com/symfony/config)
-* [Console](https://github.com/symfony/console)
-* [Filesystem](https://github.com/symfony/filesystem)
-* [Finder](https://github.com/symfony/finder)
-* [Translation](https://github.com/symfony/translation)
-* [Validator](https://github.com/symfony/validator)
-* [Yaml](https://github.com/symfony/yaml)
+- [Config](https://github.com/symfony/config)
+- [Console](https://github.com/symfony/console)
+- [Filesystem](https://github.com/symfony/filesystem)
+- [Finder](https://github.com/symfony/finder)
+- [Translation](https://github.com/symfony/translation)
+- [Validator](https://github.com/symfony/validator)
+- [Yaml](https://github.com/symfony/yaml)
 
 Propel primarily relies on [**Composer**](https://github.com/composer/composer) to manage dependencies, but you
 also can use [ClassLoader](https://github.com/symfony/ClassLoader) (see the `autoload.php.dist` file for instance).
-
 
 ## Installation
 
 Read the [Propel documentation](http://propelorm.org/documentation/01-installation.html).
 
+## Additional Docs
+
+- [ObjectCollection guide](docs/ObjectCollection.md)
 
 ## Contribute
 

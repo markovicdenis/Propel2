@@ -18,7 +18,12 @@ use Propel\Runtime\Formatter\AbstractFormatter;
 use Propel\Runtime\Map\RelationMap;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
+use NoDiscard;
 
+use function array_key_exists;
+use function array_pop;
+use function array_splice;
+use function array_unshift;
 use function is_callable;
 use function is_object;
 use function count;
@@ -47,6 +52,11 @@ class ObjectCollection extends Collection
      * @var array<int, int>
      */
     protected array $instanceIndex = [];
+
+    /**
+     * True when record identities may have changed outside the collection.
+     */
+    protected bool $recordIndexDirty = false;
 
     public function __construct(
         array $data = [],
@@ -101,6 +111,8 @@ class ObjectCollection extends Collection
                 $element->save($con);
             }
         });
+
+        $this->rebuildIndex();
     }
 
     /**
@@ -442,6 +454,16 @@ class ObjectCollection extends Collection
     }
 
     /**
+     * True if any item is found through the maintained record-identity index only.
+     *
+     * This method never scans the collection or repairs stale indexes.
+     */
+    public function containsSameRecordIndexed(object $object): bool
+    {
+        return $this->indexOfSameRecordIndexed($object) !== null;
+    }
+
+    /**
      * Returns the position of the exact instance, or null if not found.
      */
     public function indexOfInstance(object $object): ?int
@@ -455,27 +477,50 @@ class ObjectCollection extends Collection
     public function indexOfSameRecord(object $object): ?int
     {
         $hash = $this->getHashCode($object);
-        $position = $this->index[$hash] ?? null;
+        $hasIndexedHash = array_key_exists($hash, $this->index);
 
-        if ($position !== null && isset($this->data[$position]) && is_object($this->data[$position])) {
-            if ($this->getHashCode($this->data[$position]) === $hash) {
-                return $position;
-            }
+        if ($this->recordIndexDirty) {
+            return $this->repairSameRecordPosition($hash);
         }
 
-        foreach ($this->data as $position => $value) {
-            if (!is_object($value)) {
-                continue;
-            }
-
-            if ($this->getHashCode($value) === $hash) {
-                $this->rebuildIndex();
-
-                return $position;
-            }
+        $position = $this->findIndexedSameRecordPosition($hash);
+        if ($position !== null) {
+            return $position;
         }
 
-        return null;
+        if ($hasIndexedHash) {
+            return $this->repairSameRecordPosition($hash);
+        }
+
+        return $this->repairSameRecordPosition($hash, false);
+    }
+
+    /**
+     * Returns the position via the maintained record-identity index only.
+     *
+     * This method never scans the collection or repairs stale indexes.
+     */
+    public function indexOfSameRecordIndexed(object $object): ?int
+    {
+        return $this->findIndexedSameRecordPosition($this->getHashCode($object));
+    }
+
+    /**
+     * Marks the record-identity index as dirty.
+     *
+     * Call this after mutating object state that contributes to hashCode().
+     */
+    public function markRecordIndexDirty(): void
+    {
+        $this->recordIndexDirty = true;
+    }
+
+    /**
+     * Rebuilds the record-identity index after external record-identity mutations.
+     */
+    public function repairRecordIndex(): void
+    {
+        $this->rebuildIndex();
     }
 
     /**
@@ -514,10 +559,67 @@ class ObjectCollection extends Collection
      */
     public function removeObject(object $element): void
     {
-        $pos = $this->indexOfInstance($element) ?? $this->indexOfSameRecord($element);
+        $pos = $this->findObjectPosition($element);
         if ($pos !== null) {
-            $this->remove($pos);
+            $this->removeAt($pos);
         }
+    }
+
+    /**
+     * Remove an object without preserving the remaining order.
+     *
+     * @return bool True when an object was removed.
+     */
+    #[NoDiscard]
+    public function removeObjectFast(object $element): bool
+    {
+        $pos = $this->findObjectPosition($element);
+        if ($pos === null) {
+            return false;
+        }
+
+        $this->swapRemoveAt($pos);
+
+        return true;
+    }
+
+    /**
+     * Remove many objects while preserving relative order and rebuilding indexes once.
+     *
+      * @param iterable<mixed> $objects
+     *
+     * @return int Number of removed elements.
+     */
+    #[NoDiscard]
+    public function removeObjects(iterable $objects): int
+    {
+        $positions = [];
+        foreach ($objects as $object) {
+            if (!is_object($object)) {
+                continue;
+            }
+
+            $position = $this->findObjectPosition($object);
+            if ($position !== null) {
+                $positions[$position] = true;
+            }
+        }
+
+        if ($positions === []) {
+            return 0;
+        }
+
+        $data = [];
+        foreach ($this->data as $position => $value) {
+            if (!isset($positions[$position])) {
+                $data[] = $value;
+            }
+        }
+
+        $this->data = $data;
+        $this->rebuildIndex();
+
+        return count($positions);
     }
 
     // -------------------------------------------------------------------------
@@ -537,8 +639,7 @@ class ObjectCollection extends Collection
 
         $this->data[] = $value;
         $pos = count($this->data) - 1;
-        $this->index[$this->getHashCode($value)] = $pos;
-        $this->instanceIndex[spl_object_id($value)] = $pos;
+        $this->indexObjectAt($pos, $value);
     }
 
     /**
@@ -562,14 +663,11 @@ class ObjectCollection extends Collection
         $this->assertIntegerOffset($offset);
 
         if (isset($this->data[$offset]) && is_object($this->data[$offset])) {
-            $old = $this->data[$offset];
-            unset($this->instanceIndex[spl_object_id($old)]);
-            unset($this->index[$this->getHashCode($old)]);
+            $this->removeObjectIndexes($this->data[$offset]);
         }
 
         $this->data[$offset] = $value;
-        $this->index[$this->getHashCode($value)] = $offset;
-        $this->instanceIndex[spl_object_id($value)] = $offset;
+        $this->indexObjectAt($offset, $value);
     }
 
     /**
@@ -578,14 +676,7 @@ class ObjectCollection extends Collection
     public function offsetUnset($offset): void
     {
         $this->assertIntegerOffset($offset);
-        if (isset($this->data[$offset]) && is_object($this->data[$offset])) {
-            $old = $this->data[$offset];
-            unset($this->instanceIndex[spl_object_id($old)]);
-            unset($this->index[$this->getHashCode($old)]);
-        }
-        unset($this->data[$offset]);
-        $this->data = array_values($this->data);
-        $this->rebuildIndex();
+        $this->removeAt($offset);
     }
 
     public function pop(): mixed
@@ -593,10 +684,10 @@ class ObjectCollection extends Collection
         if ($this->data === []) {
             return null;
         }
+
         $value = array_pop($this->data);
         if (is_object($value)) {
-            unset($this->instanceIndex[spl_object_id($value)]);
-            unset($this->index[$this->getHashCode($value)]);
+            $this->removeObjectIndexes($value);
         }
 
         return $value;
@@ -607,16 +698,14 @@ class ObjectCollection extends Collection
         if ($this->data === []) {
             return null;
         }
-        $value = array_shift($this->data);
-        $this->rebuildIndex();
 
-        return $value;
+        return $this->removeAt(0);
     }
 
     public function prepend($value): int
     {
         $count = array_unshift($this->data, $value);
-        $this->rebuildIndex();
+        $this->reindexTailFrom(0);
 
         return $count;
     }
@@ -624,6 +713,132 @@ class ObjectCollection extends Collection
     // -------------------------------------------------------------------------
     // Index maintenance
     // -------------------------------------------------------------------------
+
+    protected function findObjectPosition(object $object): ?int
+    {
+        return $this->indexOfInstance($object) ?? $this->indexOfSameRecord($object);
+    }
+
+    /**
+     * Remove one element while preserving the relative order of the remaining items.
+     */
+    protected function removeAt(int $offset): mixed
+    {
+        if (!array_key_exists($offset, $this->data)) {
+            return null;
+        }
+
+        $value = $this->data[$offset];
+        if (is_object($value)) {
+            $this->removeObjectIndexes($value);
+        }
+
+        $lastPosition = count($this->data) - 1;
+        if ($offset === $lastPosition) {
+            array_pop($this->data);
+
+            return $value;
+        }
+
+        array_splice($this->data, $offset, 1);
+        $this->reindexTailFrom($offset);
+
+        return $value;
+    }
+
+    /**
+     * Remove one element in O(1) by moving the last element into its slot.
+     */
+    protected function swapRemoveAt(int $offset): mixed
+    {
+        if (!array_key_exists($offset, $this->data)) {
+            return null;
+        }
+
+        $lastPosition = count($this->data) - 1;
+        $value = $this->data[$offset];
+        if (is_object($value)) {
+            $this->removeObjectIndexes($value);
+        }
+
+        if ($offset === $lastPosition) {
+            array_pop($this->data);
+
+            return $value;
+        }
+
+        $lastValue = array_pop($this->data);
+        if (is_object($lastValue)) {
+            $this->removeObjectIndexes($lastValue);
+        }
+
+        $this->data[$offset] = $lastValue;
+        if (is_object($lastValue)) {
+            $this->indexObjectAt($offset, $lastValue);
+        }
+
+        return $value;
+    }
+
+    protected function reindexTailFrom(int $offset): void
+    {
+        $count = count($this->data);
+        for ($position = $offset; $position < $count; $position++) {
+            $value = $this->data[$position];
+            if (!is_object($value)) {
+                continue;
+            }
+
+            $this->indexObjectAt($position, $value);
+        }
+    }
+
+    protected function indexObjectAt(int $position, object $value): void
+    {
+        $this->index[$this->getHashCode($value)] = $position;
+        $this->instanceIndex[spl_object_id($value)] = $position;
+    }
+
+    protected function removeObjectIndexes(object $value): void
+    {
+        unset($this->instanceIndex[spl_object_id($value)]);
+        unset($this->index[$this->getHashCode($value)]);
+    }
+
+    protected function findIndexedSameRecordPosition(string $hash): ?int
+    {
+        $position = $this->index[$hash] ?? null;
+        if ($position === null) {
+            return null;
+        }
+
+        if (!isset($this->data[$position]) || !is_object($this->data[$position])) {
+            return null;
+        }
+
+        return $this->getHashCode($this->data[$position]) === $hash ? $position : null;
+    }
+
+    protected function repairSameRecordPosition(string $hash, bool $rebuildOnMiss = true): ?int
+    {
+        foreach ($this->data as $position => $value) {
+            if (!is_object($value)) {
+                continue;
+            }
+
+            if ($this->getHashCode($value) === $hash) {
+                $this->rebuildIndex();
+
+                return $position;
+            }
+        }
+
+        if ($rebuildOnMiss) {
+            $this->rebuildIndex();
+        }
+
+        return null;
+    }
 
     protected function rebuildIndex(): void
     {
@@ -633,9 +848,11 @@ class ObjectCollection extends Collection
             if (!is_object($value)) {
                 continue;
             }
-            $this->index[$this->getHashCode($value)] = $pos;
-            $this->instanceIndex[spl_object_id($value)] = $pos;
+
+            $this->indexObjectAt($pos, $value);
         }
+
+        $this->recordIndexDirty = false;
     }
 
     /**

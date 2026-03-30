@@ -374,7 +374,7 @@ class ObjectCollectionTest extends BookstoreTestBase
     /**
      * @return void
      */
-    public function testContainsSameRecordRepairsMutableRecordIdentity()
+    public function testContainsSameRecordRepairsMutableRecordIdentityImplicitly()
     {
         $book1 = new Book();
         $book1->setTitle('Bar');
@@ -387,6 +387,181 @@ class ObjectCollectionTest extends BookstoreTestBase
 
         $this->assertTrue($col->containsSameRecord($book2));
         $this->assertSame(0, $col->indexOfSameRecord($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testIndexOfSameRecordIndexedDoesNotRepairMutableRecordIdentityImplicitly()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $col = new ObjectCollection([$book1]);
+
+        $book1->save();
+        $book2 = clone $book1;
+
+        $this->assertFalse($col->containsSameRecordIndexed($book2));
+        $this->assertNull($col->indexOfSameRecordIndexed($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testContainsSameRecordDoesNotRebuildOnCleanNegativeMiss()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+        $book1->save();
+
+        $otherBook = new Book();
+        $otherBook->setTitle('Foo');
+        $otherBook->setISBN('678901');
+        $otherBook->save();
+
+        $col = new class ([$book1]) extends ObjectCollection {
+            public int $rebuildCount = 0;
+
+            protected function rebuildIndex(): void
+            {
+                $this->rebuildCount++;
+
+                parent::rebuildIndex();
+            }
+        };
+        $col->rebuildCount = 0;
+
+        $this->assertFalse($col->containsSameRecord($otherBook));
+        $this->assertNull($col->indexOfSameRecord($otherBook));
+        $this->assertSame(0, $col->rebuildCount);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMarkRecordIndexDirtyRepairsSameRecordLookups()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $col = new ObjectCollection([$book1]);
+
+        $book1->save();
+        $book2 = clone $book1;
+
+        $col->markRecordIndexDirty();
+
+        $this->assertTrue($col->containsSameRecord($book2));
+        $this->assertSame(0, $col->indexOfSameRecord($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testRepairRecordIndexRestoresStrictSameRecordLookups()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $col = new ObjectCollection([$book1]);
+
+        $book1->save();
+        $book2 = clone $book1;
+
+        $this->assertNull($col->indexOfSameRecordIndexed($book2));
+
+        $col->repairRecordIndex();
+
+        $this->assertTrue($col->containsSameRecordIndexed($book2));
+        $this->assertSame(0, $col->indexOfSameRecordIndexed($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testSaveRepairsRecordIndex()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $col = new ObjectCollection([$book1]);
+        $col->setModel('Propel\Tests\Bookstore\Book');
+
+        $col->save($this->con);
+        $book2 = clone $book1;
+
+        $this->assertTrue($col->containsSameRecord($book2));
+        $this->assertTrue($col->containsSameRecordIndexed($book2));
+        $this->assertSame(0, $col->indexOfSameRecordIndexed($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testRemoveObjectFastSwapsLastElementIntoRemovedSlot()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $book2 = new Book();
+        $book2->setTitle('Foo');
+        $book2->setISBN('678901');
+
+        $book3 = new Book();
+        $book3->setTitle('Baz');
+        $book3->setISBN('246810');
+
+        $col = new ObjectCollection([$book1, $book2, $book3]);
+
+        $this->assertTrue($col->removeObjectFast($book1));
+        $this->assertCount(2, $col);
+        $this->assertSame($book3, $col[0]);
+        $this->assertSame($book2, $col[1]);
+        $this->assertFalse($col->containsInstance($book1));
+        $this->assertSame(0, $col->indexOfInstance($book3));
+        $this->assertSame(1, $col->indexOfInstance($book2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testRemoveObjectsPreservesRelativeOrder()
+    {
+        $book1 = new Book();
+        $book1->setTitle('Bar');
+        $book1->setISBN('012345');
+
+        $book2 = new Book();
+        $book2->setTitle('Foo');
+        $book2->setISBN('678901');
+        $book2->save();
+        $book2Clone = clone $book2;
+
+        $book3 = new Book();
+        $book3->setTitle('Baz');
+        $book3->setISBN('246810');
+
+        $book4 = new Book();
+        $book4->setTitle('Qux');
+        $book4->setISBN('135791');
+
+        $col = new ObjectCollection([$book1, $book2, $book3, $book4]);
+
+        $this->assertSame(2, $col->removeObjects([$book2Clone, $book4]));
+        $this->assertCount(2, $col);
+        $this->assertSame($book1, $col[0]);
+        $this->assertSame($book3, $col[1]);
+        $this->assertSame(0, $col->indexOfInstance($book1));
+        $this->assertSame(1, $col->indexOfInstance($book3));
+        $this->assertNull($col->indexOfInstance($book2));
+        $this->assertNull($col->indexOfInstance($book4));
     }
 
     /**
