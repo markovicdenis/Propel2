@@ -10,7 +10,6 @@ namespace Propel\Tests\Generator\Builder\Om;
 
 use DateTime;
 use Exception;
-use MyNameSpace\TestKeyTypeTable;
 use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Tests\Bookstore\BookClubList;
 use Propel\Generator\Util\QuickBuilder;
@@ -728,7 +727,9 @@ XML;
         $builder->setSchema($databaseXml);
         $builder->build();
 
-        $t = new \ExampleNamespace\Thing();
+        $thingClass = 'ExampleNamespace\\Thing';
+        /** @var mixed $t */
+        $t = new $thingClass();
         $this->assertEquals(new BoxedString('asdf'), $t->getBoxedstring());
         $this->assertTrue(
             $t->hasOnlyDefaultValues(),
@@ -918,7 +919,9 @@ EOF;
             'idKeyType',
             'nameKeyType',
         ];
-        $object = new TestKeyTypeTable();
+        $testKeyTypeTableClass = 'MyNameSpace\\TestKeyTypeTable';
+        /** @var mixed $object */
+        $object = new $testKeyTypeTableClass();
         $this->assertEquals($expectedKeys, array_keys($object->toArray()), 'toArray() returns an associative array with pre-defined key type in properties.');
     }
 
@@ -945,7 +948,9 @@ EOF;
         // ... but we should silently ignore NULL values, since these are really
         // the same as "not set" in PHP world.
         $b = new Bookstore();
-        $b->setId(null);
+        /** @var mixed $nullPrimaryKey */
+        $nullPrimaryKey = null;
+        $b->setId($nullPrimaryKey);
         $b->setStoreName('Test2');
         try {
             $b->save();
@@ -1163,6 +1168,7 @@ EOF;
      */
     public function testPreSaveFalse()
     {
+        /** @var \Propel\Runtime\Connection\ConnectionWrapper $con */
         $con = Propel::getServiceContainer()->getConnection(AuthorTableMap::DATABASE_NAME);
         $nbNestedTransactions = $con->getNestedTransactionCount();
         $author = new TestAuthorSaveFalse();
@@ -1206,6 +1212,7 @@ EOF;
      */
     public function testPreDeleteFalse()
     {
+        /** @var \Propel\Runtime\Connection\ConnectionWrapper $con */
         $con = Propel::getServiceContainer()->getConnection(AuthorTableMap::DATABASE_NAME);
         $author = new TestAuthorDeleteFalse();
         $author->setFirstName('bogus');

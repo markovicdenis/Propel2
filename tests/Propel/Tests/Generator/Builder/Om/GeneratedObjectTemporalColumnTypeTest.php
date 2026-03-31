@@ -8,11 +8,7 @@
 
 namespace Propel\Tests\Generator\Builder\Om;
 
-use ComplexColumnTypeEntity5;
-use ComplexColumnTypeEntity5Query;
-use ComplexColumnTypeEntity6;
 use DateTime;
-use Map\ComplexColumnTypeEntity5TableMap;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Util\QuickBuilder;
@@ -49,11 +45,47 @@ EOF;
     }
 
     /**
+     * @return mixed
+     */
+    protected function newComplexColumnTypeEntity5()
+    {
+        $entityClass = 'ComplexColumnTypeEntity5';
+
+        return new $entityClass();
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function newComplexColumnTypeEntity6()
+    {
+        $entityClass = 'ComplexColumnTypeEntity6';
+
+        return new $entityClass();
+    }
+
+    /**
+     * @return mixed
+     */
+    protected function createComplexColumnTypeEntity5Query()
+    {
+        $queryClass = 'ComplexColumnTypeEntity5Query';
+
+        return $queryClass::create();
+    }
+
+    protected function clearComplexColumnTypeEntity5InstancePool(): void
+    {
+        $tableMapClass = 'Map\\ComplexColumnTypeEntity5TableMap';
+        $tableMapClass::clearInstancePool();
+    }
+
+    /**
      * @return void
      */
     public function testNullValue()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $this->assertNull($r->getBar1());
         $r->setBar1(new DateTime('2011-12-02'));
         $this->assertNotNull($r->getBar1());
@@ -68,7 +100,7 @@ EOF;
      */
     public function testEmptyValue()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar1('');
         $this->assertNull($r->getBar1());
     }
@@ -78,7 +110,7 @@ EOF;
      */
     public function testPreEpochValue()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar1(new DateTime('1602-02-02'));
         $this->assertEquals('1602-02-02', $r->getBar1()->format('Y-m-d'));
 
@@ -94,7 +126,7 @@ EOF;
     {
         $this->expectException(PropelException::class);
 
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar1('Invalid Date');
     }
 
@@ -103,19 +135,19 @@ EOF;
      */
     public function testUnixTimestampValue()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar1(time());
         $this->assertEquals(date('Y-m-d'), $r->getBar1()->format('Y-m-d'));
 
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar2(strtotime('12:55'));
         $this->assertEquals('12:55', $r->getBar2()->format('H:i'));
 
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar3(time());
         $this->assertEquals(date('Y-m-d H:i'), $r->getBar3()->format('Y-m-d H:i'));
 
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setDatetimecolumn(time());
         $this->assertEquals(date('Y-m-d H:i'), $r->getDatetimecolumn()->format('Y-m-d H:i'));
     }
@@ -125,7 +157,7 @@ EOF;
      */
     public function testGenericTemporalAccessorsNormalizeValues()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
 
         $returned = $r->fromArray([
             'Bar1' => '1999-12-20',
@@ -156,11 +188,11 @@ EOF;
     #[DataProvider('persistenceDataProvider')]
     public function testPersistence($typeDescription, $columnName, $inputDateValue, $formattedDate, $format)
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setByName($columnName, $inputDateValue);
         $r->save();
-        ComplexColumnTypeEntity5TableMap::clearInstancePool();
-        $r1 = ComplexColumnTypeEntity5Query::create()->findPk($r->getId());
+        $this->clearComplexColumnTypeEntity5InstancePool();
+        $r1 = $this->createComplexColumnTypeEntity5Query()->findPk($r->getId());
 
         $storedValue = $r1->getByName($columnName);
         $this->assertInstanceOf(DateTime::class, $storedValue, "$typeDescription column should return DateTime objects");
@@ -174,7 +206,7 @@ EOF;
      */
     public function testDateTimeGetterReturnsADateTime()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar3(new DateTime());
         $r->save();
 
@@ -191,7 +223,7 @@ EOF;
      */
     public function testDateTimeGetterReturnsAReference()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar3(new DateTime('2011-11-23'));
         $r->getBar3()->modify('+1 days');
         $this->assertEquals('2011-11-24', $r->getBar3()->format('Y-m-d'));
@@ -202,7 +234,7 @@ EOF;
      */
     public function testHasOnlyDefaultValues()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $this->assertEquals('2011-12-09', $r->getBar4()->format('Y-m-d'));
         $this->assertTrue($r->hasOnlyDefaultValues());
     }
@@ -226,7 +258,7 @@ EOF;
         $builder->setSchema($schema);
         $builder->setPlatform(new MysqlPlatform());
         $builder->buildClasses();
-        $r = new ComplexColumnTypeEntity6();
+        $r = $this->newComplexColumnTypeEntity6();
         $r->hydrate([
             123,
             '0000-00-00',
@@ -243,7 +275,7 @@ EOF;
      */
     public function testDateTimesSerialize()
     {
-        $r = new ComplexColumnTypeEntity5();
+        $r = $this->newComplexColumnTypeEntity5();
         $r->setBar3(new DateTime('2011-11-23'));
         $str = serialize($r);
 
