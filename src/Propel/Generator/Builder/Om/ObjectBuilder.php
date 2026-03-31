@@ -7026,7 +7026,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $columnProperty = $column->getLowercasedName();
             if (!$table->isAllowPkInsert()) {
                 $script .= "
-        if (null !== \$this->{$columnProperty}) {
+        if (null !== \$this->{$columnProperty} && \$this->disableAutoIncrementPrimaryKeyInsert) {
             throw new PropelException('Cannot insert a value for auto-increment primary key (' . $constantName . ')');
         }";
             } elseif (!$platform->supportsInsertNullPk()) {

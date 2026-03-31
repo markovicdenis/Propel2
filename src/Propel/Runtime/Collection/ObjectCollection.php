@@ -586,7 +586,7 @@ class ObjectCollection extends Collection
     /**
      * Remove many objects while preserving relative order and rebuilding indexes once.
      *
-      * @param iterable<mixed> $objects
+     * @param iterable<mixed> $objects
      *
      * @return int Number of removed elements.
      */

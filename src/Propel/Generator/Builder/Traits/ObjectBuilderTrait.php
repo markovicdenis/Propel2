@@ -87,15 +87,15 @@ trait ObjectBuilderTrait
     }
 
     /**
-    * Returns the type-casted and stringified default value for the specified
-    * Column. This only works for scalar default values currently.
-    *
-    * @param \Propel\Generator\Model\Column $column
-    *
-    * @throws \Propel\Generator\Exception\EngineException
-    *
-    * @return string
-    */
+     * Returns the type-casted and stringified default value for the specified
+     * Column. This only works for scalar default values currently.
+     *
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @throws \Propel\Generator\Exception\EngineException
+     *
+     * @return string
+     */
     protected function getDefaultValueString(Column $column, bool $acceptNull = true): string
     {
         $defaultValue = var_export(null, true);

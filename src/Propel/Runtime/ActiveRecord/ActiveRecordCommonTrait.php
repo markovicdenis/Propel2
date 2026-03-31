@@ -29,6 +29,8 @@ use function is_scalar;
 
 trait ActiveRecordCommonTrait
 {
+    private bool $disableAutoIncrementPrimaryKeyInsert = true;
+
     /**
      * Validate a single-column primary key against its generated unset value.
      *
@@ -373,6 +375,17 @@ trait ActiveRecordCommonTrait
         $this->virtualColumns[$name] = $value;
 
         return $this;
+    }
+
+    /**
+     * Override the default behavior of auto-increment primary key insertion.
+     *
+     * CAUTION: manually inserting values into auto-increment primary key columns can lead to conflicts and should only be done when you are certain it is necessary and will not cause issues with existing data.
+     *
+     */
+    public function overrideAutoIncrementPrimaryKeyInsertRestriction(bool $allow): void
+    {
+        $this->disableAutoIncrementPrimaryKeyInsert = !$allow;
     }
 
     /**

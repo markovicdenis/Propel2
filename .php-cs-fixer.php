@@ -32,6 +32,7 @@ return new Config()
             'import_functions' => true,
             'import_constants' => true,
         ],
+        'phpdoc_indent' => true,
         'native_function_invocation' => [
             'include' => ['@compiler_optimized'],
             'scope' => 'all',

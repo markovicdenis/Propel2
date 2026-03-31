@@ -24,7 +24,7 @@ use function is_array;
 class OnDemandIterator implements IteratorInterface
 {
     /**
-    * @var \Propel\Runtime\Formatter\ObjectFormatter
+     * @var \Propel\Runtime\Formatter\ObjectFormatter
      */
     protected ObjectFormatter $formatter;
 

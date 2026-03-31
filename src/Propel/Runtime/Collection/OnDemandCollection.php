@@ -196,7 +196,7 @@ class OnDemandCollection extends Collection
     /**
      * @throws \Propel\Runtime\Exception\PropelException
      *
-        * @return array
+     * @return array
      */
     public function __serialize(): array
     {
