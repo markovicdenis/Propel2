@@ -7098,7 +7098,23 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 ";
 
         // if auto-increment, get the id after
-        if ($platform->isNativeIdMethodAutoIncrement() && $table->getIdMethod() === 'native') {
+        $column = $table->getFirstPrimaryKeyColumn();
+        $shouldRetrieveAutoIncrementPk = $platform->isNativeIdMethodAutoIncrement()
+            && $table->getIdMethod() === 'native'
+            && $column !== null
+            && $column->isAutoIncrement();
+        $shouldGuardAutoIncrementPkRetrieval = $shouldRetrieveAutoIncrementPk
+            && $table->isAllowPkInsert();
+        if ($shouldRetrieveAutoIncrementPk) {
+            $pkType = match ($column->getPhpType()) {
+                'int', 'integer' => 'int',
+                default => 'string',
+            };
+            if ($shouldGuardAutoIncrementPkRetrieval) {
+                $columnProperty = $column->getLowercasedName();
+                $script .= "
+        if (null === \$this->{$columnProperty}) {";
+            }
             $script .= "
         try {";
             $script .= $platform->getIdentifierPhp('$pk', '$con', $primaryKeyMethodInfo);
@@ -7106,21 +7122,18 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         } catch (Exception \$e) {
             throw new PropelException('Unable to get autoincrement id.', 0, \$e);
         }";
-            $column = $table->getFirstPrimaryKeyColumn();
-            $pkType = match ($column->getPhpType()) {
-                'int', 'integer' => 'int',
-                default => 'string',
-            };
-            if ($column) {
-                if ($table->isAllowPkInsert()) {
-                    $script .= "
+            if ($table->isAllowPkInsert()) {
+                $script .= "
         if (\$pk !== false) {
             \$this->set" . $column->getPhpName() . "(($pkType) \$pk);
         }";
-                } else {
-                    $script .= "
+            } else {
+                $script .= "
         \$this->set" . $column->getPhpName() . "(($pkType) \$pk);";
-                }
+            }
+            if ($shouldGuardAutoIncrementPkRetrieval) {
+                $script .= "
+        }";
             }
             $script .= "
 ";

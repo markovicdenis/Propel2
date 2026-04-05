@@ -16,6 +16,7 @@ use Propel\Generator\Util\QuickBuilder;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\SqliteAdapter;
 use Propel\Runtime\Collection\ObjectCollection;
+use Propel\Runtime\Connection\ConnectionWrapper;
 use Propel\Runtime\Exception\BadMethodCallException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
@@ -983,6 +984,87 @@ EOF;
         $cu2 = CustomerQuery::create()->findPk(100000);
 
         $this->assertSame($cu, $cu2);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAllowPkInsertOnIdMethodNativeTableGeneratesGuardedLastInsertId()
+    {
+        $schema = <<<EOF
+<database name="test" namespace="MyNameSpace">
+    <table name="customer" allowPkInsert="true">
+        <column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER"/>
+        <column name="name" type="VARCHAR"/>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($schema);
+
+        $classes = $builder->getClasses();
+
+        $this->assertMatchesRegularExpression(
+            '/if \(null === \$this->id\) \{\s+try \{\s+\$pk = \$con->lastInsertId\(\);/s',
+            $classes
+        );
+        $this->assertStringContainsString("if (\$pk !== false) {", $classes);
+    }
+
+    /**
+     * @group pgsql
+     *
+     * @return void
+     */
+    public function testAllowPkInsertOnPostgresOnlyFetchesAutoincrementIdWhenPrimaryKeyIsNull()
+    {
+        if (!$this->runningOnPostgreSQL()) {
+            $this->markTestSkipped('This test is designed for PostgreSQL');
+        }
+
+        CustomerTableMap::doDeleteAll();
+
+        $con = new class ($this->con) extends ConnectionWrapper {
+            public int $lastInsertIdCallCount = 0;
+
+            public bool $failOnLastInsertId = false;
+
+            public function lastInsertId(?string $name = null)
+            {
+                $this->lastInsertIdCallCount++;
+
+                if ($this->failOnLastInsertId) {
+                    throw new Exception('lastInsertId should not be called when the primary key was set explicitly.');
+                }
+
+                return parent::lastInsertId($name);
+            }
+        };
+
+        $con->failOnLastInsertId = true;
+
+        $explicitPkCustomer = new Customer();
+        $explicitPkCustomer->setPrimaryKey(100000);
+        $explicitPkCustomer->setName('Explicit PK');
+        $explicitPkCustomer->save($con);
+
+        $this->assertSame(0, $con->lastInsertIdCallCount);
+        $this->assertSame(100000, $explicitPkCustomer->getPrimaryKey());
+
+        CustomerTableMap::clearInstancePool();
+        $this->assertNotNull(CustomerQuery::create()->findPk(100000, $this->con));
+
+        $con->failOnLastInsertId = false;
+
+        $generatedPkCustomer = new Customer();
+        $generatedPkCustomer->setName('Generated PK');
+        $generatedPkCustomer->save($con);
+
+        $this->assertSame(1, $con->lastInsertIdCallCount);
+        $this->assertNotNull($generatedPkCustomer->getPrimaryKey());
+
+        CustomerTableMap::clearInstancePool();
+        $this->assertNotNull(CustomerQuery::create()->findPk($generatedPkCustomer->getPrimaryKey(), $this->con));
     }
 
     /**
