@@ -225,6 +225,38 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testClassBodyTreatsDefaultExpressionsAsUnsetValues()
+    {
+        $database = new Database('test');
+        $table = new Table('EmployeeAccount');
+        $database->addTable($table);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $table->addColumn($id);
+
+        $authenticator = new Column('authenticator');
+        $authenticator->setDomain(new Domain('VARCHAR'));
+        $authenticator->setDefaultValue(new ColumnDefaultValue('Password', ColumnDefaultValue::TYPE_EXPR));
+        $table->addColumn($authenticator);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addClassBodyToScript($script);
+
+        $this->assertStringContainsString('public function getAuthenticator()', $script);
+        $this->assertStringContainsString('@return string|null', $script);
+        $this->assertStringContainsString('return $this->authenticator;', $script);
+        $this->assertStringNotContainsString("return \$this->authenticator ?? 'Password';", $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testHydrateUsesResolveFromRowForSimpleColumnsOnly()
     {
         $id = new Column('id');

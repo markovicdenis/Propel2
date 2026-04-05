@@ -62,13 +62,12 @@ trait ObjectBuilderTrait
     protected function getUnsetValueForAccessor(Column $column): ?string
     {
         if ($column->hasDefaultValue()) {
-            // return $this->getDefaultValueForColumn($column);
+            if ($column->getDefaultValue() !== null && $column->getDefaultValue()->isExpression()) {
+                return null;
+            }
+
             return $this->normalizedDefaultValueForColumn($column);
         }
-
-        // if ($column->isPrimaryKey() && $column->isAutoIncrement()) {
-        //     return null;
-        // }
 
         if ($column->isForeignKey() && !$column->isNotNull()) {
             return null;
