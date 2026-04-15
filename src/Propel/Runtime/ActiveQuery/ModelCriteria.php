@@ -1559,7 +1559,7 @@ class ModelCriteria extends BaseModelCriteria
             throw new PropelException('Please define a entityNotFoundExceptionClass property with the name of your NotFoundException-class in ' . static::class);
         }
 
-        /** @phpstan-var \Exception $exception */
+        /** @phpstan-var Exception $exception */
         $exception = new $this->entityNotFoundExceptionClass("{$this->getModelShortName()} could not be found");
 
         return $exception;

@@ -754,8 +754,14 @@ class Criteria
     public function getTablesColumns(): array
     {
         $tables = [];
+        $primaryTableName = $this->getPrimaryTableName();
         foreach ($this->keys() as $key) {
-            $tableName = substr($key, 0, strrpos($key, '.') ?: null);
+            $dotPosition = strrpos($key, '.');
+            if ($dotPosition === false || $dotPosition === 0) {
+                $tableName = $primaryTableName ?? '';
+            } else {
+                $tableName = substr($key, 0, $dotPosition);
+            }
             $tables[$tableName][] = $key;
         }
 

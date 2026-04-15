@@ -202,7 +202,10 @@ interface ConnectionInterface
      *                SQL statement. Returns FALSE if the driver does not support
      *                quoting in this way.
      */
-    public function quote(string $string, int $parameterType = PDO::PARAM_STR): string;
+    public function quote(
+        string $string,
+        int $parameterType = PDO::PARAM_STR,
+    ): string;
 
     /**
      * Register a user-defined SQLite function on the underlying connection.

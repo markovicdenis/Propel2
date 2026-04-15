@@ -74,7 +74,7 @@ interface AdapterInterface
      * quote).
      *
      * @return string The text delimiter.
-     */
+     /
     public function getStringDelimiter(): string;
 
     /**

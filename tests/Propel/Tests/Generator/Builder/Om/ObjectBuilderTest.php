@@ -13,9 +13,11 @@ use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
+use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\Domain;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
+use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Tests\TestCase;
 
 /**
@@ -373,6 +375,34 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringContainsString('array_map(static fn (InsertColumnBindingDto $binding): string => $binding->identifier, $columnBindings)', $script);
         $this->assertStringContainsString('$binding->bind($stmt);', $script);
         $this->assertStringNotContainsString('match ($columnName)', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testDoInsertMarksPrefetchedSequencePrimaryKeyAsModified()
+    {
+        $table = new Table('Foo');
+        $table->setIdMethod(IdMethod::NATIVE);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setAutoIncrement(true);
+        $table->addColumn($id);
+
+        $name = new Column('name');
+        $name->setDomain(new Domain('VARCHAR'));
+        $table->addColumn($name);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $script = $builder->addDoInsertToScript();
+
+        $this->assertStringContainsString("\$dataFetcher = \$con->query(\"SELECT nextval('Foo_id_seq')\");", $script);
+        $this->assertStringContainsString('$this->id = (int) $dataFetcher->fetchColumn();', $script);
+        $this->assertStringContainsString('$this->modifiedColumns[FooTableMap::COL_ID] = true;', $script);
     }
 
     /**

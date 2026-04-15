@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\ActiveQuery;
 
 use Exception;
+use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\Author;
 use Propel\Tests\Bookstore\AuthorQuery;
 use Propel\Tests\Bookstore\Book;
@@ -65,6 +66,30 @@ class ExistsTest extends BookstoreTestBase
     /**
      * @return void
      */
+    public function testDeleteWithCorrelatedWhereNotExists()
+    {
+        [, $author2] = $this->createTestData();
+        $author2->setFirstName('NoMatch')->save($this->con);
+
+        $existsQueryCriteria = AuthorQuery::create()
+            ->where('Author.Id = Book.AuthorId')
+            ->filterByFirstName('LeDefaultFirstname');
+
+        $query = BookQuery::create()
+            ->filterByTitle('bad')
+            ->whereNotExists($existsQueryCriteria);
+
+        $this->assertEquals(['book'], array_keys($query->getTablesColumns()));
+
+        $deletedBooks = $query->delete($this->con);
+
+        $this->assertSame(2, $deletedBooks);
+        $this->assertSame(1, BookQuery::create()->filterByTitle('bad')->count($this->con));
+    }
+
+    /**
+     * @return void
+     */
     public function testCustomExistsOnNonrelatedTables()
     {
         [$author1] = $this->createTestData();
@@ -87,7 +112,7 @@ class ExistsTest extends BookstoreTestBase
         $query = AuthorQuery::create()->useExistsQuery('Book');
         $this->assertInstanceOf(BookQuery::class, $query);
     }
-    
+
     /**
      * @return void
      */
@@ -167,15 +192,16 @@ class ExistsTest extends BookstoreTestBase
         ->endUse()
         ->endUse();
 
+        $adapter = Propel::getServiceContainer()->getAdapter($query->getDbName());
         $expectedSql =
         'SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, author.id, author.first_name, author.last_name, author.email, author.age '
             . 'FROM book LEFT JOIN author ON (book.author_id=author.id) '
-                . 'WHERE EXISTS (SELECT 1 AS existsFlag FROM book WHERE author.id=book.author_id AND book.title=:p1)';
-                $params = [];
-                $this->assertEquals($expectedSql, $query->createSelectSql($params));
+            . 'WHERE EXISTS (SELECT 1 AS ' . $adapter->quoteIdentifier('existsFlag') . ' FROM book WHERE author.id=book.author_id AND book.title=:p1)';
+        $params = [];
+        $this->assertEquals($expectedSql, $query->createSelectSql($params));
 
-                $books = $query->find($this->con)->getData();
-                $this->assertCount(4, $books);
+        $books = $query->find($this->con)->getData();
+        $this->assertCount(4, $books);
     }
 
     /**
@@ -184,7 +210,7 @@ class ExistsTest extends BookstoreTestBase
     public function testUseExistsQueryWithSpecificClass()
     {
         [$author1, $author2, $author3] = $this->createTestData();
-     // all authors with at least one good book according to GoodBookQuery
+        // all authors with at least one good book according to GoodBookQuery
         $authors = AuthorQuery::create()
         ->useExistsQuery('Book', null, GoodBookQuery::class)
         ->filterByIsGood()

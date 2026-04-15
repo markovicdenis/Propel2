@@ -11,6 +11,7 @@ namespace Propel\Runtime\Map;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Map\Exception\TableNotFoundException;
 use Propel\Runtime\Propel;
+use Closure;
 
 use function get_class;
 use function is_string;
@@ -151,7 +152,7 @@ class DatabaseMap
     public function dumpMaps(): array
     {
         /**
-         * @psalm-var \Closure( class-string<\Propel\Runtime\Map\TableMap>|\Propel\Runtime\Map\TableMap ): class-string<\Propel\Runtime\Map\TableMap>
+         * @psalm-var Closure( class-string<\Propel\Runtime\Map\TableMap>|\Propel\Runtime\Map\TableMap ): class-string<\Propel\Runtime\Map\TableMap>
          * @phpstan-ignore varTag.nativeType
          */
         $toClassString = fn ($tableMap) => is_string($tableMap) ? $tableMap : get_class($tableMap);

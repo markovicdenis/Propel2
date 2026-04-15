@@ -7044,12 +7044,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             if (!$column) {
                 throw new PropelException('Cannot find primary key column in table `' . $table->getName() . '`.');
             }
+            $constantName = $this->getColumnConstant($column);
             $columnProperty = $column->getLowercasedName();
             $script .= "
         if (null === \$this->{$columnProperty}) {
             try {";
             $script .= $platform->getIdentifierPhp('$this->' . $columnProperty, '$con', $primaryKeyMethodInfo, '                ', $column->getPhpType());
             $script .= "
+                \$this->modifiedColumns[$constantName] = true;
             } catch (Exception \$e) {
                 throw new PropelException('Unable to get sequence id.', 0, \$e);
             }
