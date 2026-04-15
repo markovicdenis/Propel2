@@ -278,9 +278,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     }
 
     /**
-     * @psalm-param array<string, \Propel\Runtime\Map\TableMapDump> $databaseNameToTableMapDumps
-     *
-     * @param array<string, array<string, class-string<\Propel\Runtime\Map\TableMap>>> $databaseNameToTableMapDumps
+     * @param array<string, array<string, array<string, class-string<\Propel\Runtime\Map\TableMap>>>> $databaseNameToTableMapDumps
      *
      * @return void
      */
@@ -297,9 +295,7 @@ class StandardServiceContainer implements ServiceContainerInterface
     }
 
     /**
-     * @phpstan-param class-string<\Propel\Runtime\Map\DatabaseMap> $databaseMapClass
-     *
-     * @param string $databaseMapClass
+     * @param class-string<\Propel\Runtime\Map\DatabaseMap> $databaseMapClass
      *
      * @return void
      */
@@ -493,9 +489,7 @@ class StandardServiceContainer implements ServiceContainerInterface
      * The service container uses this class to instantiate a new profiler when
      * getProfiler() is called.
      *
-     * @phpstan-param class-string<\Propel\Runtime\Util\Profiler> $profilerClass
-     *
-     * @param string $profilerClass
+     * @param class-string<\Propel\Runtime\Util\Profiler> $profilerClass
      *
      * @return void
      */

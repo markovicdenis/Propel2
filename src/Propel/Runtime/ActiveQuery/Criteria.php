@@ -1067,7 +1067,7 @@ class Criteria
                 $conditions[] = $condition;
             }
 
-            $this->addMultipleJoin($conditions, $joinType);
+            $this->addJoinObject($this->buildJoinWithConditions($conditions, $joinType));
 
             return $this;
         }
@@ -1129,6 +1129,19 @@ class Criteria
      */
     public function addMultipleJoin(array $conditions, ?string $joinType = null)
     {
+        $this->addJoinObject($this->buildJoinWithConditions($conditions, $joinType));
+
+        return $this;
+    }
+
+    /**
+     * @param array $conditions
+     * @param string|null $joinType
+     *
+     * @return \Propel\Runtime\ActiveQuery\Join
+     */
+    private function buildJoinWithConditions(array $conditions, ?string $joinType = null): Join
+    {
         $join = new Join();
         $join->setIdentifierQuoting($this->isIdentifierQuotingEnabled());
         $joinCondition = null;
@@ -1180,9 +1193,7 @@ class Criteria
         $join->setJoinType($joinType);
         $join->setJoinCondition($joinCondition);
 
-        $this->addJoinObject($join);
-
-        return $this;
+        return $join;
     }
 
     /**

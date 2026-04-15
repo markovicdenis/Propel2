@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\ActiveQuery;
 
 use PDO;
+use Propel\Runtime\ActiveQuery\Criterion\LikeCriterion;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Join;
 use Propel\Runtime\ActiveQuery\Lock;
@@ -20,6 +21,10 @@ use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
+
+use function count;
+use function is_array;
+use function is_string;
 
 /**
  * Test class for Criteria.
@@ -38,12 +43,12 @@ class CriteriaTest extends BookstoreTestBase
      */
     private $c;
 
-//    /**
-//     * DB adapter saved for later.
-//     *
-//     * @var AbstractAdapter
-//     */
-//    private $savedAdapter;
+    //    /**
+    //     * DB adapter saved for later.
+    //     *
+    //     * @var AbstractAdapter
+    //     */
+    //    private $savedAdapter;
 
     /**
      * @return void
@@ -317,15 +322,18 @@ class CriteriaTest extends BookstoreTestBase
      */
     public function testCriterionIgnoreCase()
     {
-        $originalDB = Propel::getServiceContainer()->getAdapter();
+        $serviceContainer = Propel::getStandardServiceContainer();
+        $defaultDatasource = $serviceContainer->getDefaultDatasource();
+        $originalDB = $serviceContainer->getAdapter($defaultDatasource);
         $adapters = [new MysqlAdapter(), new PgsqlAdapter()];
         $expectedIgnore = ['UPPER(TABLE.COLUMN) LIKE UPPER(:p1)', 'TABLE.COLUMN ILIKE :p1'];
 
         $i = 0;
         foreach ($adapters as $adapter) {
-            Propel::getServiceContainer()->setAdapter(Propel::getServiceContainer()->getDefaultDatasource(), $adapter);
+            $serviceContainer->setAdapter($defaultDatasource, $adapter);
             $myCriteria = new Criteria();
 
+            /** @var \Propel\Runtime\ActiveQuery\Criterion\LikeCriterion $myCriterion */
             $myCriterion = $myCriteria->getNewCriterion(
                 'TABLE.COLUMN',
                 'FoObAr',
@@ -347,7 +355,7 @@ class CriteriaTest extends BookstoreTestBase
             $this->assertEquals($expectedIgnore[$i], $sb);
             $i++;
         }
-        Propel::getServiceContainer()->setAdapter(Propel::getServiceContainer()->getDefaultDatasource(), $originalDB);
+        $serviceContainer->setAdapter($defaultDatasource, $originalDB);
     }
 
     /**
@@ -355,9 +363,11 @@ class CriteriaTest extends BookstoreTestBase
      */
     public function testOrderByIgnoreCase()
     {
-        $originalDB = Propel::getServiceContainer()->getAdapter();
-        Propel::getServiceContainer()->setAdapter(Propel::getServiceContainer()->getDefaultDatasource(), new MysqlAdapter());
-        Propel::getServiceContainer()->setDefaultDatasource('bookstore');
+        $serviceContainer = Propel::getStandardServiceContainer();
+        $originalDatasource = $serviceContainer->getDefaultDatasource();
+        $originalDB = $serviceContainer->getAdapter($originalDatasource);
+        $serviceContainer->setAdapter($originalDatasource, new MysqlAdapter());
+        $serviceContainer->setDefaultDatasource('bookstore');
 
         $criteria = new Criteria();
         $criteria->setIgnoreCase(true);
@@ -368,7 +378,8 @@ class CriteriaTest extends BookstoreTestBase
         $expectedSQL = 'SELECT book.id, book.title, book.isbn, book.price, book.publisher_id, book.author_id, UPPER(book.title) FROM book ORDER BY UPPER(book.title) ASC';
         $this->assertEquals($expectedSQL, $sql);
 
-        Propel::getServiceContainer()->setAdapter(Propel::getServiceContainer()->getDefaultDatasource(), $originalDB);
+        $serviceContainer->setDefaultDatasource($originalDatasource);
+        $serviceContainer->setAdapter($originalDatasource, $originalDB);
     }
 
     /**
@@ -777,12 +788,11 @@ class CriteriaTest extends BookstoreTestBase
     public function testAddJoinMultiple()
     {
         $c = new Criteria();
-        $c->
-            clearSelectColumns()->
-            addMultipleJoin([
-                ['TABLE_A.FOO_ID', 'TABLE_B.id'],
-                ['TABLE_A.BAR', 'TABLE_B.BAZ']])->
-                addSelectColumn('TABLE_A.id');
+        $c->clearSelectColumns();
+        $this->addJoinWithConditions($c, [
+            ['TABLE_A.FOO_ID', 'TABLE_B.id'],
+            ['TABLE_A.BAR', 'TABLE_B.BAZ'],
+        ])->addSelectColumn('TABLE_A.id');
 
         $expect = $this->getSql('SELECT TABLE_A.id FROM TABLE_A INNER JOIN TABLE_B '
             . 'ON (TABLE_A.FOO_ID=TABLE_B.id AND TABLE_A.BAR=TABLE_B.BAZ)');
@@ -801,12 +811,11 @@ class CriteriaTest extends BookstoreTestBase
     public function testAddJoinMultipleValue()
     {
         $c = new Criteria();
-        $c->
-            clearSelectColumns()->
-            addMultipleJoin([
-                ['TABLE_A.FOO_ID', 'TABLE_B.id'],
-                ['TABLE_A.BAR', 3]])->
-                addSelectColumn('TABLE_A.id');
+        $c->clearSelectColumns();
+        $this->addJoinWithConditions($c, [
+            ['TABLE_A.FOO_ID', 'TABLE_B.id'],
+            ['TABLE_A.BAR', 3],
+        ])->addSelectColumn('TABLE_A.id');
 
         $expect = $this->getSql('SELECT TABLE_A.id FROM TABLE_A INNER JOIN TABLE_B '
             . 'ON (TABLE_A.FOO_ID=TABLE_B.id AND TABLE_A.BAR=3)');
@@ -825,15 +834,15 @@ class CriteriaTest extends BookstoreTestBase
     public function testAddJoinMultipleWithJoinType()
     {
         $c = new Criteria();
-        $c->
-            clearSelectColumns()->
-            addMultipleJoin(
-                [
+        $c->clearSelectColumns();
+        $this->addJoinWithConditions(
+            $c,
+            [
                 ['TABLE_A.FOO_ID', 'TABLE_B.id'],
-                ['TABLE_A.BAR', 'TABLE_B.BAZ']],
-                Criteria::LEFT_JOIN
-            )->
-            addSelectColumn('TABLE_A.id');
+                ['TABLE_A.BAR', 'TABLE_B.BAZ'],
+            ],
+            Criteria::LEFT_JOIN
+        )->addSelectColumn('TABLE_A.id');
 
         $expect = $this->getSql('SELECT TABLE_A.id FROM TABLE_A '
             . 'LEFT JOIN TABLE_B ON (TABLE_A.FOO_ID=TABLE_B.id AND TABLE_A.BAR=TABLE_B.BAZ)');
@@ -852,12 +861,11 @@ class CriteriaTest extends BookstoreTestBase
     public function testAddJoinMultipleWithOperator()
     {
         $c = new Criteria();
-        $c->
-            clearSelectColumns()->
-            addMultipleJoin([
-                ['TABLE_A.FOO_ID', 'TABLE_B.id', Criteria::GREATER_EQUAL],
-                ['TABLE_A.BAR', 'TABLE_B.BAZ', Criteria::LESS_THAN]])->
-                addSelectColumn('TABLE_A.id');
+        $c->clearSelectColumns();
+        $this->addJoinWithConditions($c, [
+            ['TABLE_A.FOO_ID', 'TABLE_B.id', Criteria::GREATER_EQUAL],
+            ['TABLE_A.BAR', 'TABLE_B.BAZ', Criteria::LESS_THAN],
+        ])->addSelectColumn('TABLE_A.id');
 
         $expect = $this->getSql('SELECT TABLE_A.id FROM TABLE_A INNER JOIN TABLE_B '
             . 'ON (TABLE_A.FOO_ID>=TABLE_B.id AND TABLE_A.BAR<TABLE_B.BAZ)');
@@ -876,15 +884,15 @@ class CriteriaTest extends BookstoreTestBase
     public function testAddJoinMultipleWithJoinTypeAndOperator()
     {
         $c = new Criteria();
-        $c->
-            clearSelectColumns()->
-            addMultipleJoin(
-                [
+        $c->clearSelectColumns();
+        $this->addJoinWithConditions(
+            $c,
+            [
                 ['TABLE_A.FOO_ID', 'TABLE_B.id', Criteria::GREATER_EQUAL],
-                ['TABLE_A.BAR', 'TABLE_B.BAZ', Criteria::LESS_THAN]],
-                Criteria::LEFT_JOIN
-            )->
-            addSelectColumn('TABLE_A.id');
+                ['TABLE_A.BAR', 'TABLE_B.BAZ', Criteria::LESS_THAN],
+            ],
+            Criteria::LEFT_JOIN
+        )->addSelectColumn('TABLE_A.id');
 
         $expect = $this->getSql('SELECT TABLE_A.id FROM TABLE_A '
             . 'LEFT JOIN TABLE_B ON (TABLE_A.FOO_ID>=TABLE_B.id AND TABLE_A.BAR<TABLE_B.BAZ)');
@@ -1411,6 +1419,73 @@ class CriteriaTest extends BookstoreTestBase
         }
 
         $this->assertEquals($sql, $result);
+    }
+
+    /**
+     * @param array<int, array{0: mixed, 1: mixed, 2?: string}> $conditions
+     * @param string|null $joinType
+     *
+     * @return \Propel\Runtime\ActiveQuery\Criteria
+     */
+    private function addJoinWithConditions(Criteria $criteria, array $conditions, ?string $joinType = null): Criteria
+    {
+        $join = new Join();
+        $join->setIdentifierQuoting($criteria->isIdentifierQuotingEnabled());
+
+        $joinCondition = null;
+        foreach ($conditions as $condition) {
+            $left = (string)$condition[0];
+            $right = $condition[1];
+
+            $pos = strrpos($left, '.');
+            if ($pos) {
+                $leftTableAlias = substr($left, 0, $pos);
+                $leftColumnName = substr($left, $pos + 1);
+                [$leftTableName, $leftTableAlias] = $criteria->getTableNameAndAlias($leftTableAlias);
+            } else {
+                [$leftTableName, $leftTableAlias] = [null, null];
+                $leftColumnName = $left;
+            }
+
+            if (is_string($right) && strrpos($right, '.') !== false) {
+                $pos = strrpos($right, '.');
+                $rightTableAlias = substr($right, 0, $pos);
+                $rightColumnName = substr($right, $pos + 1);
+                [$rightTableName, $rightTableAlias] = $criteria->getTableNameAndAlias($rightTableAlias);
+            } else {
+                [$rightTableName, $rightTableAlias] = [null, null];
+                $rightColumnName = (string)$right;
+            }
+
+            if (!$join->getRightTableName() && $rightTableName !== null) {
+                $join->setRightTableName($rightTableName);
+            }
+
+            if (!$join->getRightTableAlias() && $rightTableAlias) {
+                $join->setRightTableAlias($rightTableAlias);
+            }
+
+            $conditionClause = $leftTableAlias ? $leftTableAlias . '.' : ($leftTableName ? $leftTableName . '.' : '');
+            $conditionClause .= $leftColumnName;
+            $conditionClause .= $condition[2] ?? Join::EQUAL;
+            $conditionClause .= $rightTableAlias ? $rightTableAlias . '.' : ($rightTableName ? $rightTableName . '.' : '');
+            $conditionClause .= $rightColumnName;
+
+            $fullColumnName = $leftTableName . '.' . $leftColumnName;
+            $criterion = $criteria->getNewCriterion($fullColumnName, $conditionClause, Criteria::CUSTOM);
+
+            if ($joinCondition === null) {
+                $joinCondition = $criterion;
+            } else {
+                $joinCondition = $joinCondition->addAnd($criterion);
+            }
+        }
+
+        $join->setJoinType($joinType);
+        $join->setJoinCondition($joinCondition);
+        $criteria->addJoinObject($join);
+
+        return $criteria;
     }
 }
 
