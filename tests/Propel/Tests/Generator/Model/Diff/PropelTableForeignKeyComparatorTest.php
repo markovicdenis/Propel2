@@ -17,11 +17,18 @@ use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Tests\TestCase;
 
+use function count;
+
 /**
  * Tests for the Column methods of the TableComparator service class.
  */
 class PropelTableForeignKeyComparatorTest extends TestCase
 {
+    /**
+     * @var \Propel\Generator\Platform\MysqlPlatform
+     */
+    protected $platform;
+
     /**
      * @return void
      */
@@ -35,7 +42,7 @@ class PropelTableForeignKeyComparatorTest extends TestCase
     {
         $fk = ForeignKeyComparatorTest::createForeignKey($columns, $refTableName, $fkTableName);
         $fk->getTable()->getDatabase()->setPlatform($this->platform);
-        
+
         return $fk;
     }
 
@@ -100,9 +107,38 @@ class PropelTableForeignKeyComparatorTest extends TestCase
     /**
      * @return void
      */
+    public function testCompareAddedFksSkipsIgnoredSqlForeignKeys()
+    {
+        $db1 = new Database();
+        $db1->setPlatform($this->platform);
+        $t1 = new Table('FkTable');
+        $db1->addTable($t1);
+
+        $fk2 = $this->createForeignKey(['FkCol' => 'RefCol'], 'RefTable', 'FkTable');
+        $fk2->loadMapping([
+            'foreignTable' => $fk2->getForeignTableCommonName(),
+            'name' => $fk2->getName(),
+            'ignoreSql' => true,
+        ]);
+        $t2 = $fk2->getTable();
+
+        $tc = new TableComparator();
+        $tc->setFromTable($t1);
+        $tc->setToTable($t2);
+        $nbDiffs = $tc->compareForeignKeys();
+        $tableDiff = $tc->getTableDiff();
+        $this->assertSame(0, $nbDiffs);
+        $this->assertSame([], $tableDiff->getAddedFks());
+        $this->assertSame([], $tableDiff->getRemovedFks());
+        $this->assertSame([], $tableDiff->getModifiedFks());
+    }
+
+    /**
+     * @return void
+     */
     public function testCompareRemovedFks()
     {
-        
+
         $fk1 = $this->createForeignKey(['FkCol' => 'RefCol'], 'RefTable', 'FkTable');
         $t1 = $fk1->getTable();
 

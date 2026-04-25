@@ -306,10 +306,15 @@ class TableComparator
         $toTableFks = $this->getToTable()->getForeignKeys();
         $ignored = [];
 
+        foreach ($toTableFks as $toTableFk) {
+            if ($toTableFk->getAttribute('ignoreSql') ?? false) {
+                $ignored[] = $toTableFk->getNormalizedName();
+            }
+        }
+
         foreach ($fromTableFks as $fromTableFkPos => $fromTableFk) {
             foreach ($toTableFks as $toTableFkPos => $toTableFk) {
                 if ($toTableFk->getAttribute('ignoreSql') ?? false) {
-                    $ignored[] = $toTableFk->getNormalizedName();
                     continue;
                 }
                 $sameName = $caseInsensitive ?
