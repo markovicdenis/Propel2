@@ -14,6 +14,16 @@ trait StrictGroupByTrait
 {
     private array $handledAggregateSelects = [];
 
+    private function isAggregateExpression(string $expression): bool
+    {
+        return preg_match('/^\s*(any_value|avg|count|max|min|sum)\s*\(/i', $expression) === 1;
+    }
+
+    private function replaceOrderByColumn(string $replacement, array $parts): string
+    {
+        return isset($parts[1]) ? $replacement . ' ' . $parts[1] : $replacement;
+    }
+
     private function convertToAggregateClause(
         string $columnName,
         SqlAdapterInterface $adapter,
@@ -99,6 +109,15 @@ trait StrictGroupByTrait
         $parts = explode(' ', $clause, 2);
         $columnName = $parts[0];
 
+        if ($this->isAggregateExpression($columnName)) {
+            return $clause;
+        }
+
+        $asColumn = $criteria->getAsColumns()[$columnName] ?? null;
+        if ($asColumn !== null && $this->isAggregateExpression($asColumn)) {
+            return $this->replaceOrderByColumn($asColumn, $parts);
+        }
+
         $config = $criteria->getAggregationConfig($columnName);
         $statement = match (true) {
             $config !== null => $config->resolveOrderByClause($adapter, $columnName),
@@ -108,7 +127,8 @@ trait StrictGroupByTrait
                 $criteria,
             ),
         };
-        return str_replace($columnName, $statement, $clause);
+
+        return $this->replaceOrderByColumn($statement, $parts);
     }
 
     protected function didHandleAggregateSelect(?string $columnName): bool

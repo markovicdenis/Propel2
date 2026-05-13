@@ -9,7 +9,10 @@
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
+use Propel\Runtime\Propel;
+use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\TestCaseFixtures;
@@ -24,6 +27,18 @@ use function is_array;
  */
 class MysqlAdapterTest extends TestCaseFixtures
 {
+    protected function createMysqlSql(Criteria $query): string
+    {
+        $params = [];
+        $serviceContainer = Propel::getServiceContainer();
+        if ($serviceContainer instanceof StandardServiceContainer) {
+            $serviceContainer->setAdapter(BookTableMap::DATABASE_NAME, new MysqlAdapter());
+        }
+        $query->setDbName(BookTableMap::DATABASE_NAME);
+
+        return $query->createSelectSql($params);
+    }
+
     /**
      * @return array
      */
@@ -125,8 +140,7 @@ class MysqlAdapterTest extends TestCaseFixtures
         $c->addSelectColumn(BookTableMap::COL_ID);
         $c->lockForShare();
 
-        $params = [];
-        $result = $c->createSelectSql($params);
+        $result = $this->createMysqlSql($c);
 
         $expected = 'SELECT book.id FROM book LOCK IN SHARE MODE';
 
@@ -146,8 +160,7 @@ class MysqlAdapterTest extends TestCaseFixtures
         $c->addSelectColumn(BookTableMap::COL_ID);
         $c->lockForUpdate([BookTableMap::TABLE_NAME], true);
 
-        $params = [];
-        $result = $c->createSelectSql($params);
+        $result = $this->createMysqlSql($c);
 
         $expected = 'SELECT book.id FROM book FOR UPDATE';
 
@@ -174,9 +187,45 @@ class MysqlAdapterTest extends TestCaseFixtures
 
         $expectedSql = 'SELECT subCriteriaAlias.id FROM (SELECT book.id FROM book LOCK IN SHARE MODE) AS subCriteriaAlias LOCK IN SHARE MODE';
 
-        $params = [];
-        $generatedSql = $query->createSelectSql($params);
+        $generatedSql = $this->createMysqlSql($query);
         $this->assertSame($expectedSql, $generatedSql, 'Subquery should contain shared read lock');
+    }
+
+    /**
+     * @return void
+     *
+     * @group mysql
+     */
+    public function testOrderByAggregateAliasUsesUnderlyingExpression()
+    {
+        $query = BookQuery::create()
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->withColumn('MAX(Book.Id)', 'CreatedAt')
+            ->groupBy('Book.AuthorId')
+            ->orderBy('CreatedAt', Criteria::DESC);
+
+        $generatedSql = $this->createMysqlSql($query);
+
+        $this->assertStringContainsString('ORDER BY MAX(book.id) DESC', $generatedSql);
+        $this->assertStringNotContainsString('ANY_VALUE(MAX(book.id))', $generatedSql);
+    }
+
+    /**
+     * @return void
+     *
+     * @group mysql
+     */
+    public function testOrderByGroupedAliasStillWrapsNonAggregateExpression()
+    {
+        $query = BookQuery::create()
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->withColumn('Book.Title', 'BookTitle')
+            ->groupBy('Book.AuthorId')
+            ->orderBy('BookTitle', Criteria::DESC);
+
+        $generatedSql = $this->createMysqlSql($query);
+
+        $this->assertStringContainsString('ORDER BY ANY_VALUE(book.title) DESC', $generatedSql);
     }
 }
 

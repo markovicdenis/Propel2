@@ -11,6 +11,7 @@ namespace Propel\Tests\Runtime\Adapter\Pdo;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Propel;
+use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\BookTableMap;
 use Propel\Tests\TestCaseFixtures;
@@ -33,7 +34,10 @@ class PgsqlAdapterTest extends TestCaseFixtures
     protected function createPgsqlSql(Criteria $query): string
     {
         $params = [];
-        Propel::getServiceContainer()->setAdapter('pgsql', new PgsqlAdapter());
+        $serviceContainer = Propel::getServiceContainer();
+        if ($serviceContainer instanceof StandardServiceContainer) {
+            $serviceContainer->setAdapter('pgsql', new PgsqlAdapter());
+        }
         $query->setDbName('pgsql');
 
         return $query->createSelectSql($params);
@@ -111,5 +115,26 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $expected = 'SELECT book.id FROM book, (SELECT book.id FROM book FOR SHARE OF "book") AS subCriteriaAlias FOR SHARE OF "book" NOWAIT';
 
         $this->assertSame($expected, $this->createPgsqlSql($c), 'Subquery contains shared read lock');
+    }
+
+    /**
+     * @return void
+     *
+     * @group pgsql
+     */
+    public function testOrderByAggregateAliasUsesUnderlyingExpression()
+    {
+        $query = BookQuery::create()
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->withColumn('MAX(Book.Id)', 'CreatedAt')
+            ->groupBy('Book.AuthorId')
+            ->orderBy('CreatedAt', Criteria::DESC);
+
+        $generatedSql = $this->createPgsqlSql($query);
+
+        $this->assertStringContainsString('MAX(book.id) AS "CreatedAt"', $generatedSql);
+        $this->assertStringContainsString('ORDER BY MAX(book.id) DESC', $generatedSql);
+        $this->assertStringNotContainsString('ANY_VALUE(MAX(book.id))', $generatedSql);
+        $this->assertStringNotContainsString('ORDER BY CreatedAt DESC', $generatedSql);
     }
 }
