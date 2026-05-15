@@ -8,6 +8,7 @@
 
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
+use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Propel;
@@ -136,5 +137,36 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $this->assertStringContainsString('ORDER BY MAX(book.id) DESC', $generatedSql);
         $this->assertStringNotContainsString('ANY_VALUE(MAX(book.id))', $generatedSql);
         $this->assertStringNotContainsString('ORDER BY CreatedAt DESC', $generatedSql);
+    }
+
+    /**
+     * @return void
+     *
+     * @group pgsql
+     */
+    public function testOrderByAliasedExtraAggregationUsesUnderlyingExpression()
+    {
+        $query = new class () extends BookQuery {
+            public function getDefaultAggregationConfigs(): array
+            {
+                return [
+                    BookTableMap::COL_TITLE => AggregationConfig::create(function: 'MAX'),
+                ];
+            }
+        };
+
+        $query
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->addSelectColumn(BookTableMap::COL_TITLE)
+            ->groupBy('Book.AuthorId')
+            ->withAggregation('Book.Title')
+            ->withAggregation('Book.Title', 'MIN', 'MinTitle')
+            ->orderBy('MinTitle', Criteria::DESC);
+
+        $generatedSql = $this->createPgsqlSql($query);
+
+        $this->assertStringContainsString('MIN(book.title) AS "MinTitle"', $generatedSql);
+        $this->assertStringContainsString('ORDER BY MIN(book.title) DESC', $generatedSql);
+        $this->assertStringNotContainsString('ORDER BY MinTitle DESC', $generatedSql);
     }
 }

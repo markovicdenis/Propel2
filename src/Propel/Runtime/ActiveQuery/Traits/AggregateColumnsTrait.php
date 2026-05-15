@@ -30,8 +30,47 @@ trait AggregateColumnsTrait
         ?string $alias = null,
     ): static {
         $name = $this->normalizeColumnName($columnName);
+        $config = $this->buildAggregationConfig($name, $clause, $alias);
+        $this->aggregateSelects[$name] = $config;
+        return $this;
+    }
+
+    public function withAggregation(
+        string $columnName,
+        ?string $aggregation = null,
+        ?string $alias = null,
+    ): static {
+        if ($aggregation !== null) {
+            $name = $this->normalizeColumnName($columnName);
+            if ($alias !== null && isset($this->aggregateSelects[$name])) {
+                return $this->addAliasedAggregationColumn($name, $aggregation, $alias);
+            }
+
+            return $this->addAggregationConfig($columnName, $aggregation, $alias);
+        }
+
+        $name = $this->normalizeColumnName($columnName);
+        $config = $this->getAggregationConfig($name);
+        if ($config === null) {
+            return $this;
+        }
+
+        if ($alias !== null) {
+            $config->alias = $alias;
+        }
+
+        $this->aggregateSelects[$config->columnName] = $config;
+
+        return $this;
+    }
+
+    private function buildAggregationConfig(
+        string $columnName,
+        string $clause,
+        ?string $alias = null,
+    ): AggregationConfig {
         $config = new AggregationConfig(
-            columnName: $name,
+            columnName: $columnName,
             alias: $alias,
         );
         if (str_contains($clause, '(')) {
@@ -39,8 +78,46 @@ trait AggregateColumnsTrait
         } else {
             $config->function = $clause;
         }
-        $this->aggregateSelects[$name] = $config;
+
+        return $config;
+    }
+
+    private function addAliasedAggregationColumn(
+        string $columnName,
+        string $aggregation,
+        string $alias,
+    ): static {
+        $config = $this->buildAggregationConfig($columnName, $aggregation, $alias);
+        $statement = $this->resolveAggregationSelectExpression($config);
+
+        if ($this instanceof ModelCriteria && !$this->hasSelectClause() && !$this->getPrimaryCriteria()) {
+            $this->addSelfSelectColumns();
+        }
+
+        $this->addAsColumn($alias, $statement);
+
         return $this;
+    }
+
+    private function resolveAggregationSelectExpression(AggregationConfig $config): string
+    {
+        $statement = match (true) {
+            $config->clause !== null => $config->clause,
+            $config->function !== null => "{$config->function}({$config->columnName})",
+            default => $config->columnName,
+        };
+
+        $statement = trim($statement);
+
+        if ($config->alias !== null) {
+            $statement = preg_replace('/\s+AS\s+(?:"[^"]+"|`[^`]+`|\[[^\]]+\]|[\w.]+)\s*$/i', '', $statement) ?? $statement;
+        }
+
+        if ($this instanceof ModelCriteria) {
+            $this->replaceNames($statement);
+        }
+
+        return $statement;
     }
 
     /**

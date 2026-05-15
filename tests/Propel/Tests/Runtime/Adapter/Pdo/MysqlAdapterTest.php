@@ -9,6 +9,7 @@
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Propel;
@@ -226,6 +227,98 @@ class MysqlAdapterTest extends TestCaseFixtures
         $generatedSql = $this->createMysqlSql($query);
 
         $this->assertStringContainsString('ORDER BY ANY_VALUE(book.title) DESC', $generatedSql);
+    }
+
+    /**
+     * @return void
+     *
+     * @group mysql
+     */
+    public function testWithAggregationReusesDefaultConfigWithAlias()
+    {
+        $query = new class () extends BookQuery {
+            public function getDefaultAggregationConfigs(): array
+            {
+                return [
+                    BookTableMap::COL_TITLE => AggregationConfig::create(function: 'MAX'),
+                ];
+            }
+        };
+
+        $query
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->addSelectColumn(BookTableMap::COL_TITLE)
+            ->groupBy('Book.AuthorId')
+            ->withAggregation('Book.Title', alias: 'BookTitle')
+            ->orderBy(BookTableMap::COL_TITLE, Criteria::DESC);
+
+        $generatedSql = $this->createMysqlSql($query);
+
+        $this->assertStringContainsString('MAX(book.title) AS `BookTitle`', $generatedSql);
+        $this->assertStringContainsString('ORDER BY `BookTitle` DESC', $generatedSql);
+        $this->assertStringNotContainsString('ANY_VALUE(book.title)', $generatedSql);
+    }
+
+    /**
+     * @return void
+     *
+     * @group mysql
+     */
+    public function testWithAggregationAddsAliasedExtraAggregationAsColumn()
+    {
+        $query = new class () extends BookQuery {
+            public function getDefaultAggregationConfigs(): array
+            {
+                return [
+                    BookTableMap::COL_TITLE => AggregationConfig::create(function: 'MAX'),
+                ];
+            }
+        };
+
+        $query
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->addSelectColumn(BookTableMap::COL_TITLE)
+            ->groupBy('Book.AuthorId')
+            ->withAggregation('Book.Title')
+            ->withAggregation('Book.Title', 'MIN', 'MinTitle')
+            ->orderBy(BookTableMap::COL_TITLE, Criteria::DESC);
+
+        $generatedSql = $this->createMysqlSql($query);
+
+        $this->assertStringContainsString('MAX(book.title)', $generatedSql);
+        $this->assertStringContainsString('MIN(book.title) AS `MinTitle`', $generatedSql);
+        $this->assertStringContainsString('ORDER BY MAX(book.title) DESC', $generatedSql);
+    }
+
+    /**
+     * @return void
+     *
+     * @group mysql
+     */
+    public function testOrderByAliasedExtraAggregationUsesUnderlyingExpression()
+    {
+        $query = new class () extends BookQuery {
+            public function getDefaultAggregationConfigs(): array
+            {
+                return [
+                    BookTableMap::COL_TITLE => AggregationConfig::create(function: 'MAX'),
+                ];
+            }
+        };
+
+        $query
+            ->addSelectColumn(BookTableMap::COL_AUTHOR_ID)
+            ->addSelectColumn(BookTableMap::COL_TITLE)
+            ->groupBy('Book.AuthorId')
+            ->withAggregation('Book.Title')
+            ->withAggregation('Book.Title', 'MIN', 'MinTitle')
+            ->orderBy('MinTitle', Criteria::DESC);
+
+        $generatedSql = $this->createMysqlSql($query);
+
+        $this->assertStringContainsString('MIN(book.title) AS `MinTitle`', $generatedSql);
+        $this->assertStringContainsString('ORDER BY MIN(book.title) DESC', $generatedSql);
+        $this->assertStringNotContainsString('ORDER BY `MinTitle` DESC', $generatedSql);
     }
 }
 

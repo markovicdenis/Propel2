@@ -29,6 +29,8 @@ use Propel\Tests\Bookstore\Review;
 use Propel\Tests\Helpers\Bookstore\BookstoreDataPopulator;
 use Propel\Tests\Helpers\Bookstore\BookstoreEmptyTestBase;
 
+use function count;
+
 /**
  * Test class for ObjectFormatter when Criteria uses with().
  *
@@ -624,6 +626,54 @@ class ObjectFormatterWithTest extends BookstoreEmptyTestBase
         $this->assertEquals(2, count($reviews), 'Related objects are correctly hydrated');
         $this->assertEquals($count, $con->getQueryCount(), 'with() hydrates the related objects to save a query ');
         $this->assertEquals('J.K.', $book->getVirtualColumn('AuthorName'), 'ObjectFormatter adds withColumns as virtual columns');
+    }
+
+    /**
+     * @return void
+     */
+    public function testFindOneWithAliasedExtraAggregation()
+    {
+        $con = Propel::getServiceContainer()->getConnection(BookTableMap::DATABASE_NAME);
+
+        $author = new Author();
+        $author->setFirstName('Test');
+        $author->setLastName('Author');
+        $author->save($con);
+
+        $publisher = new Publisher();
+        $publisher->setName('Test Publisher');
+        $publisher->save($con);
+
+        $seedBook = new Book();
+        $seedBook->setTitle('Omega Title');
+        $seedBook->setISBN('1234567890123');
+        $seedBook->setPrice(10.99);
+        $seedBook->setAuthor($author);
+        $seedBook->setPublisher($publisher);
+        $seedBook->save($con);
+
+        $book = new Book();
+        $book->setTitle('Alpha Title');
+        $book->setISBN('1234567890124');
+        $book->setPrice(11.99);
+        $book->setAuthor($author);
+        $book->setPublisher($publisher);
+        $book->save($con);
+
+        BookTableMap::clearInstancePool();
+        AuthorTableMap::clearInstancePool();
+
+        $book = BookQuery::create()
+            ->groupByAuthorId()
+            ->filterByAuthorId($author->getId())
+            ->withAggregation('Book.Title', 'MAX')
+            ->withAggregation('Book.Title', 'MIN', 'MinTitle')
+            ->findOne($con);
+
+        $this->assertTrue($book instanceof Book, 'withAggregation() keeps the resulting model class');
+        $this->assertEquals('Omega Title', $book->getTitle());
+        $this->assertTrue($book->hasVirtualColumn('MinTitle'), 'Aliased extra aggregations hydrate as virtual columns');
+        $this->assertEquals('Alpha Title', $book->getVirtualColumn('MinTitle'));
     }
 
     /**
