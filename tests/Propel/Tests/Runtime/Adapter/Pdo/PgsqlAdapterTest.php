@@ -8,9 +8,11 @@
 
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
+use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Tests\Bookstore\BookQuery;
@@ -30,6 +32,34 @@ class PgsqlAdapterTest extends TestCaseFixtures
     protected function getDriver()
     {
         return 'pgsql';
+    }
+
+    /**
+     * @return void
+     */
+    public function testPrimaryKeyIsRetrievedAfterInsert()
+    {
+        $adapter = new PgsqlAdapter();
+
+        $this->assertFalse($adapter->isGetIdBeforeInsert());
+        $this->assertTrue($adapter->isGetIdAfterInsert());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetIdUsesLastInsertIdWithSequenceName()
+    {
+        $adapter = new PgsqlAdapter();
+        /** @var ConnectionInterface&MockObject $connection */
+        $connection = $this->createMock(ConnectionInterface::class);
+        $connection
+            ->expects($this->once())
+            ->method('lastInsertId')
+            ->with('logs_id_seq')
+            ->willReturn('42');
+
+        $this->assertSame('42', $adapter->getId($connection, 'logs_id_seq'));
     }
 
     protected function createPgsqlSql(Criteria $query): string

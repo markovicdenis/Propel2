@@ -79,6 +79,17 @@ class PgsqlPlatform extends DefaultPlatform
     }
 
     /**
+     * PostgreSQL serial and bigserial columns assign values during INSERT, so
+     * generated models can retrieve the primary key afterwards.
+     *
+     * @return bool
+     */
+    public function isNativeIdMethodAutoIncrement(): bool
+    {
+        return true;
+    }
+
+    /**
      * @return string
      */
     public function getAutoIncrement(): string
@@ -937,20 +948,18 @@ ALTER TABLE %s DROP CONSTRAINT %s;
         ?string $phpType = null
     ): string {
         if (!$sequenceName) {
-            throw new EngineException('PostgreSQL needs a sequence name to fetch primary keys');
+            throw new EngineException('PostgreSQL needs a sequence name to fetch the last inserted primary key');
         }
-        $snippet = "
-\$dataFetcher = %s->query(\"SELECT nextval('%s')\");
-%s = %s\$dataFetcher->fetchColumn();";
-        $script = sprintf(
-            $snippet,
-            $connectionVariableName,
-            $sequenceName,
-            $columnValueMutator,
-            $phpType ? '(' . $phpType . ') ' : '',
-        );
 
-        return preg_replace('/^/m', $tab, $script);
+        return sprintf(
+            "
+%s%s = %s%s->lastInsertId('%s');",
+            $tab,
+            $columnValueMutator,
+            $connectionVariableName,
+            $phpType ? '(' . $phpType . ') ' : '',
+            $sequenceName,
+        );
     }
 
     /**

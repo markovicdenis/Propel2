@@ -380,7 +380,7 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
-    public function testDoInsertMarksPrefetchedSequencePrimaryKeyAsModified()
+    public function testDoInsertUsesLastInsertIdForPostgresAutoIncrementPrimaryKey()
     {
         $table = new Table('Foo');
         $table->setIdMethod(IdMethod::NATIVE);
@@ -400,9 +400,9 @@ class ObjectBuilderTest extends TestCase
 
         $script = $builder->addDoInsertToScript();
 
-        $this->assertStringContainsString("\$dataFetcher = \$con->query(\"SELECT nextval('Foo_id_seq')\");", $script);
-        $this->assertStringContainsString('$this->id = (int) $dataFetcher->fetchColumn();', $script);
-        $this->assertStringContainsString('$this->modifiedColumns[FooTableMap::COL_ID] = true;', $script);
+        $this->assertStringNotContainsString("SELECT nextval('Foo_id_seq')", $script);
+        $this->assertStringContainsString("\$pk = \$con->lastInsertId('Foo_id_seq');", $script);
+        $this->assertStringContainsString('$this->setId((int) $pk);', $script);
     }
 
     /**

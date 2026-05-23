@@ -18,8 +18,8 @@ use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Propel;
-use RuntimeException;
 use PDOStatement;
+use RuntimeException;
 
 use function array_map;
 use function array_pad;
@@ -102,7 +102,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      */
     protected function getIdMethod(): int
     {
-        return AdapterInterface::ID_METHOD_SEQUENCE;
+        return AdapterInterface::ID_METHOD_AUTOINCREMENT;
     }
 
     /**
@@ -112,23 +112,15 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      * @param string|null $name
      *
      * @throws \Propel\Runtime\Exception\InvalidArgumentException
-     * @throws RuntimeException
-     *
-     * @return int
+     * @return string|int|false
      */
-    public function getId(ConnectionInterface $con, ?string $name = null): int
+    public function getId(ConnectionInterface $con, ?string $name = null)
     {
         if ($name === null) {
-            throw new InvalidArgumentException('Unable to fetch next sequence ID without sequence name.');
+            throw new InvalidArgumentException('Unable to fetch the last inserted ID without sequence name.');
         }
 
-        $dataFetcher = $con->query(sprintf('SELECT nextval(%s)', $con->quote($name)));
-
-        if ($dataFetcher === false) {
-            throw new RuntimeException('PdoConnection::query() did not return a result set as a statement object.');
-        }
-
-        return $dataFetcher->fetchColumn();
+        return $con->lastInsertId($name);
     }
 
     /**
