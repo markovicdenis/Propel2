@@ -408,6 +408,30 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testDoInsertUsesConfiguredPostgresSequenceAfterInsert()
+    {
+        $table = new Table('Foo');
+        $table->setIdMethod(IdMethod::NATIVE);
+        $table->addIdMethodParameter(['value' => 'my_custom_sequence_name']);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setAutoIncrement(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $script = $builder->addDoInsertToScript();
+
+        $this->assertStringNotContainsString("SELECT nextval('my_custom_sequence_name')", $script);
+        $this->assertStringContainsString("\$pk = \$con->lastInsertId('my_custom_sequence_name');", $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testDefaultMutatorUsesSharedCastHelper()
     {
         $table = new Table('Foo');

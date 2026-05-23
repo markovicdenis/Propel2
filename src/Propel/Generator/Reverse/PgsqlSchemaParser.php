@@ -267,6 +267,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             column_name,
             data_type,
             column_default,
+            is_identity,
             is_nullable,
             numeric_precision,
             numeric_scale,
@@ -292,6 +293,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $name = $row['column_name'];
             $type = $row['data_type'];
             $default = $row['column_default'];
+            $isIdentity = strtoupper((string)$row['is_identity']) === 'YES';
             $isNullable = ($row['is_nullable'] === true || strtoupper($row['is_nullable']) === 'YES');
 
             // Check to ensure that this column isn't an array data type
@@ -326,6 +328,11 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             }
 
             if (substr(strtoupper($type), 0, 6) === 'SERIAL') {
+                $autoincrement = true;
+                $default = null;
+            }
+
+            if ($isIdentity) {
                 $autoincrement = true;
                 $default = null;
             }
