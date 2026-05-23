@@ -10,11 +10,13 @@ namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Exception\LogicException;
+use Propel\Runtime\Map\ColumnMap;
 
 use function count;
-use function explode;
 use function in_array;
+use function sprintf;
 
 class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
 {
@@ -39,6 +41,10 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
      */
     public function build(): PreparedStatementDto
     {
+        if ($this->canUsePgsqlDistinctPrimaryKeyCount()) {
+            return $this->buildPgsqlDistinctPrimaryKeyCount();
+        }
+
         $needsComplexCount = $this->criteria->getGroupByColumns()
             || $this->criteria->getOffset()
             || $this->criteria->getLimit() >= 0
@@ -75,6 +81,109 @@ class CountQuerySqlBuilder extends AbstractSqlQueryBuilder
         $countStatement = "SELECT COUNT(*) FROM ($baseSelectSql) propelmatch4cnt";
 
         return new PreparedStatementDto($countStatement, $params);
+    }
+
+    private function canUsePgsqlDistinctPrimaryKeyCount(): bool
+    {
+        if (!$this->adapter instanceof PgsqlAdapter) {
+            return false;
+        }
+        if (!$this->criteria instanceof ModelCriteria) {
+            return false;
+        }
+        if (!$this->criteria->hasSelectModifier(Criteria::DISTINCT)) {
+            return false;
+        }
+        if ($this->criteria->getGroupByColumns() || $this->criteria->getHaving() || $this->criteria->hasSelectQueries()) {
+            return false;
+        }
+        if ($this->criteria->getOffset() || $this->criteria->getLimit() >= 0) {
+            return false;
+        }
+        if (!$this->criteria->isSelfColumnsSelected() || count($this->criteria->getAsColumns()) > 0) {
+            return false;
+        }
+
+        $primaryKeyColumn = $this->getSinglePrimaryKeyColumn();
+        if ($primaryKeyColumn === null) {
+            return false;
+        }
+
+        return $this->hasOnlyPrimaryModelSelectColumns($primaryKeyColumn);
+    }
+
+    private function buildPgsqlDistinctPrimaryKeyCount(): PreparedStatementDto
+    {
+        $primaryKeyColumn = $this->getSinglePrimaryKeyColumn();
+        if ($primaryKeyColumn === null) {
+            throw new LogicException('PostgreSQL distinct count fast path requires a single primary key column.');
+        }
+
+        $this->criteria
+            ->removeSelectModifier(Criteria::DISTINCT)
+            ->clearSelectColumns()
+            ->addSelectColumn(sprintf('COUNT(DISTINCT %s)', $this->getQualifiedPrimaryKeyColumn($primaryKeyColumn)));
+
+        return SelectQuerySqlBuilder::createSelectSql($this->criteria);
+    }
+
+    private function getSinglePrimaryKeyColumn(): ?ColumnMap
+    {
+        if (!$this->criteria instanceof ModelCriteria) {
+            return null;
+        }
+
+        $tableMap = $this->criteria->getTableMap();
+        if ($tableMap === null) {
+            return null;
+        }
+
+        $primaryKeys = $tableMap->getPrimaryKeys();
+        if (count($primaryKeys) !== 1) {
+            return null;
+        }
+
+        return array_values($primaryKeys)[0];
+    }
+
+    private function hasOnlyPrimaryModelSelectColumns(ColumnMap $primaryKeyColumn): bool
+    {
+        if (!$this->criteria instanceof ModelCriteria) {
+            return false;
+        }
+
+        $allowedPrefixes = [$primaryKeyColumn->getTable()->getName()];
+        $modelAlias = $this->criteria->getModelAlias();
+        if ($modelAlias !== null) {
+            $allowedPrefixes[] = $modelAlias;
+        }
+
+        foreach ($this->criteria->getSelectColumns() as $column) {
+            if (strpos($column, '(') !== false) {
+                return false;
+            }
+
+            $parts = explode('.', $column);
+            if (count($parts) !== 2 || !in_array($parts[0], $allowedPrefixes, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function getQualifiedPrimaryKeyColumn(ColumnMap $primaryKeyColumn): string
+    {
+        if (!$this->criteria instanceof ModelCriteria) {
+            return $primaryKeyColumn->getFullyQualifiedName();
+        }
+
+        $modelAlias = $this->criteria->getModelAlias();
+        if ($modelAlias !== null) {
+            return $modelAlias . '.' . $primaryKeyColumn->getName();
+        }
+
+        return $primaryKeyColumn->getFullyQualifiedName();
     }
 
     private function pruneSelect(): void
