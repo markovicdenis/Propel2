@@ -646,6 +646,16 @@ abstract class PdoAdapter implements SqlAdapterInterface
     }
 
     /**
+     * @param \Propel\Runtime\Map\ColumnMap|null $primaryKeyColumn
+     *
+     * @return string|null
+     */
+    public function getInsertReturningSql(?ColumnMap $primaryKeyColumn): ?string
+    {
+        return null;
+    }
+
+    /**
      * @see \Propel\Runtime\Adapter\SqlAdapterInterface::supportsAliasesInDelete()
      *
      * @return bool

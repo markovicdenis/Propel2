@@ -50,6 +50,10 @@ class InsertQuerySqlBuilder extends AbstractSqlQueryBuilder
         $parameterPlaceholdersCsv = $this->buildParameterPlaceholdersCsv($numberOfColumns);
 
         $insertStatement = "INSERT INTO $tableName ($columnCsv) VALUES ($parameterPlaceholdersCsv)";
+        $insertReturningSql = $this->adapter->getInsertReturningSql($this->criteria->getPrimaryKey());
+        if ($insertReturningSql !== null) {
+            $insertStatement .= ' ' . $insertReturningSql;
+        }
         $params = $this->buildParams($qualifiedColumnNames);
 
         return new PreparedStatementDto($insertStatement, $params);

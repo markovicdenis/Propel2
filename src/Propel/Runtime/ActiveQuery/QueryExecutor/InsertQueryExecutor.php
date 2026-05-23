@@ -11,8 +11,10 @@ namespace Propel\Runtime\ActiveQuery\QueryExecutor;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\SqlBuilder\InsertQuerySqlBuilder;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Exception\PropelException;
 use Throwable;
+use PDOStatement;
 
 class InsertQueryExecutor extends AbstractQueryExecutor
 {
@@ -72,9 +74,12 @@ class InsertQueryExecutor extends AbstractQueryExecutor
 
         $preparedStatementDto = InsertQuerySqlBuilder::createInsertSql($this->criteria);
 
-        $this->executeStatement($preparedStatementDto);
+        $stmt = $this->executeStatement($preparedStatementDto);
+        if (!$stmt instanceof StatementInterface && !$stmt instanceof PDOStatement) {
+            throw new \RuntimeException('Statement execution did not return a fetchable statement.');
+        }
 
-        return $this->retrieveLastInsertedId();
+        return $this->retrieveLastInsertedId($stmt);
     }
 
     /**
@@ -108,11 +113,18 @@ class InsertQueryExecutor extends AbstractQueryExecutor
      *
      * @return string|int|null
      */
-    protected function retrieveLastInsertedId()
+    protected function retrieveLastInsertedId(StatementInterface|PDOStatement|null $stmt = null)
     {
         if ($this->primaryKeyColumn === null || !$this->primaryKeyColumn->getTable()->isUseIdGenerator() || !$this->adapter->isGetIdAfterInsert()) {
             return null;
         }
+
+        if ($this->adapter->getInsertReturningSql($this->primaryKeyColumn) !== null && ($stmt instanceof StatementInterface || $stmt instanceof PDOStatement)) {
+            $id = $stmt->fetchColumn();
+
+            return $id === false ? null : $id;
+        }
+
         $keyInfo = $this->primaryKeyColumn->getTable()->getPrimaryKeyMethodInfo();
         try {
             return $this->adapter->getId($this->con, $keyInfo);

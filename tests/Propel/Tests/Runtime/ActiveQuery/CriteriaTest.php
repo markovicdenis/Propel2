@@ -16,6 +16,7 @@ use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
+use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Propel;
 use Propel\Tests\Bookstore\BookQuery;
@@ -1131,6 +1132,30 @@ class CriteriaTest extends BookstoreTestBase
         $this->assertSame(Lock::EXCLUSIVE, $c->getLock()->getType());
         $this->assertSame(['tableA', 'tableB'], $c->getLock()->getTableNames());
         $this->assertTrue($c->getLock()->isNoWait());
+    }
+
+    /**
+     * @return void
+     */
+    public function testWithSkipLockedLock()
+    {
+        $c = new Criteria();
+        $c->lockForUpdate(['tableA'], false, true);
+        $this->assertInstanceOf(Lock::class, $c->getLock(), 'lockForUpdate() adds an exclusive read lock to the Criteria');
+        $this->assertSame(Lock::EXCLUSIVE, $c->getLock()->getType());
+        $this->assertSame(['tableA'], $c->getLock()->getTableNames());
+        $this->assertFalse($c->getLock()->isNoWait());
+        $this->assertTrue($c->getLock()->isSkipLocked());
+    }
+
+    /**
+     * @return void
+     */
+    public function testLockRejectsNoWaitAndSkipLocked()
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        (new Criteria())->lockForUpdate(['tableA'], true, true);
     }
 
     /**

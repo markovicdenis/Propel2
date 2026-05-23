@@ -1403,12 +1403,13 @@ class Criteria
      *
      * @param array<string> $tableNames
      * @param bool $noWait
+     * @param bool $skipLocked
      *
      * @return $this Modified Criteria object (for fluent API)
      */
-    public function lockForShare(array $tableNames = [], bool $noWait = false)
+    public function lockForShare(array $tableNames = [], bool $noWait = false, bool $skipLocked = false)
     {
-        $this->withLock(Lock::SHARED, $tableNames, $noWait);
+        $this->withLock(Lock::SHARED, $tableNames, $noWait, $skipLocked);
 
         return $this;
     }
@@ -1418,12 +1419,13 @@ class Criteria
      *
      * @param array<string> $tableNames
      * @param bool $noWait
+     * @param bool $skipLocked
      *
      * @return $this Modified Criteria object (for fluent API)
      */
-    public function lockForUpdate(array $tableNames = [], bool $noWait = false)
+    public function lockForUpdate(array $tableNames = [], bool $noWait = false, bool $skipLocked = false)
     {
-        $this->withLock(Lock::EXCLUSIVE, $tableNames, $noWait);
+        $this->withLock(Lock::EXCLUSIVE, $tableNames, $noWait, $skipLocked);
 
         return $this;
     }
@@ -1437,12 +1439,13 @@ class Criteria
      * @param string $lockType
      * @param array<string> $tableNames
      * @param bool $noWait
+     * @param bool $skipLocked
      *
      * @return $this Modified Criteria object (for fluent API)
      */
-    protected function withLock(string $lockType, array $tableNames = [], bool $noWait = false)
+    protected function withLock(string $lockType, array $tableNames = [], bool $noWait = false, bool $skipLocked = false)
     {
-        $this->lock = new Lock($lockType, $tableNames, $noWait);
+        $this->lock = new Lock($lockType, $tableNames, $noWait, $skipLocked);
 
         return $this;
     }

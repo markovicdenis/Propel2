@@ -143,6 +143,16 @@ interface SqlAdapterInterface extends AdapterInterface
     public function bindValue(StatementInterface $stmt, string $parameter, $value, ColumnMap $cMap, ?int $position = null): bool;
 
     /**
+     * Returns the SQL fragment that should be appended to an INSERT statement
+     * to fetch a generated primary key from the executed statement.
+     *
+     * @param \Propel\Runtime\Map\ColumnMap|null $primaryKeyColumn
+     *
+     * @return string|null
+     */
+    public function getInsertReturningSql(?ColumnMap $primaryKeyColumn): ?string;
+
+    /**
      * Indicates if the database system can process DELETE statements with
      * aliases like 'DELETE t FROM my_table t JOIN my_other_table o ON ...'
      *

@@ -127,6 +127,26 @@ class PgsqlAdapterTest extends TestCaseFixtures
     }
 
     /**
+     * Test `applyLock`
+     *
+     * @return void
+     *
+     * @group pgsql
+     */
+    public function testSkipLockedLock(): void
+    {
+        $c = new BookQuery();
+        $c->addSelectColumn(BookTableMap::COL_ID);
+        $c->lockForUpdate([BookTableMap::TABLE_NAME], false, true);
+
+        $result = $this->createPgsqlSql($c);
+
+        $expected = 'SELECT book.id FROM book FOR UPDATE OF "book" SKIP LOCKED';
+
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
      * @return void
      *
      * @group pgsql

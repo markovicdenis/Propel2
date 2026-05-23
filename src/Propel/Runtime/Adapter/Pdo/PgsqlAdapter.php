@@ -16,6 +16,7 @@ use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Exception\InvalidArgumentException;
+use Propel\Runtime\Map\ColumnMap;
 use Propel\Runtime\Map\DatabaseMap;
 use Propel\Runtime\Propel;
 use PDOStatement;
@@ -121,6 +122,20 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
         }
 
         return $con->lastInsertId($name);
+    }
+
+    /**
+     * @param \Propel\Runtime\Map\ColumnMap|null $primaryKeyColumn
+     *
+     * @return string|null
+     */
+    public function getInsertReturningSql(?ColumnMap $primaryKeyColumn): ?string
+    {
+        if ($primaryKeyColumn === null || !$primaryKeyColumn->getTable()->isUseIdGenerator() || !$this->isGetIdAfterInsert()) {
+            return null;
+        }
+
+        return 'RETURNING ' . $this->quoteIdentifier($primaryKeyColumn->getName());
     }
 
     /**
@@ -300,6 +315,8 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
 
         if ($lock->isNoWait()) {
             $sql .= ' NOWAIT';
+        } elseif ($lock->isSkipLocked()) {
+            $sql .= ' SKIP LOCKED';
         }
     }
 
