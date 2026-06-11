@@ -8,10 +8,12 @@
 
 namespace Propel\Runtime\Util;
 
+use DateTimeInterface;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Uid\UuidV7;
 
 use function is_string;
+use function is_array;
 
 /**
  * Helps to manually convert UUIDs to byte types
@@ -214,8 +216,8 @@ class UuidConverter
     /**
      * @return \Symfony\Component\Uid\UuidV7
      */
-    public static function generateV7Uid(): UuidV7
+    public static function generateV7Uid(?DateTimeInterface $time = null): UuidV7
     {
-        return UuidV7::fromString(Uuid::v7()->toRfc4122());
+        return UuidV7::fromString(UuidV7::generate($time));
     }
 }

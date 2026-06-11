@@ -1150,7 +1150,7 @@ class QueryBuilder extends AbstractOMBuilder
                 \$comparison = Criteria::IN;
             }
         }";
-        } elseif ($col->isUidBinaryType()) {
+        } elseif ($col->requiresUidBinaryConversion()) {
             $script .= "
         \$$variableName = UuidConverter::uidToBinRecursive(\$$variableName);";
         } elseif ($col->requiresUidStringConversion()) {

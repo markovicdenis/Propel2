@@ -15,6 +15,7 @@ use Propel\Runtime\Connection\StatementInterface;
 use Propel\Runtime\Exception\PropelException;
 use Throwable;
 use PDOStatement;
+use RuntimeException;
 
 class InsertQueryExecutor extends AbstractQueryExecutor
 {
@@ -76,7 +77,7 @@ class InsertQueryExecutor extends AbstractQueryExecutor
 
         $stmt = $this->executeStatement($preparedStatementDto);
         if (!$stmt instanceof StatementInterface && !$stmt instanceof PDOStatement) {
-            throw new \RuntimeException('Statement execution did not return a fetchable statement.');
+            throw new RuntimeException('Statement execution did not return a fetchable statement.');
         }
 
         return $this->retrieveLastInsertedId($stmt);

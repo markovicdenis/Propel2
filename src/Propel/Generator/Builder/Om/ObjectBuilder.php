@@ -1861,7 +1861,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             } else {
                 \$this->$clo = null;
             }";
-        } elseif ($column->isUidBinaryType()) {
+        } elseif ($column->requiresUidBinaryConversion()) {
             $script .= "
             if (is_resource(\$firstColumn)) {
                 \$firstColumn = stream_get_contents(\$firstColumn);
@@ -2902,7 +2902,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     }
                     $script .= "
             \$this->$clo = (null !== \$col) ? PropelDateTime::newInstance(\$col, null, '$dateTimeClass') : null;";
-                } elseif ($col->isUidBinaryType()) {
+                } elseif ($col->requiresUidBinaryConversion()) {
                     $script .= "
             if (is_resource(\$col)) {
                 \$col = stream_get_contents(\$col);
@@ -6742,6 +6742,36 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     }
 
     /**
+     * Returns the timestamp source expression for generated UID primary keys.
+     *
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string
+     */
+    protected function getUidGenerationArgument(Column $column): string
+    {
+        $timestampable = $this->getTable()->getBehavior('timestampable');
+        if ($timestampable === null) {
+            return 'null';
+        }
+
+        $disableCreatedAt = $timestampable->getParameter('disable_created_at');
+        if ($disableCreatedAt === 'true') {
+            return 'null';
+        }
+
+        $createColumnName = (string)($timestampable->getParameter('create_column') ?? 'created_at');
+        if (!$this->getTable()->hasColumn($createColumnName)) {
+            return 'null';
+        }
+
+        $createColumn = $this->getTable()->getColumn($createColumnName);
+        $createColumnAccessor = $createColumn->getLowercasedName();
+
+        return '$this->' . $createColumnAccessor;
+    }
+
+    /**
      * Adds the workhourse doSave() method.
      *
      * @param string $script The script will be modified in this method.
@@ -6802,9 +6832,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 }
 
                 $columnName = $column->getLowercasedName();
+                $uidGenerationArgument = $this->getUidGenerationArgument($column);
                 $script .= "
             if (\$this->isNew() && \$this->$columnName === null) {
-                \$this->$columnName = UuidConverter::generateV7Uid();
+                \$this->$columnName = UuidConverter::generateV7Uid($uidGenerationArgument);
                 \$this->modifiedColumns[" . $this->getColumnConstant($column) . "] = true;
             }
 ";
@@ -6931,8 +6962,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addDoInsert(): string
     {
-        $table = $this->getTable();
-        $script = "
+        return "
     /**
      * Insert the row in the database.
      *
@@ -6942,28 +6972,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see doSave()
      */
     protected function doInsert(ConnectionInterface \$con): void
-    {";
-        if ($this->getPlatform() instanceof MssqlPlatform) {
-            if ($table->hasAutoIncrementPrimaryKey()) {
-                $script .= "
-        \$this->modifiedColumns[" . $this->getColumnConstant($table->getAutoIncrementPrimaryKey()) . '] = true;';
-            }
-            $script .= "
-        \$criteria = \$this->buildCriteria();";
-            if ($this->getTable()->getIdMethod() != IdMethod::NO_ID_METHOD) {
-                $script .= $this->addDoInsertBodyWithIdMethod();
-            } else {
-                $script .= $this->addDoInsertBodyStandard();
-            }
-        } else {
-            $script .= $this->addDoInsertBodyRaw();
-        }
-        $script .= "
-        \$this->setNew(false);
+    {" . $this->addDoInsertBodyRaw() . "
     }
 ";
-
-        return $script;
     }
 
     /**
@@ -7203,7 +7214,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $columnName = $column->getLowercasedName();
 
-        if ($column->isUidBinaryType()) {
+        if ($column->requiresUidBinaryConversion()) {
             return "(\$this->$columnName) ? UuidConverter::uidToBin(\$this->$columnName) : null";
         }
 

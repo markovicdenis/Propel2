@@ -20,18 +20,18 @@ use function sprintf;
 class ConsoleHelper extends QuestionHelper
 {
     /**
-     * @var \Symfony\Component\Console\Input\InputInterface
+     * @var InputInterface
      */
     protected $input;
 
     /**
-     * @var \Symfony\Component\Console\Output\OutputInterface
+     * @var OutputInterface
      */
     protected $output;
 
     /**
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param InputInterface $input
+     * @param OutputInterface $output
      */
     public function __construct(InputInterface $input, OutputInterface $output)
     {
@@ -154,7 +154,7 @@ class ConsoleHelper extends QuestionHelper
     }
 
     /**
-     * @return \Symfony\Component\Console\Input\InputInterface
+     * @return InputInterface
      */
     public function getInput(): InputInterface
     {
@@ -162,7 +162,7 @@ class ConsoleHelper extends QuestionHelper
     }
 
     /**
-     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param InputInterface $input
      *
      * @return void
      */
@@ -172,7 +172,7 @@ class ConsoleHelper extends QuestionHelper
     }
 
     /**
-     * @return \Symfony\Component\Console\Output\OutputInterface
+     * @return OutputInterface
      */
     public function getOutput(): OutputInterface
     {
@@ -180,7 +180,7 @@ class ConsoleHelper extends QuestionHelper
     }
 
     /**
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param OutputInterface $output
      *
      * @return void
      */
@@ -191,7 +191,7 @@ class ConsoleHelper extends QuestionHelper
 
     /**
      * @param iterable|string $messages
-     * @param int $options
+     * @param int<0, 511> $options
      *
      * @return void
      */

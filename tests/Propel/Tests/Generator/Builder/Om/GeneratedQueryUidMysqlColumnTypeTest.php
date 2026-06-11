@@ -79,6 +79,26 @@ EOF;
 
         $classes = $builder->getClasses();
 
-        $this->assertStringContainsString('$this->id = UuidConverter::generateV7Uid();', $classes);
+        $this->assertStringContainsString('$this->id = UuidConverter::generateV7Uid(null);', $classes);
+    }
+
+    public function testMysqlGeneratedClassesUseCreatedAtForTimestampableUidPrimaryKey(): void
+    {
+        $schema = <<<EOF
+<database name="generated_query_uid_mysql_generation_test">
+    <table name="generated_query_uid_mysql_generation_entity">
+        <behavior name="timestampable"/>
+        <column name="id" primaryKey="true" type="UID_BINARY"/>
+        <column name="title" type="VARCHAR"/>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setPlatform(new MysqlPlatform());
+        $builder->setSchema($schema);
+
+        $classes = $builder->getClasses();
+
+        $this->assertStringContainsString('$this->id = UuidConverter::generateV7Uid($this->created_at);', $classes);
     }
 }

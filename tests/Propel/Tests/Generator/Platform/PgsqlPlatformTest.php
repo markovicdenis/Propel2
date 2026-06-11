@@ -994,7 +994,7 @@ CREATE INDEX "foo_uid_bin_idx" ON "foo" ("uid_bin");
 
 EOT;
 
-    $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
+        $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
     }
 
     /**
