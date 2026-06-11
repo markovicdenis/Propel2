@@ -1861,14 +1861,23 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             } else {
                 \$this->$clo = null;
             }";
+        } elseif ($column->isUidBinaryType()) {
+            $script .= "
+            if (is_resource(\$firstColumn)) {
+                \$firstColumn = stream_get_contents(\$firstColumn);
+            }
+            \$this->$clo = (\$firstColumn !== null && \$firstColumn !== '') ? UuidConverter::binToUid(\$firstColumn) : null;";
+        } elseif ($column->requiresUidStringConversion()) {
+            $script .= "
+            \$this->$clo = (\$firstColumn !== null && \$firstColumn !== '') ? UuidConverter::stringToUid(\$firstColumn) : null;";
         } elseif ($column->isPhpPrimitiveType()) {
             $script .= "
             \$this->$clo = (\$firstColumn !== null) ? (" . $column->getPhpType() . ') $firstColumn : null;';
         } elseif ($column->isPhpObjectType()) {
             $script .= "
             \$this->$clo = (\$firstColumn !== null) ? new " . $column->getPhpType() . '($firstColumn) : null;';
-        } elseif ($column->getType() === PropelTypes::UUID_BINARY) {
-            $uuidSwapFlag = $this->getUuidSwapFlagLiteral();
+        } elseif ($column->getType() === PropelTypes::UUID_BINARY || $column->requiresMysqlUuidBinaryConversion()) {
+            $uuidSwapFlag = $this->getUuidSwapFlagLiteral($column);
             $script .= "
             if (is_resource(\$firstColumn)) {
                 \$firstColumn = stream_get_contents(\$firstColumn);
@@ -2893,8 +2902,17 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     }
                     $script .= "
             \$this->$clo = (null !== \$col) ? PropelDateTime::newInstance(\$col, null, '$dateTimeClass') : null;";
-                } elseif ($col->isUuidBinaryType()) {
-                    $uuidSwapFlag = $this->getUuidSwapFlagLiteral();
+                } elseif ($col->isUidBinaryType()) {
+                    $script .= "
+            if (is_resource(\$col)) {
+                \$col = stream_get_contents(\$col);
+            }
+            \$this->$clo = (\$col !== null && \$col !== '') ? UuidConverter::binToUid(\$col) : null;";
+                } elseif ($col->requiresUidStringConversion()) {
+                    $script .= "
+            \$this->$clo = (\$col !== null && \$col !== '') ? UuidConverter::stringToUid(\$col) : null;";
+                } elseif ($col->isUuidBinaryType() || $col->requiresMysqlUuidBinaryConversion()) {
+                    $uuidSwapFlag = $this->getUuidSwapFlagLiteral($col);
                     $script .= "
             if (is_resource(\$col)) {
                 \$col = stream_get_contents(\$col);
@@ -2916,6 +2934,15 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     $script .= "
             \$this->$clo = \$col;
             \$this->$cloConverted = null;";
+                } elseif ($col->isUidBinaryType()) {
+                    $script .= "
+            if (is_resource(\$col)) {
+                \$col = stream_get_contents(\$col);
+            }
+            \$this->$clo = (null !== \$col && \$col !== '') ? UuidConverter::binToUid(\$col) : null;";
+                } elseif ($col->requiresUidStringConversion()) {
+                    $script .= "
+            \$this->$clo = (null !== \$col && \$col !== '') ? UuidConverter::stringToUid(\$col) : null;";
                 } elseif ($col->isPhpObjectType()) {
                     $script .= "
             \$this->$clo = (null !== \$col) ? new " . $col->getPhpType() . '($col) : null;';
@@ -2965,6 +2992,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $column->getType() === PropelTypes::CLOB_EMU
             || $column->isLobType()
             || $column->isTemporalType()
+            || $column->isUidType()
             || $column->isUuidBinaryType()
             || $column->getType() === PropelTypes::PHP_ARRAY
             || $column->isSetType()
@@ -6767,6 +6795,22 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
 
+        if ($this->getPlatform() instanceof MysqlPlatform) {
+            foreach ($table->getPrimaryKey() as $column) {
+                if (!$column->isUidType()) {
+                    continue;
+                }
+
+                $columnName = $column->getLowercasedName();
+                $script .= "
+            if (\$this->isNew() && \$this->$columnName === null) {
+                \$this->$columnName = UuidConverter::generateV7Uid();
+                \$this->modifiedColumns[" . $this->getColumnConstant($column) . "] = true;
+            }
+";
+            }
+        }
+
         if (count($table->getForeignKeys())) {
             $script .= "
             // We call the save method on the following object(s) if they
@@ -7159,8 +7203,16 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $columnName = $column->getLowercasedName();
 
-        if ($column->isUuidBinaryType()) {
-            $uuidSwapFlag = $this->getUuidSwapFlagLiteral();
+        if ($column->isUidBinaryType()) {
+            return "(\$this->$columnName) ? UuidConverter::uidToBin(\$this->$columnName) : null";
+        }
+
+        if ($column->requiresUidStringConversion()) {
+            return "(\$this->$columnName) ? UuidConverter::uidToString(\$this->$columnName) : null";
+        }
+
+        if ($column->isUuidBinaryType() || $column->requiresMysqlUuidBinaryConversion()) {
+            $uuidSwapFlag = $this->getUuidSwapFlagLiteral($column);
 
             return "(\$this->$columnName) ? UuidConverter::uuidToBin(\$this->$columnName, $uuidSwapFlag) : null";
         }

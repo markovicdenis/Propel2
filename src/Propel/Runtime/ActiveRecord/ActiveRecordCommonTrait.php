@@ -13,6 +13,8 @@ use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
 use Propel\Runtime\Propel;
 use Propel\Runtime\Util\PropelDateTime;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\UuidV7;
 use BackedEnum;
 use UnitEnum;
 use Stringable;
@@ -101,6 +103,8 @@ trait ActiveRecordCommonTrait
             'float', 'double' => (float)$value,
             'string' => (string)$value,
             'bool', 'boolean' => (bool)$value,
+            UuidV7::class => $value instanceof UuidV7 ? $value : UuidV7::fromString($value instanceof Uuid ? $value->toRfc4122() : (string)$value),
+            Uuid::class => $value instanceof Uuid ? $value : Uuid::fromString((string)$value),
             default => $value,
         };
     }

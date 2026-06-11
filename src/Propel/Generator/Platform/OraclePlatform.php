@@ -66,6 +66,8 @@ class OraclePlatform extends DefaultPlatform
         $this->setSchemaDomainMapping(new Domain(PropelTypes::SET, 'NUMBER'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID, 'UUID'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID_BINARY, 'RAW(16)'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID, 'UUID'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID_BINARY, 'RAW(16)'));
     }
 
     /**

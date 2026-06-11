@@ -156,7 +156,7 @@ EOT;
         $tableName = $this->quoteIdentifier($column->getTable()->getName());
         $columnName = $this->quoteIdentifier($column->getName());
         $tmpColumnName = $this->quoteIdentifier($column->getName() . '_' . bin2hex(random_bytes(4)));
-        $swapFlag = $column->getTable()->getVendorInfoForType('mysql')->getUuidSwapFlagLiteral();
+        $swapFlag = $column->getUuidSwapFlagLiteral();
         $columnDefinition = $this->platform->getColumnDDL($column);
         $sqlType = $this->platform->getSqlTypeExpression($column);
 

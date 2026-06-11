@@ -1239,8 +1239,8 @@ abstract class AbstractOMBuilder extends DataModelBuilder
      *
      * @return string
      */
-    protected function getUuidSwapFlagLiteral(): string
+    protected function getUuidSwapFlagLiteral(Column $column): string
     {
-        return $this->getVendorInfo()->getUuidSwapFlagLiteral();
+        return $column->getUuidSwapFlagLiteral();
     }
 }

@@ -1150,6 +1150,12 @@ class QueryBuilder extends AbstractOMBuilder
                 \$comparison = Criteria::IN;
             }
         }";
+        } elseif ($col->isUidBinaryType()) {
+            $script .= "
+        \$$variableName = UuidConverter::uidToBinRecursive(\$$variableName);";
+        } elseif ($col->requiresUidStringConversion()) {
+            $script .= "
+        \$$variableName = UuidConverter::uidToStringRecursive(\$$variableName);";
         } elseif ($col->isTextType()) {
             $script .= "
         if (null === \$comparison) {
@@ -1162,8 +1168,8 @@ class QueryBuilder extends AbstractOMBuilder
         if (is_string(\$$variableName)) {
             \$$variableName = in_array(strtolower(\$$variableName), ['false', 'off', '-', 'no', 'n', '0', ''], true) ? false : true;
         }";
-        } elseif ($col->isUuidBinaryType()) {
-            $uuidSwapFlag = $this->getUuidSwapFlagLiteral();
+        } elseif ($col->isUuidBinaryType() || $col->requiresMysqlUuidBinaryConversion()) {
+            $uuidSwapFlag = $this->getUuidSwapFlagLiteral($col);
             $script .= "
         \$$variableName = UuidConverter::uuidToBinRecursive(\$$variableName, $uuidSwapFlag);";
         }

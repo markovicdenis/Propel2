@@ -21,6 +21,11 @@ use function in_array;
 class VendorInfo extends MappingModel
 {
     /**
+     * @var string
+     */
+    public const UUID_VERSION_7 = '7';
+
+    /**
      * @var string|null
      */
     private $type;
@@ -186,5 +191,22 @@ class VendorInfo extends MappingModel
         }
 
         return $uuidSwapFlag;
+    }
+
+    /**
+     * Returns the configured UUID version for this vendor info.
+     *
+     * Defaults to UUIDv7 when not configured.
+     *
+     * @return string
+     */
+    public function getUuidVersion(): string
+    {
+        $uuidVersion = (string)($this->getParameter('UuidVersion') ?? self::UUID_VERSION_7);
+        if (!in_array($uuidVersion, ['1', '4', '6', '7'], true)) {
+            throw new SchemaException('Value for `/vendor/parameter[name="UuidVersion"]` must be one of `1`, `4`, `6`, or `7`, but it is `' . $uuidVersion . '`');
+        }
+
+        return $uuidVersion;
     }
 }

@@ -310,6 +310,8 @@ class Table extends ScopedMappingModel implements IdMethod
             $this->doHeavyIndexing();
         }
 
+        $this->addUidBinaryIndices();
+
         // if idMethod is "native" and in fact there are no autoIncrement
         // columns in the table, then change it to "none"
         $anyAutoInc = false;
@@ -321,6 +323,68 @@ class Table extends ScopedMappingModel implements IdMethod
         if ($this->getIdMethod() === IdMethod::NATIVE && !$anyAutoInc) {
             $this->setIdMethod(IdMethod::NO_ID_METHOD);
         }
+    }
+
+    /**
+     * Adds implicit indexes for UID_BINARY columns when no compatible index exists.
+     *
+     * @return void
+     */
+    protected function addUidBinaryIndices(): void
+    {
+        /** @var array<string, array<string>> $indexedColumns */
+        $indexedColumns = [];
+
+        $this->collectIndexedColumns('PRIMARY', $this->getPrimaryKey(), $indexedColumns);
+
+        $tableIndices = array_merge($this->getIndices(), $this->getUnices());
+        foreach ($tableIndices as $index) {
+            $this->collectIndexedColumns($index->getName(), $index->getColumns(), $indexedColumns);
+        }
+
+        foreach ($this->columns as $column) {
+            if (!$this->shouldAutoIndexUidBinaryColumn($column)) {
+                continue;
+            }
+
+            $columnHash = $this->getColumnList([$column]);
+            if (isset($indexedColumns[$columnHash])) {
+                continue;
+            }
+
+            $index = $this->createIndex($this->createUidBinaryIndexName($column), [$column]);
+            $this->collectIndexedColumns($index->getName(), [$column], $indexedColumns);
+        }
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return bool
+     */
+    protected function shouldAutoIndexUidBinaryColumn(Column $column): bool
+    {
+        return !$column->isPrimaryKey() && $column->isUidBinaryType();
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string
+     */
+    protected function createUidBinaryIndexName(Column $column): string
+    {
+        $baseName = $this->getCommonName() . '_' . $column->getName() . '_idx';
+        if (!$this->hasIndex($baseName)) {
+            return $baseName;
+        }
+
+        $suffix = 2;
+        while ($this->hasIndex($baseName . '_' . $suffix)) {
+            $suffix++;
+        }
+
+        return $baseName . '_' . $suffix;
     }
 
     /**
@@ -2295,10 +2359,12 @@ class Table extends ScopedMappingModel implements IdMethod
      */
     public function getAdditionalModelClassImports(): ?array
     {
-        if ($this->containsColumnsOfType(PropelTypes::UUID_BINARY)) {
-            return [
-                UuidConverter::class,
-            ];
+        foreach ($this->getColumns() as $column) {
+            if ($column->isUuidBinaryType() || $column->requiresMysqlUuidBinaryConversion() || $column->isUidType()) {
+                return [
+                    UuidConverter::class,
+                ];
+            }
         }
 
         return null;

@@ -76,6 +76,8 @@ class MysqlPlatform extends DefaultPlatform
         $this->setSchemaDomainMapping(new Domain(PropelTypes::SET, 'INT'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::REAL, 'DOUBLE'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID_BINARY, 'BINARY', 16));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID_BINARY, 'BINARY', 16));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID, 'CHAR', 36));
 
         $this->setUuidTypeMapping();
     }

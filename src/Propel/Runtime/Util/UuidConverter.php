@@ -8,6 +8,9 @@
 
 namespace Propel\Runtime\Util;
 
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Uid\UuidV7;
+
 use function is_string;
 
 /**
@@ -15,6 +18,106 @@ use function is_string;
  */
 class UuidConverter
 {
+    /**
+     * @param mixed $value
+     *
+     * @return \Symfony\Component\Uid\UuidV7|null
+     */
+    public static function normalizeUid($value): ?UuidV7
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof UuidV7) {
+            return $value;
+        }
+
+        if ($value instanceof Uuid) {
+            return UuidV7::fromString($value->toRfc4122());
+        }
+
+        return UuidV7::fromString((string)$value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return \Symfony\Component\Uid\UuidV7
+     */
+    public static function stringToUid(string $value): UuidV7
+    {
+        return UuidV7::fromString($value);
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return \Symfony\Component\Uid\UuidV7
+     */
+    public static function binToUid(string $value): UuidV7
+    {
+        return UuidV7::fromBinary($value);
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return string
+     */
+    public static function uidToString($value): string
+    {
+        $uid = self::normalizeUid($value);
+
+        return $uid ? $uid->toRfc4122() : '';
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return string
+     */
+    public static function uidToBin($value): string
+    {
+        $uid = self::normalizeUid($value);
+
+        return $uid ? $uid->toBinary() : '';
+    }
+
+    /**
+     * @param array|\Symfony\Component\Uid\Uuid|string|null $value
+     *
+     * @return array|string|null
+     */
+    public static function uidToStringRecursive($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+        if (!is_array($value)) {
+            return self::uidToString($value);
+        }
+
+        return array_map(fn ($item) => self::uidToStringRecursive($item), $value);
+    }
+
+    /**
+     * @param array|\Symfony\Component\Uid\Uuid|string|null $value
+     *
+     * @return array|string|null
+     */
+    public static function uidToBinRecursive($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+        if (!is_array($value)) {
+            return self::uidToBin($value);
+        }
+
+        return array_map(fn ($item) => self::uidToBinRecursive($item), $value);
+    }
+
     /**
      * Transforms a UUID string to a binary string.
      *
@@ -25,13 +128,15 @@ class UuidConverter
      */
     public static function uuidToBin(string $uuid, bool $swapFlag = true): string
     {
-        $rawHex = (!$swapFlag)
-            ? str_replace('-', '', $uuid)
-            : preg_replace(
-                '/([^-]+)-([^-]+)-([^-]+)-([^-]+)-(.*)/',
-                '$3$2$1$4$5',
-                $uuid,
-            );
+        if (!$swapFlag) {
+            return Uuid::fromString($uuid)->toBinary();
+        }
+
+        $rawHex = preg_replace(
+            '/([^-]+)-([^-]+)-([^-]+)-([^-]+)-(.*)/',
+            '$3$2$1$4$5',
+            $uuid,
+        );
 
         return hex2bin((string)$rawHex) ?: '';
     }
@@ -46,8 +151,12 @@ class UuidConverter
      */
     public static function binToUuid(string $bin, bool $swapFlag = true): string
     {
+        if (!$swapFlag) {
+            return Uuid::fromBinary($bin)->toRfc4122();
+        }
+
         $rawHex = bin2hex($bin);
-        $recombineFormat = $swapFlag ? '$3$4-$2-$1-$5-$6' : '$1$2-$3-$4-$5-$6';
+        $recombineFormat = '$3$4-$2-$1-$5-$6';
 
         return (string)preg_replace(
             '/(\w{4})(\w{4})(\w{4})(\w{4})(\w{4})(\w{12})/',
@@ -90,5 +199,23 @@ class UuidConverter
         }
 
         return array_map(fn ($binItem) => self::binToUuidRecursive($binItem, $swapFlag), $bin);
+    }
+
+    /**
+     * Generates an RFC 4122 UUIDv7 string.
+     *
+     * @return string
+     */
+    public static function generateV7(): string
+    {
+        return Uuid::v7()->toRfc4122();
+    }
+
+    /**
+     * @return \Symfony\Component\Uid\UuidV7
+     */
+    public static function generateV7Uid(): UuidV7
+    {
+        return UuidV7::fromString(Uuid::v7()->toRfc4122());
     }
 }

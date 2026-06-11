@@ -14,7 +14,9 @@ use Propel\Generator\Exception\InvalidArgumentException;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Index;
+use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
+use Propel\Generator\Platform\MysqlPlatform;
 
 /**
  * Unit test suite for Table model class.
@@ -572,6 +574,34 @@ class TableTest extends ModelTestCase
         $index = new Index();
         $index->addColumn(['name' => 'bla']);
         $table->addIndex($index);
+
+        $this->assertCount(1, $table->getIndices());
+    }
+
+    public function testDoFinalInitializationDoesNotDuplicateExplicitUidBinaryIndex()
+    {
+        $database = new Database('test');
+        $database->setPlatform(new MysqlPlatform());
+
+        $table = new Table('foo');
+        $table->setDatabase($database);
+
+        $idColumn = new Column('id');
+        $idColumn->setTable($table);
+        $idColumn->setDomainForType(PropelTypes::INTEGER);
+        $idColumn->setPrimaryKey(true);
+        $table->addColumn($idColumn);
+
+        $uidColumn = new Column('uid_bin');
+        $uidColumn->setTable($table);
+        $uidColumn->setDomainForType(PropelTypes::UID_BINARY);
+        $table->addColumn($uidColumn);
+
+        $index = new Index('foo_uid_bin_idx');
+        $index->setColumns([$uidColumn]);
+        $table->addIndex($index);
+
+        $table->doFinalInitialization();
 
         $this->assertCount(1, $table->getIndices());
     }

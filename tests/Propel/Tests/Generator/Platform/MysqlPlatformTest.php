@@ -896,6 +896,33 @@ CREATE TABLE `bar`
     /**
      * @return void
      */
+    public function testAddExtraIndicesUidBinaryColumn()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        <column name="uid_bin" type="UID_BINARY"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema);
+        $expected = "
+CREATE TABLE `foo`
+(
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `uid_bin` BINARY(16),
+    PRIMARY KEY (`id`),
+    INDEX `foo_uid_bin_idx` (`uid_bin`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * @return void
+     */
     public function testGetAddTableDDLComplexPK()
     {
         $schema = <<<EOF
@@ -1018,6 +1045,26 @@ CREATE TABLE `foo`
     }
 
     /**
+     * @dataProvider providerForTestCreateSchemaWithUuidVersionMetadata
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUuidVersionMetadata')]
+    public function testCreateSchemaWithUuidVersionMetadata($schema)
+    {
+        $expected = "
+CREATE TABLE `foo`
+(
+    `uuid` BINARY(16) DEFAULT vendor_specific_default() NOT NULL,
+    `other_uuid` BINARY(16),
+    PRIMARY KEY (`uuid`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
      * @dataProvider providerForTestCreateSchemaWithUuidBinaryColumns
      *
      * @return void
@@ -1031,6 +1078,88 @@ CREATE TABLE `foo`
     `uuid-bin` BINARY(16) DEFAULT vendor_specific_default() NOT NULL,
     `other_uuid-bin` BINARY(16),
     PRIMARY KEY (`uuid-bin`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithUidColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUidColumns')]
+    public function testCreateSchemaWithUidColumns($schema)
+    {
+        $expected = "
+CREATE TABLE `foo`
+(
+    `uid` CHAR(36) DEFAULT vendor_specific_default() NOT NULL,
+    `other_uid` CHAR(36),
+    PRIMARY KEY (`uid`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithUidBinaryColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUidBinaryColumns')]
+    public function testCreateSchemaWithUidBinaryColumns($schema)
+    {
+        $expected = "
+CREATE TABLE `foo`
+(
+    `uid-bin` BINARY(16) DEFAULT vendor_specific_default() NOT NULL,
+    `other_uid-bin` BINARY(16),
+    PRIMARY KEY (`uid-bin`),
+    INDEX `foo_other_uid-bin_idx` (`other_uid-bin`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithGeneratedUidColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithGeneratedUidColumns')]
+    public function testCreateSchemaWithGeneratedUidColumns($schema)
+    {
+        $expected = "
+CREATE TABLE `foo`
+(
+    `uid` CHAR(36) NOT NULL,
+    `other_uid` CHAR(36),
+    PRIMARY KEY (`uid`)
+) ENGINE=InnoDB;
+";
+
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithGeneratedUidBinaryColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithGeneratedUidBinaryColumns')]
+    public function testCreateSchemaWithGeneratedUidBinaryColumns($schema)
+    {
+        $expected = "
+CREATE TABLE `foo`
+(
+    `uid-bin` BINARY(16) NOT NULL,
+    `other_uid-bin` BINARY(16),
+    PRIMARY KEY (`uid-bin`),
+    INDEX `foo_other_uid-bin_idx` (`other_uid-bin`)
 ) ENGINE=InnoDB;
 ";
 

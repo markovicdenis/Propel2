@@ -359,6 +359,21 @@ class PropelTypes
     public const UUID_BINARY = 'UUID_BINARY';
 
     /**
+     * @var string
+     */
+    public const UID = 'UID';
+
+    /**
+     * @var string
+     */
+    public const UID_NATIVE_TYPE = '\\Symfony\\Component\\Uid\\UuidV7';
+
+    /**
+     * @var string
+     */
+    public const UID_BINARY = 'UID_BINARY';
+
+    /**
      * Propel mapping types.
      *
      * @var array
@@ -400,6 +415,8 @@ class PropelTypes
         self::JSON,
         self::UUID,
         self::UUID_BINARY,
+        self::UID,
+        self::UID_BINARY,
     ];
 
     /**
@@ -442,6 +459,8 @@ class PropelTypes
         self::JSON => self::JSON_TYPE,
         self::UUID => self::UUID_NATIVE_TYPE,
         self::UUID_BINARY => self::UUID_NATIVE_TYPE,
+        self::UID => self::UID_NATIVE_TYPE,
+        self::UID_BINARY => self::UID_NATIVE_TYPE,
     ];
 
     /**
@@ -489,6 +508,8 @@ class PropelTypes
         self::JSON => PDO::PARAM_STR,
         self::UUID => PDO::PARAM_STR,
         self::UUID_BINARY => PDO::PARAM_LOB,
+        self::UID => PDO::PARAM_STR,
+        self::UID_BINARY => PDO::PARAM_LOB,
     ];
 
     /**
@@ -589,6 +610,7 @@ class PropelTypes
             self::BU_DATE,
             self::BU_TIMESTAMP,
             self::JSON,
+            self::UID,
         ], true);
     }
 
@@ -650,6 +672,8 @@ class PropelTypes
         return in_array($type, [
             self::UUID,
             self::UUID_BINARY,
+            self::UID,
+            self::UID_BINARY,
         ], true);
     }
 

@@ -891,6 +891,27 @@ EOT;
     }
 
     /**
+     * @dataProvider providerForTestCreateSchemaWithUuidVersionMetadata
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUuidVersionMetadata')]
+    public function testCreateSchemaWithUuidVersionMetadata($schema)
+    {
+        $expected = <<< 'EOT'
+
+CREATE TABLE "foo"
+(
+    "uuid" uuid DEFAULT vendor_specific_default() NOT NULL,
+    "other_uuid" uuid,
+    PRIMARY KEY ("uuid")
+);
+
+EOT;
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
      * @dataProvider providerForTestCreateSchemaWithUuidBinaryColumns
      *
      * @return void
@@ -905,6 +926,113 @@ CREATE TABLE "foo"
     "uuid-bin" BYTEA DEFAULT vendor_specific_default() NOT NULL,
     "other_uuid-bin" BYTEA,
     PRIMARY KEY ("uuid-bin")
+);
+
+EOT;
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithUidColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUidColumns')]
+    public function testCreateSchemaWithUidColumns($schema)
+    {
+        $expected = <<< 'EOT'
+
+CREATE TABLE "foo"
+(
+    "uid" uuid DEFAULT vendor_specific_default() NOT NULL,
+    "other_uid" uuid,
+    PRIMARY KEY ("uid")
+);
+
+EOT;
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithUidBinaryColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithUidBinaryColumns')]
+    public function testCreateSchemaWithUidBinaryColumns($schema)
+    {
+        $expected = <<< 'EOT'
+
+CREATE TABLE "foo"
+(
+    "uid-bin" uuid DEFAULT vendor_specific_default() NOT NULL,
+    "other_uid-bin" uuid,
+    PRIMARY KEY ("uid-bin")
+);
+
+EOT;
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddExtraIndicesUidBinaryColumn()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        <column name="uid_bin" type="UID_BINARY"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema);
+        $expected = <<< 'EOT'
+
+CREATE INDEX "foo_uid_bin_idx" ON "foo" ("uid_bin");
+
+EOT;
+
+    $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithGeneratedUidColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithGeneratedUidColumns')]
+    public function testCreateSchemaWithGeneratedUidColumns($schema)
+    {
+        $expected = <<< 'EOT'
+
+CREATE TABLE "foo"
+(
+    "uid" uuid DEFAULT uuid_generate_v7() NOT NULL,
+    "other_uid" uuid,
+    PRIMARY KEY ("uid")
+);
+
+EOT;
+        $this->assertCreateTableMatches($expected, $schema);
+    }
+
+    /**
+     * @dataProvider providerForTestCreateSchemaWithGeneratedUidBinaryColumns
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestCreateSchemaWithGeneratedUidBinaryColumns')]
+    public function testCreateSchemaWithGeneratedUidBinaryColumns($schema)
+    {
+        $expected = <<< 'EOT'
+
+CREATE TABLE "foo"
+(
+    "uid-bin" uuid DEFAULT uuid_generate_v7() NOT NULL,
+    "other_uid-bin" uuid,
+    PRIMARY KEY ("uid-bin")
 );
 
 EOT;

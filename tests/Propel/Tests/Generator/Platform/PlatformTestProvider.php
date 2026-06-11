@@ -397,4 +397,82 @@ EOF;
 
         return [[$schema]];
     }
+
+    public static function providerForTestCreateSchemaWithUidColumns()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="uid" primaryKey="true" type="UID" defaultExpr="vendor_specific_default()"/>
+        <column name="other_uid" type="UID"/>
+    </table>
+</database>
+EOF;
+
+        return [[$schema]];
+    }
+
+    public static function providerForTestCreateSchemaWithUidBinaryColumns()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="uid-bin" primaryKey="true" type="UID_BINARY" defaultExpr="vendor_specific_default()"/>
+        <column name="other_uid-bin" type="UID_BINARY"/>
+    </table>
+</database>
+EOF;
+
+        return [[$schema]];
+    }
+
+    public static function providerForTestCreateSchemaWithGeneratedUidColumns()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="uid" primaryKey="true" type="UID"/>
+        <column name="other_uid" type="UID"/>
+    </table>
+</database>
+EOF;
+
+        return [[$schema]];
+    }
+
+    public static function providerForTestCreateSchemaWithGeneratedUidBinaryColumns()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="uid-bin" primaryKey="true" type="UID_BINARY"/>
+        <column name="other_uid-bin" type="UID_BINARY"/>
+    </table>
+</database>
+EOF;
+
+        return [[$schema]];
+    }
+
+    public static function providerForTestCreateSchemaWithUuidVersionMetadata()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="foo">
+        <column name="uuid" primaryKey="true" type="UUID" default="vendor_specific_default()">
+            <vendor type="propel">
+                <parameter name="UuidVersion" value="7"/>
+            </vendor>
+        </column>
+        <column name="other_uuid" type="UUID">
+            <vendor type="propel">
+                <parameter name="UuidVersion" value="1"/>
+            </vendor>
+        </column>
+    </table>
+</database>
+EOF;
+
+        return [[$schema]];
+    }
 }

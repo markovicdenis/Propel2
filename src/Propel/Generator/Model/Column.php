@@ -11,6 +11,7 @@ namespace Propel\Generator\Model;
 use Exception;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Platform\PlatformInterface;
+use Propel\Generator\Platform\MysqlPlatform;
 
 use function count;
 use function in_array;
@@ -1356,6 +1357,122 @@ class Column extends MappingModel
     public function isUuidBinaryType(): bool
     {
         return $this->getType() === PropelTypes::UUID_BINARY;
+    }
+
+    /**
+     * Returns whether this column is a Symfony UID object type.
+     *
+     * @return bool
+     */
+    public function isUidType(): bool
+    {
+        return in_array($this->getType(), [PropelTypes::UID, PropelTypes::UID_BINARY], true);
+    }
+
+    /**
+     * Returns whether this column stores Symfony UID objects in binary form.
+     *
+     * @phpstan-impure
+     *
+     * @return bool
+     */
+    public function isUidBinaryType(): bool
+    {
+        return $this->getType() === PropelTypes::UID_BINARY;
+    }
+
+    /**
+     * Returns the configured UUID version for this column.
+     *
+     * Column-level metadata wins. If no metadata is present, UUIDv7 is assumed.
+     *
+     * @return string
+     */
+    public function getUuidVersion(): string
+    {
+        foreach ($this->getUuidVendorInfos() as $vendorInfo) {
+            if ($vendorInfo->hasParameter('UuidVersion')) {
+                return $vendorInfo->getUuidVersion();
+            }
+        }
+
+        return VendorInfo::UUID_VERSION_7;
+    }
+
+    /**
+     * Returns the swap flag to use for binary UUID conversion.
+     *
+     * Explicit swap metadata wins. Otherwise UUIDv7 defaults to unswapped bytes.
+     *
+     * @psalm-return 'true'|'false'
+     *
+     * @return string
+     */
+    public function getUuidSwapFlagLiteral(): string
+    {
+        foreach ($this->getUuidVendorInfos() as $vendorInfo) {
+            if ($vendorInfo->hasParameter('UuidSwapFlag')) {
+                return $vendorInfo->getUuidSwapFlagLiteral();
+            }
+        }
+
+        return $this->getUuidVersion() === VendorInfo::UUID_VERSION_7 ? 'false' : 'true';
+    }
+
+    /**
+     * Returns whether this UUID column needs MySQL binary conversion at runtime.
+     *
+     * @return bool
+     */
+    public function requiresMysqlUuidBinaryConversion(): bool
+    {
+        $platform = $this->getPlatform();
+
+        return $platform instanceof MysqlPlatform && $this->isUuidType();
+    }
+
+    /**
+     * Returns whether this UID column should be written as binary.
+     *
+     * @return bool
+     */
+    public function requiresUidBinaryConversion(): bool
+    {
+        if (!$this->isUidType()) {
+            return false;
+        }
+
+        return in_array(strtoupper($this->getSqlType()), ['BINARY', 'BINARY(16)', 'BLOB', 'RAW(16)'], true);
+    }
+
+    /**
+     * Returns whether this UID column should be written as string.
+     *
+     * @phpstan-impure
+     *
+     * @return bool
+     */
+    public function requiresUidStringConversion(): bool
+    {
+        return $this->isUidType() && !$this->requiresUidBinaryConversion();
+    }
+
+    /**
+     * @return array<\Propel\Generator\Model\VendorInfo>
+     */
+    protected function getUuidVendorInfos(): array
+    {
+        $vendorInfos = [];
+        $platform = $this->getPlatform();
+
+        $vendorInfos[] = $this->getVendorInfoForType('propel');
+        if ($platform !== null) {
+            $dbType = $platform->getDatabaseType();
+            $vendorInfos[] = $this->getVendorInfoForType($dbType);
+            $vendorInfos[] = $this->parentTable->getVendorInfoForType($dbType);
+        }
+
+        return $vendorInfos;
     }
 
     /**

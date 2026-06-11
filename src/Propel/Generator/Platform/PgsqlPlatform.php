@@ -68,6 +68,8 @@ class PgsqlPlatform extends DefaultPlatform
         $this->setSchemaDomainMapping(new Domain(PropelTypes::DATETIME, 'TIMESTAMP'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID, 'uuid'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID_BINARY, 'BYTEA'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID, 'uuid'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID_BINARY, 'uuid'));
     }
 
     /**
@@ -603,6 +605,8 @@ DROP TABLE IF EXISTS %s CASCADE;
                 throw new EngineException(sprintf('Cannot determine the table for auto-increment column "%s".', $col->getName()));
             }
             $default = 'DEFAULT ' . $this->getSequenceDefaultValueExpression($table);
+        } elseif ($col->isUidType() && $col->isPrimaryKey() && $col->getDefaultValue() === null) {
+            $default = 'DEFAULT uuid_generate_v7()';
         } else {
             $default = $this->getColumnDefaultValueDDL($col);
         }

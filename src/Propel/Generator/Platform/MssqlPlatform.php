@@ -62,6 +62,8 @@ class MssqlPlatform extends DefaultPlatform
         $this->setSchemaDomainMapping(new Domain(PropelTypes::SET, 'INT'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID, 'UNIQUEIDENTIFIER'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::UUID_BINARY, 'BINARY(16)'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID, 'UNIQUEIDENTIFIER'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::UID_BINARY, 'BINARY(16)'));
     }
 
     /**

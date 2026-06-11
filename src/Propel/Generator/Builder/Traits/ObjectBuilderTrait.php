@@ -26,6 +26,7 @@ trait ObjectBuilderTrait
                 'FLOAT', 'DOUBLE', 'REAL' => '0.0',
                 'BOOLEAN' => 'false',
                 'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
+                'UID', 'UID_BINARY' => 'null',
                 'ARRAY' => '[]',
                 'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
                 default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
