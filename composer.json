@@ -76,7 +76,8 @@
             "dev-dev": "2.1-dev",
             "dev-upgrade": "2.2-dev",
             "dev-builder": "2.3-dev",
-            "dev-collections": "2.4-dev"
+            "dev-collections": "2.4-dev",
+            "dev-uuid": "2.5-dev"
         }
     },
     "config": {
