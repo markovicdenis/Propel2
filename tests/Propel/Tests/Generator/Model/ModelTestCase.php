@@ -8,8 +8,11 @@
 
 namespace Propel\Tests\Generator\Model;
 
+use PHPUnit\Framework\MockObject\MockObject;
+use Propel\Generator\Model\Database;
 use Propel\Tests\TestCase;
 
+use function array_merge;
 use function count;
 
 /**
@@ -302,6 +305,7 @@ abstract class ModelTestCase extends TestCase
             'database' => null,
             'platform' => null,
             'common_name' => $name,
+            'short_name' => null,
             'behaviors' => [],
             'indices' => [],
             'unices' => [],
@@ -323,6 +327,11 @@ abstract class ModelTestCase extends TestCase
             ->expects($this->any())
             ->method('getCommonName')
             ->willReturn($options['common_name']);
+
+        $table
+            ->expects($this->any())
+            ->method('getShortName')
+            ->willReturn($options['short_name']);
 
         $table
             ->expects($this->any())
@@ -367,16 +376,14 @@ abstract class ModelTestCase extends TestCase
      *
      * @param string $name The database name
      * @param array $options An array of options
-     *
-     * @return \Propel\Generator\Model\Database
      */
-    protected function getDatabaseMock($name, array $options = [])
+    protected function getDatabaseMock(string $name, array $options = []): Database&MockObject
     {
         $defaults = [
             'platform' => null,
         ];
 
-        $options = array_merge($defaults, $options);
+        $options = [...$defaults, ...$options];
 
         $database = $this
             ->getMockBuilder('Propel\Generator\Model\Database')

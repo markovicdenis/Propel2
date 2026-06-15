@@ -233,6 +233,11 @@ class XmlDumper implements DumperInterface
             $tableNode->setAttribute('phpName', $phpName);
         }
 
+        $shortName = $table->getShortName();
+        if ($shortName) {
+            $tableNode->setAttribute('shortName', $shortName);
+        }
+
         $package = $table->getPackage();
         if ($package && !$table->isPackageOverriden()) {
             $tableNode->setAttribute('package', $package);

@@ -9,6 +9,8 @@
 namespace Propel\Tests\Generator\Schema\Dumper;
 
 use PHPUnit\Framework\TestCase;
+use Propel\Generator\Model\Database;
+use Propel\Generator\Model\Table;
 use Propel\Generator\Schema\Dumper\XmlDumper;
 
 class XmlDumperTest extends TestCase
@@ -38,6 +40,22 @@ class XmlDumperTest extends TestCase
         $schema = include realpath(__DIR__ . '/../../../Resources/blog-schema.php');
 
         $this->assertSame($this->getExpectedXml('blog-schema.xml'), $this->dumper->dumpSchema($schema, true));
+    }
+
+    /**
+     * @return void
+     */
+    public function testDumpDatabaseSchemaWithTableShortName()
+    {
+        $database = new Database('bookstore');
+        $table = new Table('sportsbook_transactions');
+        $table->setShortName('sbtx');
+        $database->addTable($table);
+
+        $xml = $this->dumper->dump($database);
+
+        $this->assertStringContainsString('name="sportsbook_transactions"', $xml);
+        $this->assertStringContainsString('shortName="sbtx"', $xml);
     }
 
     /**

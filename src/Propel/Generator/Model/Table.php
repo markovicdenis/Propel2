@@ -83,6 +83,8 @@ class Table extends ScopedMappingModel implements IdMethod
 
     private string $originCommonName;
 
+    private ?string $shortName = null;
+
     private ?string $description = null;
 
     private ?string $phpName = null;
@@ -211,6 +213,7 @@ class Table extends ScopedMappingModel implements IdMethod
         parent::setupObject();
 
         $this->commonName = $this->originCommonName = $this->getAttribute('name');
+        $this->shortName = $this->getAttribute('shortName');
 
         // retrieves the method for converting from specified name to a PHP name.
         $this->phpNamingMethod = $this->getAttribute('phpNamingMethod', $this->database->getDefaultPhpNamingMethod());
@@ -1399,6 +1402,16 @@ class Table extends ScopedMappingModel implements IdMethod
     public function getOriginCommonName(): ?string
     {
         return $this->originCommonName;
+    }
+
+    public function getShortName(): ?string
+    {
+        return $this->shortName;
+    }
+
+    public function setShortName(?string $shortName): void
+    {
+        $this->shortName = $shortName;
     }
 
     /**

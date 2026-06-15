@@ -649,6 +649,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="shortName" type="table_name" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Optional short identifier for auto-generated constraint and index names when the full table name would be too verbose.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="namespace" type="php_namespace" use="optional">
             <xs:annotation>
                 <xs:documentation xml:lang="en">

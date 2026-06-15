@@ -14,6 +14,7 @@ use function in_array;
 use function md5;
 use function sprintf;
 use function strcasecmp;
+use function strlen;
 use function strtolower;
 use function substr;
 
@@ -103,10 +104,46 @@ class Index extends MappingModel
         $this->doNaming();
 
         if ($this->table && $this->table->getDatabase()) {
-            return substr($this->name, 0, $this->table->getDatabase()->getMaxColumnNameLength());
+            return $this->truncateName(
+                $this->name,
+                $this->table->getDatabase()->getMaxColumnNameLength(),
+            );
         }
 
         return $this->name;
+    }
+
+    /**
+     * Keep long index names deterministic and collision-resistant under
+     * identifier length limits.
+     */
+    protected function truncateName(string $name, int $maxLength): string
+    {
+        if ($maxLength < 1 || strlen($name) <= $maxLength) {
+            return $name;
+        }
+
+        $hash = substr(md5(strtolower($name)), 0, 6);
+        $suffix = '_' . $hash . $this->getTruncationSuffix();
+        if (strlen($suffix) >= $maxLength) {
+            return substr($suffix, -$maxLength);
+        }
+
+        return substr($name, 0, $maxLength - strlen($suffix)) . $suffix;
+    }
+
+    protected function getTruncationSuffix(): string
+    {
+        if (!$this->autoNaming) {
+            return '';
+        }
+
+        return $this instanceof Unique ? '_uniq' : '_idx';
+    }
+
+    protected function getTableNamePrefix(): string
+    {
+        return $this->table->getShortName() ?: $this->table->getCommonName();
     }
 
     /**
@@ -130,7 +167,7 @@ class Index extends MappingModel
         }
 
         if ($this->table) {
-            $newName = $this->table->getCommonName() . '_' . $newName;
+            $newName = $this->getTableNamePrefix() . '_' . $newName;
         }
 
         $this->name = $newName;
@@ -160,7 +197,7 @@ class Index extends MappingModel
         }
 
         if ($this->table) {
-            $newName = $this->table->getCommonName() . '_' . $newName;
+            $newName = $this->getTableNamePrefix() . '_' . $newName;
         }
 
         $this->name = $newName;

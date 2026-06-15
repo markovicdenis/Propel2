@@ -34,6 +34,7 @@ class TableTest extends ModelTestCase
         $table = new Table('books');
 
         $this->assertSame('books', $table->getCommonName());
+        $this->assertNull($table->getShortName());
         $this->assertFalse($table->isAllowPkInsert());
         $this->assertFalse($table->isCrossRef());
         $this->assertFalse($table->isReloadOnInsert());
@@ -997,6 +998,30 @@ class TableTest extends ModelTestCase
         ]);
         $this->assertEquals('Books', $table->getPhpName());
         $this->assertEquals('acme_books', $table->getCommonName());
+    }
+
+    /**
+     * @return void
+     */
+    public function testShortName()
+    {
+        $database = new Database();
+        $database->loadMapping([
+            'name' => 'bookstore',
+            'defaultIdMethod' => 'native',
+            'defaultPhpNamingMethod' => 'underscore',
+            'defaultStringFormat' => 'XML',
+        ]);
+
+        $table = new Table('');
+        $database->addTable($table);
+        $table->loadMapping([
+            'name' => 'sportsbook_transactions',
+            'shortName' => 'sb_txn',
+        ]);
+
+        $this->assertSame('sportsbook_transactions', $table->getCommonName());
+        $this->assertSame('sb_txn', $table->getShortName());
     }
 
     /**
