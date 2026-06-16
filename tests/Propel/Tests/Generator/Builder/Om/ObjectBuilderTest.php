@@ -380,6 +380,33 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testDoInsertMarksObjectPersistedAfterSuccessfulInsert()
+    {
+        $table = new Table('Foo');
+        $table->setIdMethod(IdMethod::NATIVE);
+
+        $id = new Column('id');
+        $id->setDomain(new Domain('INTEGER'));
+        $id->setPrimaryKey(true);
+        $id->setAutoIncrement(true);
+        $table->addColumn($id);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = $builder->addDoInsertToScript();
+
+        $this->assertStringContainsString('        $this->setId((int) $pk);', $script);
+        $this->assertStringContainsString('        $this->setNew(false);', $script);
+        $this->assertGreaterThan(
+            strpos($script, '        $this->setId((int) $pk);'),
+            strpos($script, '        $this->setNew(false);')
+        );
+    }
+
+    /**
+     * @return void
+     */
     public function testDoInsertUsesLastInsertIdForPostgresAutoIncrementPrimaryKey()
     {
         $table = new Table('Foo');

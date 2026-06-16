@@ -6973,6 +6973,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function doInsert(ConnectionInterface \$con): void
     {" . $this->addDoInsertBodyRaw() . "
+        \$this->setNew(false);
     }
 ";
     }
