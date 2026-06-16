@@ -68,22 +68,22 @@
  * @method     <?= $modelClass ?> findOneOrCreate(?ConnectionInterface $con = null) Return the first <?= $modelClass ?> matching the query, or a new <?= $modelClass ?> object populated from the query conditions when no match is found
  *
 <?php foreach($columns as $column):?>
- * @method     <?= $modelClass ?>|null findOneBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?> $<?= $column->getName() ?>) Return the first <?= $modelClass ?> filtered by the <?= $column->getName() ?> column
+ * @method     <?= $modelClass ?>|null findOneBy<?= $column->getPhpName() ?>(<?= $columnMagicPhpTypes[$column->getName()] ?> $<?= $column->getName() ?>) Return the first <?= $modelClass ?> filtered by the <?= $column->getName() ?> column
 <?php endforeach;?>
  *
  * @method     <?= $modelClass ?> requirePk($key, ?ConnectionInterface $con = null) Return the <?= $modelClass ?> by primary key and throws <?= $entityNotFoundExceptionClass ?> when not found
  * @method     <?= $modelClass ?> requireOne(?ConnectionInterface $con = null) Return the first <?= $modelClass ?> matching the query and throws <?= $entityNotFoundExceptionClass ?> when not found
  *
 <?php foreach($columns as $column):?>
- * @method     <?= $modelClass ?> requireOneBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?> $<?= $column->getName() ?>) Return the first <?= $modelClass ?> filtered by the <?= $column->getName() ?> column and throws <?= $entityNotFoundExceptionClass ?> when not found
+ * @method     <?= $modelClass ?> requireOneBy<?= $column->getPhpName() ?>(<?= $columnMagicPhpTypes[$column->getName()] ?> $<?= $column->getName() ?>) Return the first <?= $modelClass ?> filtered by the <?= $column->getName() ?> column and throws <?= $entityNotFoundExceptionClass ?> when not found
 <?php endforeach;?>
  *
  * @method     <?= $modelClass ?>[]|Collection find(?ConnectionInterface $con = null) Return <?= $modelClass ?> objects based on current ModelCriteria
  * @psalm-method Collection&\Traversable<<?= $modelClass ?>> find(?ConnectionInterface $con = null) Return <?= $modelClass ?> objects based on current ModelCriteria
  *
 <?php foreach($columns as $column):?>
- * @method     <?= $modelClass ?>[]|Collection findBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?>|array<<?= $column->getPhpType() ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
- * @psalm-method Collection&\Traversable<<?= $modelClass ?>> findBy<?= $column->getPhpName() ?>(<?= $column->getPhpType() ?>|array<<?= $column->getPhpType() ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
+ * @method     <?= $modelClass ?>[]|Collection findBy<?= $column->getPhpName() ?>(<?= $columnMagicPhpTypes[$column->getName()] ?>|array<<?= $columnMagicPhpTypes[$column->getName()] ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
+ * @psalm-method Collection&\Traversable<<?= $modelClass ?>> findBy<?= $column->getPhpName() ?>(<?= $columnMagicPhpTypes[$column->getName()] ?>|array<<?= $columnMagicPhpTypes[$column->getName()] ?>> $<?= $column->getName() ?>) Return <?= $modelClass ?> objects filtered by the <?= $column->getName() ?> column
 <?php endforeach;?>
  *
  * @method     <?= $modelClass ?>[]|\Propel\Runtime\Util\PropelModelPager paginate($page = 1, $maxPerPage = 10, ?ConnectionInterface $con = null) Issue a SELECT query based on the current ModelCriteria and uses a page and a maximum number of results per page to compute an offset and a limit

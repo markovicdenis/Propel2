@@ -111,6 +111,7 @@ class QueryBuilder extends AbstractOMBuilder
             'generatedAt' => $this->getGeneratedAtTimestamp(),
 
             'columns' => $table->getColumns(),
+            'columnMagicPhpTypes' => $this->getColumnMagicPhpTypes($table->getColumns()),
 
             'relationNames' => $this->getRelationNames(),
             'relatedTableQueryClassNames' => $this->getRelatedTableQueryClassNames(),
@@ -123,6 +124,57 @@ class QueryBuilder extends AbstractOMBuilder
         $template->setTemplateFile($filePath);
 
         $script .= $template->render($vars);
+    }
+
+    /**
+     * @param array<\Propel\Generator\Model\Column> $columns
+     *
+     * @return array<string, string>
+     */
+    protected function getColumnMagicPhpTypes(array $columns): array
+    {
+        $types = [];
+        foreach ($columns as $column) {
+            $types[$column->getName()] = $this->getColumnMagicPhpType($column);
+        }
+
+        return $types;
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string
+     */
+    protected function getColumnMagicPhpType(Column $column): string
+    {
+        if (!$column->isUidType()) {
+            return $column->getPhpType();
+        }
+
+        $this->declareClasses(
+            '\Symfony\Component\Uid\Uuid',
+        );
+
+        return 'Uuid|string';
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string|null
+     */
+    protected function getColumnFilterParameterType(Column $column): ?string
+    {
+        if (!$column->isUidType()) {
+            return null;
+        }
+
+        $this->declareClasses(
+            '\Symfony\Component\Uid\Uuid',
+        );
+
+        return 'Uuid|string|array|null';
     }
 
     /**
@@ -959,11 +1011,15 @@ class QueryBuilder extends AbstractOMBuilder
         $colName = $col->getName();
         $variableName = $col->getCamelCaseName();
         $qualifiedName = $this->getColumnConstant($col);
+        $parameterType = $this->getColumnFilterParameterType($col);
         $script .= "
     /**
      * Filter the query on the $colName column
      *";
-        if ($col->isNumericType()) {
+        if ($col->isUidType()) {
+            $script .= "
+     * @param Uuid|string|array<Uuid|string>|null \$$variableName The value to use as filter.";
+        } elseif ($col->isNumericType()) {
             $script .= "
      * Example usage:
      * <code>
@@ -1034,7 +1090,7 @@ class QueryBuilder extends AbstractOMBuilder
      *
      * @return \$this The current query, for fluid interface
      */
-    public function filterBy$colPhpName(\$$variableName = null, ?string \$comparison = null)
+    public function filterBy$colPhpName(" . ($parameterType !== null ? $parameterType . ' ' : '') . "\$$variableName = null, ?string \$comparison = null)
     {";
         if ($col->isNumericType() || $col->isTemporalType()) {
             $script .= "
@@ -1151,10 +1207,18 @@ class QueryBuilder extends AbstractOMBuilder
             }
         }";
         } elseif ($col->requiresUidBinaryConversion()) {
+            $this->declareClass('\Propel\Runtime\Util\UuidConverter');
             $script .= "
+        if (is_array(\$$variableName) && null === \$comparison) {
+            \$comparison = Criteria::IN;
+        }
         \$$variableName = UuidConverter::uidToBinRecursive(\$$variableName);";
         } elseif ($col->requiresUidStringConversion()) {
+            $this->declareClass('\Propel\Runtime\Util\UuidConverter');
             $script .= "
+        if (is_array(\$$variableName) && null === \$comparison) {
+            \$comparison = Criteria::IN;
+        }
         \$$variableName = UuidConverter::uidToStringRecursive(\$$variableName);";
         } elseif ($col->isTextType()) {
             $script .= "
@@ -1169,8 +1233,12 @@ class QueryBuilder extends AbstractOMBuilder
             \$$variableName = in_array(strtolower(\$$variableName), ['false', 'off', '-', 'no', 'n', '0', ''], true) ? false : true;
         }";
         } elseif ($col->isUuidBinaryType() || $col->requiresMysqlUuidBinaryConversion()) {
+            $this->declareClass('\Propel\Runtime\Util\UuidConverter');
             $uuidSwapFlag = $this->getUuidSwapFlagLiteral($col);
             $script .= "
+        if (is_array(\$$variableName) && null === \$comparison) {
+            \$comparison = Criteria::IN;
+        }
         \$$variableName = UuidConverter::uuidToBinRecursive(\$$variableName, $uuidSwapFlag);";
         }
         $script .= "

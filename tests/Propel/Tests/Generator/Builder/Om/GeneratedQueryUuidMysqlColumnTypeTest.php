@@ -48,4 +48,19 @@ EOF;
         $this->assertCount(1, $params);
         $this->assertSame(UuidConverter::uuidToBin($uuid, false), $params[0]['value']);
     }
+
+    public function testFilterByUuidArrayDefaultsToInComparison(): void
+    {
+        $uuid1 = '0197702f-8b6c-73d0-9f02-32594f9c6a2a';
+        $uuid2 = '0197702f-8b6c-73d0-9f02-32594f9c6a2b';
+        $params = [];
+        $queryClass = 'GeneratedQueryUuidMysqlEntityQuery';
+
+        $sql = $queryClass::create()->filterByUuid([$uuid1, $uuid2])->createSelectSql($params);
+
+        $this->assertStringContainsString(' IN ', $sql);
+        $this->assertCount(2, $params);
+        $this->assertSame(UuidConverter::uuidToBin($uuid1, false), $params[0]['value']);
+        $this->assertSame(UuidConverter::uuidToBin($uuid2, false), $params[1]['value']);
+    }
 }
