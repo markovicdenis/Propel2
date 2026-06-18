@@ -20,7 +20,9 @@ use Propel\Generator\Platform\PlatformInterface;
 use Propel\Runtime\Exception\RuntimeException;
 use Propel\Runtime\Util\UuidConverter;
 
+use function array_filter;
 use function array_slice;
+use function array_values;
 use function count;
 use function get_class;
 use function in_array;
@@ -871,6 +873,19 @@ class Table extends ScopedMappingModel implements IdMethod
     }
 
     /**
+     * Returns references to this table that should emit reverse-side PHP code.
+     *
+     * @return array<\Propel\Generator\Model\ForeignKey>
+     */
+    public function getReferrersForCodeGeneration(): array
+    {
+        return array_values(array_filter(
+            $this->referrers,
+            static fn (ForeignKey $fk): bool => !$fk->isSkipRefCode(),
+        ));
+    }
+
+    /**
      * Browses the foreign keys and creates referrers for the foreign table.
      * This method can be called several times on the same table. It only
      * adds the missing referrers and is non-destructive.
@@ -977,7 +992,7 @@ class Table extends ScopedMappingModel implements IdMethod
     public function getCrossFks(): array
     {
         $crossFks = [];
-        foreach ($this->referrers as $refFK) {
+        foreach ($this->getReferrersForCodeGeneration() as $refFK) {
             if ($refFK->getTable()->isCrossRef()) {
                 $crossFK = new CrossForeignKeys($refFK, $this);
                 foreach ($refFK->getOtherFks() as $fk) {

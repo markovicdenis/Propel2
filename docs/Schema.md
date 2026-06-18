@@ -213,6 +213,7 @@ Use a `foreign-key` element to define relationships to another table.
   [onDelete="cascade|setnull|restrict|none"]
   [onUpdate="cascade|setnull|restrict|none"]
   [skipSql="true|false"]
+  [skipRefCode="true|false"]
   [defaultJoin="Criteria::INNER_JOIN|Criteria::LEFT_JOIN"]
 >
   <reference local="/LocalColumnName/" foreign="/ForeignColumnName/" />
@@ -222,6 +223,7 @@ Use a `foreign-key` element to define relationships to another table.
 #### Foreign Key Attributes
 
 - `skipSql`: model the relationship without generating the physical foreign key.
+- `skipRefCode`: generate the SQL foreign key and the local-table relation methods, but skip reverse-side relation code on the referenced table.
 - `defaultJoin`: overrides the generated default join type for `joinXXX()` methods.
 
 ### `index` element

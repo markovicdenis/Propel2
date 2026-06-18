@@ -318,7 +318,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
 
-        foreach ($table->getReferrers() as $refFK) {
+        foreach ($table->getReferrersForCodeGeneration() as $refFK) {
             if (!$refFK->isLocalPrimaryKey()) {
                 $this->addRefFkScheduledForDeletionAttribute($script, $refFK);
             }
@@ -446,7 +446,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $this->addFKAttributes($script, $fk);
         }
 
-        foreach ($table->getReferrers() as $refFK) {
+        foreach ($table->getReferrersForCodeGeneration() as $refFK) {
             $this->addRefFKAttributes($script, $refFK);
         }
 
@@ -2089,6 +2089,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($column->getReferrers() as $refFK) {
+            if ($refFK->isSkipRefCode()) {
+                continue;
+            }
+
             $tblFK = $this->getDatabase()->getTable($refFK->getForeignTableName());
 
             if ($tblFK->getName() != $table->getName()) {
@@ -3242,7 +3246,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addToArray(string &$script): void
     {
         $fks = $this->getTable()->getForeignKeys();
-        $referrers = $this->getTable()->getReferrers();
+        $referrers = $this->getTable()->getReferrersForCodeGeneration();
         $hasFks = count($fks) > 0 || count($referrers) > 0;
         $objectClassName = $this->getUnqualifiedClassName();
         $defaultKeyType = $this->getDefaultKeyType();
@@ -3951,7 +3955,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             \$this->" . $varName . ' = null;';
         }
 
-        foreach ($table->getReferrers() as $refFK) {
+        foreach ($table->getReferrersForCodeGeneration() as $refFK) {
             if ($refFK->isLocalPrimaryKey()) {
                 $script .= "
             \$this->" . $this->getPKRefFKVarName($refFK) . " = null;
@@ -4438,7 +4442,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Now add bi-directional relationship binding, taking into account whether this is
         // a one-to-one relationship.
-        if ($fk->skipRefFKMethods) {
+        if ($fk->isSkipRefCode()) {
             // do nothing
         } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
@@ -4816,8 +4820,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addRefFKMethods(string &$script): void
     {
-        $referrers = $this->getTable()->getReferrers();
-        $referrers = array_filter($referrers, fn (ForeignKey $fk) => !$fk->skipRefFKMethods);
+        $referrers = $this->getTable()->getReferrersForCodeGeneration();
         if (!$referrers) {
             return;
         }
@@ -6911,7 +6914,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
 
-        foreach ($table->getReferrers() as $refFK) {
+        foreach ($table->getReferrersForCodeGeneration() as $refFK) {
             if ($refFK->isLocalPrimaryKey()) {
                 $varName = $this->getPKRefFKVarName($refFK);
                 $script .= "
@@ -7658,7 +7661,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         // Avoid useless code by checking to see if there are any referrers
         // to this table:
-        if (count($table->getReferrers()) > 0) {
+        $referrers = $table->getReferrersForCodeGeneration();
+        if (count($referrers) > 0) {
             $script .= "
 
         if (\$deepCopy) {
@@ -7666,10 +7670,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             // the getter/setter methods for fkey referrer objects.
             \$copyObj->setNew(false);
 ";
-            foreach ($table->getReferrers() as $fk) {
-                if ($fk->skipRefFKMethods) {
-                    continue;
-                }
+            foreach ($referrers as $fk) {
                 //HL: commenting out self-referential check below
                 //        it seems to work as expected and is probably desirable to have those referrers from same table deep-copied.
                 //if ( $fk->getTable()->getName() != $table->getName() ) {
@@ -7744,7 +7745,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             if ($fk->isLocalPrimaryKey()) {
                 continue;
             }
-            if ($fk->skipRefFKMethods) {
+            if ($fk->isSkipRefCode()) {
                 continue;
             }
             $varName = $this->getFKVarName($fk);
@@ -7822,7 +7823,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         if (\$deep) {";
         $vars = [];
-        foreach ($this->getTable()->getReferrers() as $refFK) {
+        foreach ($this->getTable()->getReferrersForCodeGeneration() as $refFK) {
             if ($refFK->isLocalPrimaryKey()) {
                 $varName = $this->getPKRefFKVarName($refFK);
                 $script .= "

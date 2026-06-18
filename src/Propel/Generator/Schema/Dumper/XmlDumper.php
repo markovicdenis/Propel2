@@ -524,6 +524,10 @@ class XmlDumper implements DumperInterface
             $foreignKeyNode->setAttribute('onUpdate', $onUpdateBehavior);
         }
 
+        if ($foreignKey->isSkipRefCode()) {
+            $foreignKeyNode->setAttribute('skipRefCode', 'true');
+        }
+
         for ($i = 0, $size = count($foreignKey->getLocalColumns()); $i < $size; $i++) {
             $refNode = $foreignKeyNode->appendChild($this->document->createElement('reference'));
             assert($refNode instanceof DOMElement);

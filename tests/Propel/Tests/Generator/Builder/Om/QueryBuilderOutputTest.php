@@ -60,8 +60,9 @@ class QueryBuilderOutputTestBuilder extends QueryBuilder
 
 class QueryBuilderOutputTest extends TestCase
 {
-    private function createBuilder(string $tableName = 'book'): QueryBuilderOutputTestBuilder
+    private function createBuilder(string $tableName = 'book', bool $skipRefCode = false): QueryBuilderOutputTestBuilder
     {
+        $skipRefCodeAttribute = $skipRefCode ? ' skipRefCode="true"' : '';
         $databaseXml = <<<XML
 <database name="default" namespace="Example\Books" package="Books">
     <table name="author">
@@ -70,7 +71,7 @@ class QueryBuilderOutputTest extends TestCase
     <table name="book">
         <column name="id" type="integer" primaryKey="true"/>
         <column name="author_id" type="integer"/>
-        <foreign-key foreignTable="author">
+        <foreign-key foreignTable="author"$skipRefCodeAttribute>
             <reference local="author_id" foreign="id"/>
         </foreign-key>
     </table>
@@ -249,5 +250,25 @@ XML;
         $this->assertStringContainsString('$tableMap = $this->getTableMap();', $classBodyDefinition);
         $this->assertStringContainsString('assert($tableMap instanceof BookTableMap);', $classBodyDefinition);
         $this->assertStringContainsString("\$relationMap = \$tableMap->getRelation('Author');", $classBodyDefinition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSkipRefCodeSuppressesReverseRelationQueryMethods()
+    {
+        $bookBuilder = $this->createBuilder('book', true);
+        $bookClassBodyDefinition = $bookBuilder->getClassBodyDefinition();
+
+        $this->assertStringContainsString('public function filterByAuthor(', $bookClassBodyDefinition);
+        $this->assertStringContainsString('public function joinAuthor(', $bookClassBodyDefinition);
+        $this->assertStringContainsString('public function useAuthorQuery(', $bookClassBodyDefinition);
+
+        $authorBuilder = $this->createBuilder('author', true);
+        $authorClassBodyDefinition = $authorBuilder->getClassBodyDefinition();
+
+        $this->assertStringNotContainsString('public function filterByBook(', $authorClassBodyDefinition);
+        $this->assertStringNotContainsString('public function joinBook(', $authorClassBodyDefinition);
+        $this->assertStringNotContainsString('public function useBookQuery(', $authorClassBodyDefinition);
     }
 }

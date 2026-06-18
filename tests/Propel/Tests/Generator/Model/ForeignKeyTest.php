@@ -30,6 +30,7 @@ class ForeignKeyTest extends ModelTestCase
         $this->assertFalse($fk->hasOnDelete());
         $this->assertFalse($fk->isComposite());
         $this->assertFalse($fk->isSkipSql());
+        $this->assertFalse($fk->isSkipRefCode());
     }
 
     /**
@@ -514,6 +515,17 @@ class ForeignKeyTest extends ModelTestCase
         $fk->setSkipSql(true);
 
         $this->assertTrue($fk->isSkipSql());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSkipRefCode()
+    {
+        $fk = new ForeignKey();
+        $fk->setSkipRefCode(true);
+
+        $this->assertTrue($fk->isSkipRefCode());
     }
 
     /**

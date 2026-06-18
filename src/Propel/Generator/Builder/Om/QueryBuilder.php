@@ -186,7 +186,7 @@ class QueryBuilder extends AbstractOMBuilder
     {
         $table = $this->getTable();
         $fkRelationNames = array_map([$this, 'getFKPhpNameAffix'], $table->getForeignKeys());
-        $refFkRelationNames = array_filter(array_map([$this, 'getRefFKPhpNameAffix'], $table->getReferrers()));
+        $refFkRelationNames = array_filter(array_map([$this, 'getRefFKPhpNameAffix'], $table->getReferrersForCodeGeneration()));
 
         return array_merge($fkRelationNames, $refFkRelationNames);
     }
@@ -200,7 +200,7 @@ class QueryBuilder extends AbstractOMBuilder
     {
         $table = $this->getTable();
         $fkTables = array_map(fn ($fk) => $fk->getForeignTable(), $table->getForeignKeys());
-        $refFkTables = array_map(fn ($fk) => $fk->getTable(), $table->getReferrers());
+        $refFkTables = array_map(fn ($fk) => $fk->getTable(), $table->getReferrersForCodeGeneration());
         $relationTables = array_merge($fkTables, $refFkTables);
 
         return array_map(fn ($table) => $this->getNewStubQueryBuilder($table)->getQueryClassName(true), $relationTables);
@@ -223,7 +223,7 @@ class QueryBuilder extends AbstractOMBuilder
         $table = $this->getTable();
         $columns = $table->getColumns();
         $foreignKeys = $table->getForeignKeys();
-        $referrers = $table->getReferrers();
+        $referrers = $table->getReferrersForCodeGeneration();
 
         // namespaces
         $this->declareClasses(

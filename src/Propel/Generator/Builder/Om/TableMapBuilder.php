@@ -608,7 +608,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         \$this->addRelation('" . $this->getFKPhpNameAffix($fkey) . "', '" . addslashes($this->getNewStubObjectBuilder($fkey->getForeignTable())->getFullyQualifiedClassName()) . "', RelationMap::MANY_TO_ONE, $joinCondition, $onDelete, $onUpdate, null, $isPolymorphic);";
         }
 
-        foreach ($this->getTable()->getReferrers() as $fkey) {
+        foreach ($this->getTable()->getReferrersForCodeGeneration() as $fkey) {
             $relationName = $this->getRefFKPhpNameAffix($fkey);
             $joinCondition = var_export($fkey->getNormalizedMap($fkey->getMapping()), true);
             $onDelete = $fkey->hasOnDelete() ? "'" . $fkey->getOnDelete() . "'" : 'null';

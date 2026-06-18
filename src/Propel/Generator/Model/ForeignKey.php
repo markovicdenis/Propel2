@@ -122,6 +122,8 @@ class ForeignKey extends MappingModel
 
     private bool $skipSql = false;
 
+    private bool $skipRefCode = false;
+
     public bool $skipRefFKMethods = false;
 
     private ?string $interface = null;
@@ -159,6 +161,7 @@ class ForeignKey extends MappingModel
         $this->onUpdate = $this->normalizeFKey($this->getAttribute('onUpdate'));
         $this->onDelete = $this->normalizeFKey($this->getAttribute('onDelete'));
         $this->skipSql = $this->booleanValue($this->getAttribute('skipSql'));
+        $this->skipRefCode = $this->booleanValue($this->getAttribute('skipRefCode'));
     }
 
     /**
@@ -1047,6 +1050,32 @@ class ForeignKey extends MappingModel
     public function isSkipSql(): bool
     {
         return $this->skipSql;
+    }
+
+    /**
+     * Sets whether reverse-side PHP relation code should be generated.
+     *
+     * @param bool $skip
+     *
+     * @return void
+     */
+    public function setSkipRefCode(bool $skip): void
+    {
+        $this->skipRefCode = $skip;
+        $this->skipRefFKMethods = $skip;
+    }
+
+    /**
+     * Returns whether reverse-side PHP relation code should be skipped.
+     *
+     * The legacy public skipRefFKMethods flag is kept for internal callers that
+     * set it directly.
+     *
+     * @return bool
+     */
+    public function isSkipRefCode(): bool
+    {
+        return $this->skipRefCode || $this->skipRefFKMethods;
     }
 
     /**

@@ -540,6 +540,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="skipRefCode" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Instructs Propel not to generate reverse-side PHP relation code on the referenced table. The SQL foreign key and the local-table relation code are still generated.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="external-schema">

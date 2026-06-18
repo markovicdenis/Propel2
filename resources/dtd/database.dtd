@@ -129,6 +129,7 @@ PHP class or method name.
   onUpdate (CASCADE|cascade|SETNULL|setnull|RESTRICT|restrict|NOACTION|noaction|NONE|none) "none"
   onDelete (CASCADE|cascade|SETNULL|setnull|RESTRICT|restrict|NOACTION|noaction|NONE|none) "none"
   skipSql (true|false) "false"
+  skipRefCode (true|false) "false"
 >
 
 <!ELEMENT reference EMPTY>

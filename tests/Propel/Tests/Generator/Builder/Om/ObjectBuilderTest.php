@@ -1486,6 +1486,61 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testSkipRefCodeSuppressesReverseObjectMethodsButKeepsForwardSetter()
+    {
+        $database = new Database('test');
+
+        $authorTable = new Table('author');
+        $authorTable->setNamespace('Model');
+        $database->addTable($authorTable);
+
+        $authorId = new Column('id');
+        $authorId->setDomain(new Domain('INTEGER'));
+        $authorId->setPrimaryKey(true);
+        $authorTable->addColumn($authorId);
+
+        $bookTable = new Table('book');
+        $bookTable->setNamespace('Model');
+        $database->addTable($bookTable);
+
+        $bookId = new Column('id');
+        $bookId->setDomain(new Domain('INTEGER'));
+        $bookId->setPrimaryKey(true);
+        $bookTable->addColumn($bookId);
+
+        $bookAuthorId = new Column('author_id');
+        $bookAuthorId->setDomain(new Domain('INTEGER'));
+        $bookTable->addColumn($bookAuthorId);
+
+        $bookTable->addForeignKey(['foreignTable' => 'author', 'skipRefCode' => 'true'])
+            ->addReference('author_id', 'id');
+        $bookTable->setupReferrers(true);
+
+        $authorBuilder = new TestableObjectBuilder($authorTable);
+        $authorBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $authorBuilder->setPlatform(new MysqlPlatform());
+
+        $authorScript = '';
+        $authorBuilder->addClassBodyToScript($authorScript);
+
+        $this->assertStringNotContainsString('protected $collBooks', $authorScript);
+        $this->assertStringNotContainsString('public function getBooks(', $authorScript);
+        $this->assertStringNotContainsString('public function addBook(', $authorScript);
+
+        $bookBuilder = new TestableObjectBuilder($bookTable);
+        $bookBuilder->setGeneratorConfig(new QuickGeneratorConfig());
+        $bookBuilder->setPlatform(new MysqlPlatform());
+
+        $bookScript = '';
+        $bookBuilder->addFKMutatorToScript($bookScript, $bookTable->getForeignKeys()[0]);
+
+        $this->assertStringContainsString('public function setAuthor(', $bookScript);
+        $this->assertStringNotContainsString('->addBook($this)', $bookScript);
+    }
+
+    /**
+     * @return void
+     */
     public function testClearUsesAssertedChildObjectForReverseRelationRemoval()
     {
         $database = new Database('test');
