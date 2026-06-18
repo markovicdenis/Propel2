@@ -50,7 +50,10 @@ class IndexComparator
             }
         }
 
-        // Check for difference in unicity
-        return $fromIndex->isUnique() !== $toIndex->isUnique();
+        if ($fromIndex->isUnique() !== $toIndex->isUnique()) {
+            return true;
+        }
+
+        return $fromIndex->getWhere() !== $toIndex->getWhere();
     }
 }

@@ -11,11 +11,13 @@ namespace Propel\Tests\Generator\Platform;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\GeneratorConfig;
+use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\IdMethodParameter;
 use Propel\Generator\Model\Index;
+use Propel\Generator\Model\Unique;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\VendorInfo;
 use Propel\Generator\Platform\MysqlPlatform;
@@ -732,6 +734,70 @@ DROP INDEX `babar` ON `foo`;
     {
         $expected = 'UNIQUE INDEX `babar` (`bar1`, `bar2`)';
         $this->assertEquals($expected, $this->getPlatform()->getUniqueDDL($index));
+    }
+
+    /**
+     * @return void
+     */
+    public function testGetPartialUniqueDDL()
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $configIdColumn = new Column('postback_config_id');
+        $table->addColumn($configIdColumn);
+        $index = new Unique('postback_user_unlinks_active_unique');
+        $index->addColumn($userIdColumn);
+        $index->addColumn($configIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addUnique($index);
+
+        $expected = 'UNIQUE INDEX `postback_user_unlinks_active_unique` (`user_id`, `postback_config_id`, ((CASE WHEN revoked_at IS NULL THEN 1 ELSE NULL END)))';
+        $this->assertEquals($expected, $this->getPlatform()->getUniqueDDL($index));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddPartialUniqueIndexDDL()
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $configIdColumn = new Column('postback_config_id');
+        $table->addColumn($configIdColumn);
+        $index = new Unique('postback_user_unlinks_active_unique');
+        $index->addColumn($userIdColumn);
+        $index->addColumn($configIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addUnique($index);
+
+        $expected = "
+CREATE UNIQUE INDEX `postback_user_unlinks_active_unique` ON `postback_user_unlinks` (`user_id`, `postback_config_id`, ((CASE WHEN revoked_at IS NULL THEN 1 ELSE NULL END)));
+";
+        $this->assertEquals($expected, $this->getPlatform()->getAddIndexDDL($index));
+    }
+
+    /**
+     * @return void
+     */
+    public function testNonUniquePartialIndexDDLThrows()
+    {
+        $this->expectException(EngineException::class);
+        $this->expectExceptionMessage('MySQL does not support non-unique partial indexes.');
+
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $index = new Index('postback_user_unlinks_active_idx');
+        $index->addColumn($userIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addIndex($index);
+
+        $this->getPlatform()->getAddIndexDDL($index);
     }
 
     /**

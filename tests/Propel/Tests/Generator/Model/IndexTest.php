@@ -48,9 +48,23 @@ class IndexTest extends ModelTestCase
     {
         $index = new Index();
         $index->setTable($this->getTableMock('books'));
-        $index->loadMapping([ 'name' => 'foo_idx' ]);
+        $index->loadMapping([ 'name' => 'foo_idx', 'where' => 'revoked_at IS NULL' ]);
 
         $this->assertEquals('foo_idx', $index->getName());
+        $this->assertSame('revoked_at IS NULL', $index->getWhere());
+        $this->assertTrue($index->hasWhere());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetWhereNormalizesBlankPredicate()
+    {
+        $index = new Index();
+        $index->setWhere('  ');
+
+        $this->assertNull($index->getWhere());
+        $this->assertFalse($index->hasWhere());
     }
 
     /**

@@ -595,6 +595,9 @@ class XmlDumper implements DumperInterface
         /** @var DOMElement $indexNode */
         $indexNode = $parentNode->appendChild($this->document->createElement($nodeType));
         $indexNode->setAttribute('name', $index->getName());
+        if ($index->hasWhere()) {
+            $indexNode->setAttribute('where', $index->getWhere());
+        }
 
         foreach ($index->getColumns() as $columnName) {
             $indexColumnNode = $indexNode->appendChild($this->document->createElement($nodeType . '-column'));

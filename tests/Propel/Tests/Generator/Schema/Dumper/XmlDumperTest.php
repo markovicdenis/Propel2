@@ -9,8 +9,11 @@
 namespace Propel\Tests\Generator\Schema\Dumper;
 
 use PHPUnit\Framework\TestCase;
+use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Table;
+use Propel\Generator\Model\Unique;
+use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Generator\Schema\Dumper\XmlDumper;
 
 class XmlDumperTest extends TestCase
@@ -56,6 +59,35 @@ class XmlDumperTest extends TestCase
 
         $this->assertStringContainsString('name="sportsbook_transactions"', $xml);
         $this->assertStringContainsString('shortName="sbtx"', $xml);
+    }
+
+    /**
+     * @return void
+     */
+    public function testDumpPartialUniqueIndex()
+    {
+        $database = new Database('bookstore');
+        $database->setPlatform(new MysqlPlatform());
+        $table = new Table('postback_user_unlinks');
+        $database->addTable($table);
+
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $configIdColumn = new Column('postback_config_id');
+        $table->addColumn($configIdColumn);
+
+        $unique = new Unique('postback_user_unlinks_active_unique');
+        $unique->addColumn($userIdColumn);
+        $unique->addColumn($configIdColumn);
+        $unique->setWhere('revoked_at IS NULL');
+        $table->addUnique($unique);
+
+        $xml = $this->dumper->dump($database);
+
+        $this->assertStringContainsString(
+            '<unique name="postback_user_unlinks_active_unique" where="revoked_at IS NULL">',
+            $xml,
+        );
     }
 
     /**

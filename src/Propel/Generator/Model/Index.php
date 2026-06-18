@@ -17,6 +17,7 @@ use function strcasecmp;
 use function strlen;
 use function strtolower;
 use function substr;
+use function trim;
 
 /**
  * Information about indices of a table.
@@ -60,6 +61,11 @@ class Index extends MappingModel
     protected $autoNaming = false;
 
     /**
+     * @var string|null
+     */
+    protected $where;
+
+    /**
      * Creates a new Index instance.
      *
      * @param string|null $name Name of the index
@@ -79,6 +85,33 @@ class Index extends MappingModel
     public function isUnique(): bool
     {
         return false;
+    }
+
+    /**
+     * @param string|null $where
+     *
+     * @return void
+     */
+    public function setWhere(?string $where): void
+    {
+        $where = $where !== null ? trim($where) : null;
+        $this->where = $where !== '' ? $where : null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getWhere(): ?string
+    {
+        return $this->where;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasWhere(): bool
+    {
+        return $this->where !== null;
     }
 
     /**
@@ -416,6 +449,7 @@ class Index extends MappingModel
     protected function setupObject(): void
     {
         $this->setName($this->getAttribute('name'));
+        $this->setWhere($this->getAttribute('where'));
     }
 
     /**

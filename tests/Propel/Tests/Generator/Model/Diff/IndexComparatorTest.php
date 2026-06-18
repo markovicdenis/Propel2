@@ -76,6 +76,23 @@ class IndexComparatorTest extends TestCase
     /**
      * @return void
      */
+    public function testCompareDifferentWhere()
+    {
+        $c1 = new Column('Foo');
+        $i1 = new Index('Foo_Index');
+        $i1->addColumn($c1);
+        $i1->setWhere('revoked_at IS NULL');
+        $c2 = new Column('Foo');
+        $i2 = new Index('Foo_Index');
+        $i2->addColumn($c2);
+        $i2->setWhere('revoked_at IS NOT NULL');
+
+        $this->assertTrue(IndexComparator::computeDiff($i1, $i2));
+    }
+
+    /**
+     * @return void
+     */
     public function testCompareDifferentColumns()
     {
         $c1 = new Column('Foo');

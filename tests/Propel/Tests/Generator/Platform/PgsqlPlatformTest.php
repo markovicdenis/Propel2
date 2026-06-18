@@ -14,6 +14,7 @@ use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\IdMethodParameter;
+use Propel\Generator\Model\Index;
 use Propel\Generator\Model\PropelTypes;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
@@ -690,6 +691,69 @@ ALTER TABLE "foo" ADD CONSTRAINT "babar" UNIQUE ("bar1");
     }
 
     /**
+     * @return void
+     */
+    public function testAddPartialUniqueIndexDDL(): void
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $configIdColumn = new Column('postback_config_id');
+        $table->addColumn($configIdColumn);
+        $index = new Unique('postback_user_unlinks_active_unique');
+        $index->addColumn($userIdColumn);
+        $index->addColumn($configIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addUnique($index);
+
+        $expected = '
+CREATE UNIQUE INDEX "postback_user_unlinks_active_unique" ON "postback_user_unlinks" ("user_id","postback_config_id") WHERE revoked_at IS NULL;
+';
+        $this->assertEquals($expected, $this->getPlatform()->getAddIndexDDL($index));
+    }
+
+    /**
+     * @return void
+     */
+    public function testDropPartialUniqueIndexDDL(): void
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $index = new Unique('postback_user_unlinks_active_unique');
+        $index->addColumn($userIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addUnique($index);
+
+        $expected = '
+DROP INDEX "postback_user_unlinks_active_unique";
+';
+        $this->assertEquals($expected, $this->getPlatform()->getDropIndexDDL($index));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddPartialIndexDDL(): void
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $index = new Index('postback_user_unlinks_active_idx');
+        $index->addColumn($userIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addIndex($index);
+
+        $expected = '
+CREATE INDEX "postback_user_unlinks_active_idx" ON "postback_user_unlinks" ("user_id") WHERE revoked_at IS NULL;
+';
+        $this->assertEquals($expected, $this->getPlatform()->getAddIndexDDL($index));
+    }
+
+    /**
      * @dataProvider providerForTestGetIndicesDDL
      *
      * @return void
@@ -701,6 +765,29 @@ ALTER TABLE "foo" ADD CONSTRAINT "babar" UNIQUE ("bar1");
 CREATE INDEX "babar" ON "foo" ("bar1","bar2");
 
 CREATE INDEX "foo_index" ON "foo" ("bar1");
+';
+        $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
+    }
+
+    /**
+     * @return void
+     */
+    public function testAddIndicesDDLIncludesPartialUniqueIndex(): void
+    {
+        $table = new Table('postback_user_unlinks');
+        $table->setIdentifierQuoting(true);
+        $userIdColumn = new Column('user_id');
+        $table->addColumn($userIdColumn);
+        $configIdColumn = new Column('postback_config_id');
+        $table->addColumn($configIdColumn);
+        $index = new Unique('postback_user_unlinks_active_unique');
+        $index->addColumn($userIdColumn);
+        $index->addColumn($configIdColumn);
+        $index->setWhere('revoked_at IS NULL');
+        $table->addUnique($index);
+
+        $expected = '
+CREATE UNIQUE INDEX "postback_user_unlinks_active_unique" ON "postback_user_unlinks" ("user_id","postback_config_id") WHERE revoked_at IS NULL;
 ';
         $this->assertEquals($expected, $this->getPlatform()->getAddIndicesDDL($table));
     }

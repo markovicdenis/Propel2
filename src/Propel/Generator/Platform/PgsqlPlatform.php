@@ -442,6 +442,9 @@ COMMIT;
         }
 
         foreach ($table->getUnices() as $unique) {
+            if ($unique->hasWhere()) {
+                continue;
+            }
             $lines[] = $this->getUniqueDDL($unique);
         }
 
@@ -486,6 +489,24 @@ COMMENT ON TABLE %s IS %s;
         $ret = '';
         foreach ($table->getColumns() as $column) {
             $ret .= $this->getAddColumnComment($column);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Table $table
+     *
+     * @return string
+     */
+    public function getAddIndicesDDL(Table $table): string
+    {
+        $ret = parent::getAddIndicesDDL($table);
+
+        foreach ($table->getUnices() as $unique) {
+            if ($unique->hasWhere()) {
+                $ret .= $this->getAddIndexDDL($unique);
+            }
         }
 
         return $ret;
@@ -983,7 +1004,7 @@ DROP SEQUENCE %s CASCADE;
      */
     public function getDropIndexDDL(Index $index): string
     {
-        if ($index instanceof Unique) {
+        if ($index instanceof Unique && !$index->hasWhere()) {
             $pattern = "
 ALTER TABLE %s DROP CONSTRAINT %s;
 ";
@@ -1042,7 +1063,7 @@ ALTER TABLE %s DROP CONSTRAINT %s;
      */
     public function getAddIndexDDL(Index $index): string
     {
-        if (!$index->isUnique()) {
+        if (!$index->isUnique() || $index->hasWhere()) {
             return parent::getAddIndexDDL($index);
         }
 

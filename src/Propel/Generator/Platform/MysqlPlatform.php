@@ -590,8 +590,30 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
             $size = $index->hasColumnSize($col) ? '(' . $index->getColumnSize($col) . ')' : '';
             $list[] = $this->quoteIdentifier($col) . $size;
         }
+        if ($index->hasWhere()) {
+            $list[] = $this->getPartialUniqueIndexConditionDDL($index);
+        }
 
         return implode(', ', $list);
+    }
+
+    /**
+     * MySQL has no native partial indexes. For unique indexes, emulate the
+     * predicate by adding a functional key part that is NULL for excluded rows.
+     *
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @throws \Propel\Generator\Exception\EngineException
+     *
+     * @return string
+     */
+    protected function getPartialUniqueIndexConditionDDL(Index $index): string
+    {
+        if (!$index->isUnique()) {
+            throw new EngineException('MySQL does not support non-unique partial indexes.');
+        }
+
+        return '((CASE WHEN ' . $index->getWhere() . ' THEN 1 ELSE NULL END))';
     }
 
     /**

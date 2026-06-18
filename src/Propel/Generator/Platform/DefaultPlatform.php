@@ -619,7 +619,7 @@ ALTER TABLE %s ADD %s;
     public function getAddIndexDDL(Index $index): string
     {
         $pattern = "
-CREATE %sINDEX %s ON %s (%s);
+CREATE %sINDEX %s ON %s (%s)%s;
 ";
 
         return sprintf(
@@ -628,7 +628,18 @@ CREATE %sINDEX %s ON %s (%s);
             $this->quoteIdentifier($index->getName()),
             $this->quoteIdentifier($index->getTable()->getName()),
             $this->getColumnListDDL($index->getColumnObjects()),
+            $this->getIndexWhereDDL($index),
         );
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @return string
+     */
+    protected function getIndexWhereDDL(Index $index): string
+    {
+        return $index->hasWhere() ? ' WHERE ' . $index->getWhere() : '';
     }
 
     /**
@@ -660,10 +671,11 @@ DROP INDEX %s;
     public function getIndexDDL(Index $index): string
     {
         return sprintf(
-            '%sINDEX %s (%s)',
+            '%sINDEX %s (%s)%s',
             $index->isUnique() ? 'UNIQUE ' : '',
             $this->quoteIdentifier($index->getName()),
             $this->getColumnListDDL($index->getColumnObjects()),
+            $this->getIndexWhereDDL($index),
         );
     }
 
