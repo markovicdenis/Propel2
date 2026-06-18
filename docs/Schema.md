@@ -222,8 +222,8 @@ Use a `foreign-key` element to define relationships to another table.
 
 #### Foreign Key Attributes
 
-- `skipSql`: model the relationship without generating the physical foreign key.
-- `skipRefCode`: generate the SQL foreign key and the local-table relation methods, but skip reverse-side relation code on the referenced table.
+- `skipSql`: model the relationship without generating the physical foreign key. Defaults to `false`.
+- `skipRefCode`: generate the SQL foreign key and the local-table relation methods, but skip reverse-side relation code on the referenced table. Defaults to `false`.
 - `defaultJoin`: overrides the generated default join type for `joinXXX()` methods.
 
 ### `index` element
