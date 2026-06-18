@@ -96,6 +96,7 @@ The `table` element is the main schema building block.
 ```xml
 <table
   name="/TableName/"
+  [shortName="/ShortTableNameForGeneratedNames/"]
   [idMethod="native|{none}"]
   [phpName="/PhpObjectName/"]
   [package="/PhpObjectPackage/"]
@@ -132,6 +133,7 @@ Only `name` is required. The `idMethod`, `package`, `schema`, `namespace`, `phpN
 #### Table Attributes
 
 - `idMethod`: id strategy for auto-increment columns.
+- `shortName`: optional abbreviated table name used in generated names that derive from the table name, such as auto-generated index names.
 - `phpName`: generated model class name. Defaults to a CamelCase version of the table name.
 - `package`: package or subdirectory for generated classes.
 - `schema`: SQL schema containing the table.
@@ -149,6 +151,14 @@ Only `name` is required. The `idMethod`, `package`, `schema`, `namespace`, `phpN
 - `reloadOnUpdate`: reload the object after `UPDATE`, useful when triggers or database defaults mutate the row.
 - `allowPkInsert`: allows explicit primary key insertion even when `idMethod="native"`.
 
+Example:
+
+```xml
+<table name="sportsbook_transactions" shortName="sbtx">
+```
+
+When `shortName` is present, Propel prefers it over the full table name when building auto-generated index names. The SQL table name itself is unchanged, and XML schema round-trips preserve the attribute.
+
 ### `column` element
 
 ```xml
@@ -158,7 +168,7 @@ Only `name` is required. The `idMethod`, `package`, `schema`, `namespace`, `phpN
   [tableMapName="/TABLEMAPNAME/"]
   [primaryKey="true|{false}"]
   [required="true|{false}"]
-  [type="BOOLEAN|TINYINT|SMALLINT|INTEGER|BIGINT|DOUBLE|FLOAT|REAL|DECIMAL|NUMERIC|CHAR|VARCHAR|LONGVARCHAR|DATE|TIME|TIMESTAMP|BLOB|CLOB|OBJECT|ARRAY|ENUM|SET|GEOMETRY|BU_DATE|BU_TIMESTAMP|BOOLEAN_EMU|BINARY|VARBINARY|LONGVARBINARY|UUID|UUID_BINARY"]
+  [type="BOOLEAN|TINYINT|SMALLINT|INTEGER|BIGINT|DOUBLE|FLOAT|REAL|DECIMAL|NUMERIC|CHAR|VARCHAR|LONGVARCHAR|DATE|TIME|TIMESTAMP|BLOB|CLOB|OBJECT|ARRAY|ENUM|SET|GEOMETRY|BU_DATE|BU_TIMESTAMP|BOOLEAN_EMU|BINARY|VARBINARY|LONGVARBINARY|UUID|UUID_BINARY|UID|UID_BINARY"]
   [phpType="boolean|int|integer|double|float|string|/BuiltInClassName/|/UserDefinedClassName/"]
   [sqlType="/NativeDatabaseColumnType/"]
   [size="/NumericLengthOfColumn/"]
@@ -217,28 +227,49 @@ Use a `foreign-key` element to define relationships to another table.
 ### `index` element
 
 ```xml
-<index [name="/IndexName/"]>
+<index [name="/IndexName/"] [where="/SqlPredicate/"]>
   <index-column name="/ColumnName/" [size="/LengthOfIndexColumn/"] />
   ...
 </index>
 ```
 
-Some databases, especially MySQL, may require an index size.
+Use `where` to define a partial index predicate.
 
+- `where`: SQL predicate appended to the generated index DDL.
 - `size`: supported for MySQL index columns.
+
+Platform notes:
+
+- PostgreSQL generates native partial indexes, for example `CREATE INDEX ... WHERE revoked_at IS NULL`.
+- MySQL does not support non-unique partial indexes. Propel will throw when `where` is used on a non-unique `<index>`.
 
 ### `unique` element
 
 ```xml
-<unique [name="/IndexName/"]>
+<unique [name="/IndexName/"] [where="/SqlPredicate/"]>
   <unique-column name="/ColumnName/" [size="/LengthOfIndexColumn/"] />
   ...
 </unique>
 ```
 
-Some databases, especially MySQL, may require a size for unique index columns.
+Use `where` to define a partial unique index predicate.
 
+- `where`: SQL predicate appended to the generated unique index DDL.
 - `size`: supported for MySQL unique index columns.
+
+Platform notes:
+
+- PostgreSQL generates native partial unique indexes with `CREATE UNIQUE INDEX ... WHERE ...`.
+- MySQL emulates partial unique indexes by adding a functional key part that evaluates to `1` for matching rows and `NULL` otherwise. This allows uniqueness to apply only to rows matching the predicate.
+
+Example:
+
+```xml
+<unique name="postback_user_unlinks_active_unique" where="revoked_at IS NULL">
+  <unique-column name="user_id" />
+  <unique-column name="postback_config_id" />
+</unique>
+```
 
 ### `id-method-parameter` element
 
@@ -322,6 +353,15 @@ These are Propel's portable column types and typical MySQL and PHP mappings.
 - `ARRAY`: maps to a PHP array and is stored as text.
 - `UUID`: uses a database-native UUID column when available, otherwise the binary UUID strategy.
 - `UUID_BINARY`: stores UUID values in a compact binary format. See [UUID And UID Support](UuidSupport.md).
+- `UID`: exposes Symfony `UuidV7` objects at the PHP layer and stores them in the platform's preferred UUID-capable representation.
+- `UID_BINARY`: exposes `UuidV7` objects and stores them in compact binary form where supported. Non-primary-key `UID_BINARY` columns may receive an implicit single-column index if no compatible index already exists.
+
+UUID-related defaults:
+
+- Propel assumes UUIDv7 unless vendor metadata says otherwise.
+- `UUID` and `UUID_BINARY` are string-oriented in PHP.
+- `UID` and `UID_BINARY` normalize to Symfony `UuidV7` objects in PHP.
+- See [UUID And UID Support](UuidSupport.md) for platform storage details and runtime conversion behavior.
 
 ### Legacy Temporal Types
 
@@ -418,6 +458,30 @@ Charset          | utf8, latin1, etc.
 Collate          | utf8_unicode_ci, latin1_german1_ci, etc.
 // in <index> element
 Index_type       | FULLTEXT
+```
+
+UUID-related column vendor parameters:
+
+```text
+Name             | Example values
+-----------------|----------------
+UuidVersion      | 1, 4, 6, 7
+UuidSwapFlag     | true, false
+```
+
+- `UuidVersion` defaults to `7`.
+- `UuidSwapFlag` controls MySQL-compatible `UUID_TO_BIN()` / `BIN_TO_UUID()` swap behavior for binary UUID storage.
+- If `UuidSwapFlag` is omitted, Propel defaults it to `false` for UUIDv7 and `true` for non-v7 UUIDs.
+
+Example:
+
+```xml
+<column name="id" primaryKey="true" type="UUID_BINARY">
+  <vendor type="mysql">
+    <parameter name="UuidVersion" value="7"/>
+    <parameter name="UuidSwapFlag" value="false"/>
+  </vendor>
+</column>
 ```
 
 #### Oracle Vendor Info
