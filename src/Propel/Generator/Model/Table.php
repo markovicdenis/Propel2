@@ -175,6 +175,46 @@ class Table extends ScopedMappingModel implements IdMethod
     public bool $isPartitioned = false;
 
     /**
+     * Physical primary-key strategy for a partitioned table. Because PostgreSQL
+     * requires every unique/PK constraint to contain all partition-key columns,
+     * this selects how the DDL reconciles that with a single-column model key:
+     *
+     *  - self::PARTITION_PK_INDEX     no DB PRIMARY KEY; a plain (non-unique)
+     *                                 index is emitted on the model PK columns.
+     *  - self::PARTITION_PK_COMPOSITE PRIMARY KEY that includes the model PK
+     *                                 columns plus any missing partition-key
+     *                                 columns (DB-enforced, standard PostgreSQL).
+     *  - self::PARTITION_PK_GLOBAL    a GLOBAL UNIQUE INDEX on the model PK
+     *                                 columns (Postgres Pro Enterprise only).
+     */
+    public const PARTITION_PK_INDEX = 'index';
+
+    public const PARTITION_PK_COMPOSITE = 'composite';
+
+    public const PARTITION_PK_GLOBAL = 'global';
+
+    /**
+     * Partition strategy (RANGE, LIST or HASH); null when the table is not partitioned.
+     *
+     * @var string|null
+     */
+    protected ?string $partitionBy = null;
+
+    /**
+     * Raw, comma-separated list of partition-key column names as declared in the schema.
+     *
+     * @var string|null
+     */
+    protected ?string $partitionKey = null;
+
+    /**
+     * How the physical primary key is emitted for a partitioned table.
+     *
+     * @var string
+     */
+    protected string $partitionPkMode = self::PARTITION_PK_INDEX;
+
+    /**
      * Constructs a table object with a name
      *
      * @param string $name table name
@@ -258,6 +298,14 @@ class Table extends ScopedMappingModel implements IdMethod
         $this->defaultStringFormat = $this->getAttribute('defaultStringFormat');
         $this->defaultAccessorVisibility = $this->getAttribute('defaultAccessorVisibility', $this->database->getAttribute('defaultAccessorVisibility', static::VISIBILITY_PUBLIC));
         $this->defaultMutatorVisibility = $this->getAttribute('defaultMutatorVisibility', $this->database->getAttribute('defaultMutatorVisibility', static::VISIBILITY_PUBLIC));
+
+        $partitionBy = $this->getAttribute('partitionBy');
+        if ($partitionBy !== null && $partitionBy !== '') {
+            $this->partitionBy = strtoupper($partitionBy);
+            $this->partitionKey = $this->getAttribute('partitionKey');
+            $this->partitionPkMode = strtolower($this->getAttribute('partitionPkMode', self::PARTITION_PK_INDEX));
+            $this->isPartitioned = true;
+        }
     }
 
     /**
@@ -2122,6 +2170,71 @@ class Table extends ScopedMappingModel implements IdMethod
     public function hasCompositePrimaryKey(): bool
     {
         return count($this->getPrimaryKey()) > 1;
+    }
+
+    /**
+     * Returns whether this table is declared as a partitioned table.
+     *
+     * @return bool
+     */
+    public function isPartitioned(): bool
+    {
+        return $this->isPartitioned;
+    }
+
+    /**
+     * Returns the partition strategy (RANGE, LIST or HASH), or null when not partitioned.
+     *
+     * @return string|null
+     */
+    public function getPartitionBy(): ?string
+    {
+        return $this->partitionBy;
+    }
+
+    /**
+     * Returns the physical primary-key mode used for a partitioned table.
+     *
+     * One of self::PARTITION_PK_INDEX, self::PARTITION_PK_COMPOSITE or self::PARTITION_PK_GLOBAL.
+     *
+     * @return string
+     */
+    public function getPartitionPkMode(): string
+    {
+        return $this->partitionPkMode;
+    }
+
+    /**
+     * Returns the partition-key columns as declared in the schema.
+     *
+     * @throws \Propel\Generator\Exception\EngineException When a declared partition-key column does not exist.
+     *
+     * @return array<\Propel\Generator\Model\Column>
+     */
+    public function getPartitionKeyColumns(): array
+    {
+        if (!$this->isPartitioned || $this->partitionKey === null || $this->partitionKey === '') {
+            return [];
+        }
+
+        $columns = [];
+        foreach (explode(',', $this->partitionKey) as $name) {
+            $name = trim($name);
+            if ($name === '') {
+                continue;
+            }
+            $column = $this->getColumn($name);
+            if ($column === null) {
+                throw new EngineException(sprintf(
+                    'Partition key column "%s" declared on table "%s" does not exist.',
+                    $name,
+                    $this->getName(),
+                ));
+            }
+            $columns[] = $column;
+        }
+
+        return $columns;
     }
 
     /**

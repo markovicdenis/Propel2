@@ -9,6 +9,7 @@
 namespace Propel\Tests\Generator\Platform;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
@@ -364,6 +365,203 @@ CREATE TABLE "foo"
 
 EOF;
         $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * Partitioned table, default `index` mode: no PRIMARY KEY constraint, the
+     * single-column model key becomes a plain (non-unique) index instead.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedIndexMode()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="index">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+        <column name="payload" type="LONGVARCHAR"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $expected = <<<EOF
+
+CREATE TABLE "event"
+(
+    "id" VARCHAR(36) NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "payload" TEXT
+) PARTITION BY RANGE ("created_at");
+
+CREATE INDEX "event_pk_idx" ON "event" ("id");
+
+EOF;
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * `index` mode is the default when partitionPkMode is omitted.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedDefaultsToIndexMode()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="LIST" partitionKey="region">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="region" type="VARCHAR" size="20" required="true"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $this->assertTrue($table->isPartitioned());
+        $this->assertSame(Table::PARTITION_PK_INDEX, $table->getPartitionPkMode());
+        $expected = <<<EOF
+
+CREATE TABLE "event"
+(
+    "id" VARCHAR(36) NOT NULL,
+    "region" VARCHAR(20) NOT NULL
+) PARTITION BY LIST ("region");
+
+CREATE INDEX "event_pk_idx" ON "event" ("id");
+
+EOF;
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * `composite` mode: the partition-key column is appended to the physical
+     * PRIMARY KEY so PostgreSQL accepts it, with no separate index statement.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedCompositeMode()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+        <column name="payload" type="LONGVARCHAR"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $expected = <<<EOF
+
+CREATE TABLE "event"
+(
+    "id" VARCHAR(36) NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "payload" TEXT,
+    PRIMARY KEY ("id","created_at")
+) PARTITION BY RANGE ("created_at");
+
+EOF;
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * `global` mode: a GLOBAL UNIQUE INDEX carries the single-column key
+     * (Postgres Pro Enterprise syntax).
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedGlobalMode()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="global">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+        <column name="payload" type="LONGVARCHAR"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $expected = <<<EOF
+
+CREATE TABLE "event"
+(
+    "id" VARCHAR(36) NOT NULL,
+    "created_at" TIMESTAMP NOT NULL,
+    "payload" TEXT
+) PARTITION BY RANGE ("created_at");
+
+CREATE UNIQUE INDEX "event_pk_uidx" ON "event" ("id") GLOBAL;
+
+EOF;
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+    }
+
+    /**
+     * A non-partitioned table is unaffected: it still emits a normal inline
+     * PRIMARY KEY and no PARTITION BY clause.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLWithoutPartitionUnchanged()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $this->assertFalse($table->isPartitioned());
+        $ddl = $this->getPlatform()->getAddTableDDL($table);
+        $this->assertStringContainsString('PRIMARY KEY ("id")', $ddl);
+        $this->assertStringNotContainsString('PARTITION BY', $ddl);
+    }
+
+    /**
+     * A partition key referencing a non-existent column is rejected.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedInvalidKeyColumnThrows()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="does_not_exist">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $this->expectException(EngineException::class);
+        $this->expectExceptionMessage('does_not_exist');
+        $this->getPlatform()->getAddTableDDL($table);
+    }
+
+    /**
+     * The partition attributes are parsed onto the Table model.
+     *
+     * @return void
+     */
+    public function testPartitionAttributesAreParsed()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="range" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $this->assertTrue($table->isPartitioned());
+        $this->assertSame('RANGE', $table->getPartitionBy());
+        $this->assertSame(Table::PARTITION_PK_COMPOSITE, $table->getPartitionPkMode());
+        $columns = $table->getPartitionKeyColumns();
+        $this->assertCount(1, $columns);
+        $this->assertSame('created_at', $columns[0]->getName());
     }
 
     /**

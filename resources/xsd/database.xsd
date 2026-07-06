@@ -716,6 +716,47 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="partitionBy" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Declares the table as a partitioned table (PostgreSQL). The value is the partition strategy: RANGE, LIST or HASH. Requires partitionKey to be set.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="RANGE"/>
+                    <xs:enumeration value="LIST"/>
+                    <xs:enumeration value="HASH"/>
+                    <xs:enumeration value="range"/>
+                    <xs:enumeration value="list"/>
+                    <xs:enumeration value="hash"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="partitionKey" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Comma-separated list of column names used as the partition key, e.g. "created_at". Only meaningful together with partitionBy.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="partitionPkMode" use="optional" default="index">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    How the physical primary key is generated for a partitioned table, since PostgreSQL requires every unique/PK constraint to include all partition-key columns.
+                    'index' (default): no DB PRIMARY KEY constraint; a plain index is emitted on the model primary-key columns (keeps a single-column UUID model key; uniqueness is not DB-enforced).
+                    'composite': a PRIMARY KEY that includes the model PK columns plus any missing partition-key columns (DB-enforced, standard PostgreSQL).
+                    'global': a GLOBAL UNIQUE INDEX on the model PK columns (Postgres Pro Enterprise only).
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="index"/>
+                    <xs:enumeration value="composite"/>
+                    <xs:enumeration value="global"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
         <xs:attribute name="abstract" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation xml:lang="en">

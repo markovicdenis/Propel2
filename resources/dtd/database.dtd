@@ -69,6 +69,9 @@ PHP class or method name.
   identifierQuoting (true|false) #IMPLIED
   description CDATA #IMPLIED
   defaultStringFormat CDATA #IMPLIED
+  partitionBy (RANGE|LIST|HASH|range|list|hash) #IMPLIED
+  partitionKey CDATA #IMPLIED
+  partitionPkMode (index|composite|global) "index"
 >
 
 <!ELEMENT id-method-parameter EMPTY>

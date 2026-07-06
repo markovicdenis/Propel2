@@ -437,8 +437,19 @@ COMMIT;
             $lines[] = $this->getColumnDDL($column);
         }
 
+        // On a partitioned table PostgreSQL requires every unique/PK constraint to
+        // contain all partition-key columns. The primary key is therefore emitted
+        // according to the table's partitionPkMode (see Table::PARTITION_PK_*).
         if ($table->hasPrimaryKey()) {
-            $lines[] = $this->getPrimaryKeyDDL($table);
+            if ($table->isPartitioned()) {
+                if ($table->getPartitionPkMode() === Table::PARTITION_PK_COMPOSITE) {
+                    $lines[] = $this->getPartitionedPrimaryKeyDDL($table);
+                }
+                // For PARTITION_PK_INDEX and PARTITION_PK_GLOBAL the primary key is
+                // emitted as a separate (unique) index statement after CREATE TABLE.
+            } else {
+                $lines[] = $this->getPrimaryKeyDDL($table);
+            }
         }
 
         foreach ($table->getUnices() as $unique) {
@@ -454,13 +465,16 @@ COMMIT;
 CREATE TABLE %s
 (
     %s
-);
+)%s;
 ";
         $ret .= sprintf(
             $pattern,
             $this->quoteIdentifier($table->getName()),
             implode($sep, $lines),
+            $this->getPartitionByClause($table),
         );
+
+        $ret .= $this->getPartitionKeyIndexDDL($table);
 
         if ($table->hasDescription()) {
             $pattern = "
@@ -477,6 +491,95 @@ COMMENT ON TABLE %s IS %s;
         $ret .= $this->getResetSchemaDDL($table);
 
         return $ret;
+    }
+
+    /**
+     * Returns the trailing "PARTITION BY <strategy> (<columns>)" clause for a
+     * partitioned table, or an empty string when the table is not partitioned.
+     *
+     * @param \Propel\Generator\Model\Table $table
+     *
+     * @return string
+     */
+    protected function getPartitionByClause(Table $table): string
+    {
+        if (!$table->isPartitioned()) {
+            return '';
+        }
+
+        return sprintf(
+            ' PARTITION BY %s (%s)',
+            $table->getPartitionBy(),
+            $this->getColumnListDDL($table->getPartitionKeyColumns(), ', '),
+        );
+    }
+
+    /**
+     * Returns the PRIMARY KEY clause for a partitioned table in PARTITION_PK_COMPOSITE
+     * mode: the model primary-key columns, extended with any partition-key columns
+     * that are not already part of the primary key (required by PostgreSQL).
+     *
+     * @param \Propel\Generator\Model\Table $table
+     *
+     * @return string
+     */
+    protected function getPartitionedPrimaryKeyDDL(Table $table): string
+    {
+        $columns = $table->getPrimaryKey();
+        $existing = [];
+        foreach ($columns as $column) {
+            $existing[$column->getName()] = true;
+        }
+        foreach ($table->getPartitionKeyColumns() as $column) {
+            if (!isset($existing[$column->getName()])) {
+                $columns[] = $column;
+            }
+        }
+
+        return 'PRIMARY KEY (' . $this->getColumnListDDL($columns) . ')';
+    }
+
+    /**
+     * Returns the index statement that carries the primary key for a partitioned
+     * table when the constraint cannot live inside CREATE TABLE:
+     *
+     *  - PARTITION_PK_INDEX:  a plain (non-unique) index on the model PK columns.
+     *  - PARTITION_PK_GLOBAL: a GLOBAL UNIQUE INDEX on the model PK columns
+     *                         (Postgres Pro Enterprise).
+     *
+     * Returns an empty string for non-partitioned tables, composite mode, or
+     * tables without a model primary key.
+     *
+     * @param \Propel\Generator\Model\Table $table
+     *
+     * @return string
+     */
+    protected function getPartitionKeyIndexDDL(Table $table): string
+    {
+        if (!$table->isPartitioned() || !$table->hasPrimaryKey()) {
+            return '';
+        }
+
+        $mode = $table->getPartitionPkMode();
+        if ($mode === Table::PARTITION_PK_INDEX) {
+            return sprintf(
+                "\nCREATE INDEX %s ON %s (%s);\n",
+                $this->quoteIdentifier($table->getCommonName() . '_pk_idx'),
+                $this->quoteIdentifier($table->getName()),
+                $this->getColumnListDDL($table->getPrimaryKey()),
+            );
+        }
+
+        if ($mode === Table::PARTITION_PK_GLOBAL) {
+            return sprintf(
+                "\nCREATE UNIQUE INDEX %s ON %s (%s) GLOBAL;\n",
+                $this->quoteIdentifier($table->getCommonName() . '_pk_uidx'),
+                $this->quoteIdentifier($table->getName()),
+                $this->getColumnListDDL($table->getPrimaryKey()),
+            );
+        }
+
+        return '';
     }
 
     /**
