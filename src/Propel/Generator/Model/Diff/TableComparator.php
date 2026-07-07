@@ -11,6 +11,7 @@ namespace Propel\Generator\Model\Diff;
 use Propel\Generator\Model\Table;
 
 use function in_array;
+use function strtolower;
 
 /**
  * Service class for comparing Table objects
@@ -193,6 +194,8 @@ class TableComparator
         $pkDifferences = 0;
         $fromTablePk = $this->getFromTable()->getPrimaryKey();
         $toTablePk = $this->getToTable()->getPrimaryKey();
+        $fromTableHasVirtualPrimaryKey = $this->usesVirtualPartitionPrimaryKey($this->getFromTable());
+        $toTableHasVirtualPrimaryKey = $this->usesVirtualPartitionPrimaryKey($this->getToTable());
 
         // check for new pk columns in $toTable
         foreach ($toTablePk as $column) {
@@ -200,6 +203,9 @@ class TableComparator
                 !$this->getFromTable()->hasColumn($column->getName(), $caseInsensitive) ||
                 !$this->getFromTable()->getColumn($column->getName(), $caseInsensitive)->isPrimaryKey()
             ) {
+                if ($toTableHasVirtualPrimaryKey) {
+                    continue;
+                }
                 $this->tableDiff->addAddedPkColumn($column->getName(), $column);
                 $pkDifferences++;
             }
@@ -211,8 +217,7 @@ class TableComparator
                 !$this->getToTable()->hasColumn($column->getName(), $caseInsensitive) ||
                 !$this->getToTable()->getColumn($column->getName(), $caseInsensitive)->isPrimaryKey()
             ) {
-                $isPartitioned = $this->getFromTable()->isPartitioned;
-                if ($isPartitioned) {
+                if ($fromTableHasVirtualPrimaryKey) {
                     continue;
                 }
                 $this->tableDiff->addRemovedPkColumn($column->getName(), $column);
@@ -237,6 +242,17 @@ class TableComparator
         }
 
         return $pkDifferences;
+    }
+
+    protected function usesVirtualPartitionPrimaryKey(?Table $table): bool
+    {
+        if ($table === null || !$table->isPartitioned()) {
+            return false;
+        }
+
+        $mode = strtolower($table->getPartitionPkMode());
+
+        return in_array($mode, [Table::PARTITION_PK_INDEX, Table::PARTITION_PK_GLOBAL], true);
     }
 
     /**

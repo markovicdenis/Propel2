@@ -1,5 +1,6 @@
 {
     "phpstan.binPath": "vendor/bin/phpstan",
+    "php-cs-fixer.executablePath": "/home/denis/.config/composer/vendor/bin/php-cs-fixer",
     "phpstan.checkValidity": false,
     "phpstan.memoryLimit": "2G",
     "php.stubs": ["all"],

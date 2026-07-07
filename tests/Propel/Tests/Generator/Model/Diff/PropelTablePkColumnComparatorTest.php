@@ -15,6 +15,7 @@ use Propel\Generator\Model\Diff\TableDiff;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
 use Propel\Tests\TestCase;
+use ReflectionProperty;
 
 /**
  * Tests for the Column methods of the TableComparator service class.
@@ -253,5 +254,64 @@ class PropelTablePkColumnComparatorTest extends TestCase
         $this->assertEquals([[$c1, $c4], [$c2, $c5]], $tableDiff->getRenamedPkColumns());
         $this->assertEquals([], $tableDiff->getAddedPkColumns());
         $this->assertEquals([], $tableDiff->getRemovedPkColumns());
+    }
+
+    /**
+     * @return void
+     */
+    public function testCompareAddedPkColumnForPartitionIndexModeDoesNotDiff()
+    {
+        $t1 = new Table('');
+        $t1->isPartitioned = true;
+        $this->setPartitionPkMode($t1, Table::PARTITION_PK_INDEX);
+
+        $t2 = new Table('');
+        $t2->isPartitioned = true;
+        $this->setPartitionPkMode($t2, Table::PARTITION_PK_INDEX);
+
+        $c2 = new Column('Foo');
+        $c2->getDomain()->copy($this->platform->getDomainForType('INTEGER'));
+        $c2->setPrimaryKey(true);
+        $t2->addColumn($c2);
+
+        $tc = new TableComparator();
+        $tc->setFromTable($t1);
+        $tc->setToTable($t2);
+
+        $this->assertSame(0, $tc->comparePrimaryKeys());
+        $this->assertSame([], $tc->getTableDiff()->getAddedPkColumns());
+        $this->assertSame([], $tc->getTableDiff()->getRemovedPkColumns());
+    }
+
+    /**
+     * @return void
+     */
+    public function testCompareAddedPkColumnForPartitionCompositeModeStillDiffs()
+    {
+        $t1 = new Table('');
+        $t1->isPartitioned = true;
+        $this->setPartitionPkMode($t1, Table::PARTITION_PK_COMPOSITE);
+
+        $t2 = new Table('');
+        $t2->isPartitioned = true;
+        $this->setPartitionPkMode($t2, Table::PARTITION_PK_COMPOSITE);
+
+        $c2 = new Column('Foo');
+        $c2->getDomain()->copy($this->platform->getDomainForType('INTEGER'));
+        $c2->setPrimaryKey(true);
+        $t2->addColumn($c2);
+
+        $tc = new TableComparator();
+        $tc->setFromTable($t1);
+        $tc->setToTable($t2);
+
+        $this->assertSame(1, $tc->comparePrimaryKeys());
+        $this->assertSame(['Foo' => $c2], $tc->getTableDiff()->getAddedPkColumns());
+    }
+
+    private function setPartitionPkMode(Table $table, string $mode): void
+    {
+        $property = new ReflectionProperty(Table::class, 'partitionPkMode');
+        $property->setValue($table, $mode);
     }
 }
