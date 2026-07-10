@@ -1004,11 +1004,37 @@ EOF;
 
         $classes = $builder->getClasses();
 
-        $this->assertMatchesRegularExpression(
-            '/if \(null === \$this->id\) \{\s+try \{\s+\$pk = \$con->lastInsertId\(\);/s',
+        $this->assertStringContainsString(
+            '$insertedExplicitPrimaryKey = $this->isColumnModified(CustomerTableMap::COL_ID) && null !== $this->id;',
             $classes
         );
+        $this->assertMatchesRegularExpression('/if \(!\$insertedExplicitPrimaryKey\) \{\s+try \{\s+\$pk = \$con->lastInsertId\(\);/s', $classes);
         $this->assertStringContainsString("if (\$pk !== false) {", $classes);
+    }
+
+    /**
+     * @return void
+     */
+    public function testIdMethodNativeTableGeneratesGuardedLastInsertIdWithoutAllowPkInsert()
+    {
+        $schema = <<<EOF
+<database name="test" namespace="MyNameSpace">
+    <table name="customer">
+        <column name="id" required="true" primaryKey="true" autoIncrement="true" type="INTEGER"/>
+        <column name="name" type="VARCHAR"/>
+    </table>
+</database>
+EOF;
+        $builder = new QuickBuilder();
+        $builder->setSchema($schema);
+
+        $classes = $builder->getClasses();
+
+        $this->assertStringContainsString(
+            '$insertedExplicitPrimaryKey = $this->isColumnModified(CustomerTableMap::COL_ID) && null !== $this->id;',
+            $classes
+        );
+        $this->assertMatchesRegularExpression('/if \(!\$insertedExplicitPrimaryKey\) \{\s+try \{\s+\$pk = \$con->lastInsertId\(\);/s', $classes);
     }
 
     /**
@@ -1065,6 +1091,63 @@ EOF;
 
         CustomerTableMap::clearInstancePool();
         $this->assertNotNull(CustomerQuery::create()->findPk($generatedPkCustomer->getPrimaryKey(), $this->con));
+    }
+
+    /**
+     * @group pgsql
+     *
+     * @return void
+     */
+    public function testExplicitPrimaryKeyInsertOverrideOnPostgresSkipsLastInsertIdWithoutAllowPkInsert()
+    {
+        if (!$this->runningOnPostgreSQL()) {
+            $this->markTestSkipped('This test is designed for PostgreSQL');
+        }
+
+        ContestTableMap::doDeleteAll();
+
+        $con = new class ($this->con) extends ConnectionWrapper {
+            public int $lastInsertIdCallCount = 0;
+
+            public bool $failOnLastInsertId = false;
+
+            public function lastInsertId(?string $name = null)
+            {
+                $this->lastInsertIdCallCount++;
+
+                if ($this->failOnLastInsertId) {
+                    throw new Exception('lastInsertId should not be called when the primary key was set explicitly.');
+                }
+
+                return parent::lastInsertId($name);
+            }
+        };
+
+        $con->failOnLastInsertId = true;
+
+        $explicitPkContest = new Contest();
+        $explicitPkContest->overrideAutoIncrementPrimaryKeyInsertRestriction(true);
+        $explicitPkContest->setPrimaryKey(100000);
+        $explicitPkContest->setName('Explicit PK');
+        $explicitPkContest->save($con);
+
+        $this->assertSame(0, $con->lastInsertIdCallCount);
+        $this->assertSame(100000, $explicitPkContest->getPrimaryKey());
+
+        ContestTableMap::clearInstancePool();
+        $this->assertNotNull(ContestQuery::create()->findPk(100000, $this->con));
+
+        $con->failOnLastInsertId = false;
+
+        $generatedPkContest = new Contest();
+        $generatedPkContest->setName('Generated PK');
+        $generatedPkContest->save($con);
+
+        $this->assertSame(1, $con->lastInsertIdCallCount);
+        $this->assertNotNull($generatedPkContest->getPrimaryKey());
+
+        ContestTableMap::clearInstancePool();
+        $this->assertNotNull(ContestQuery::create()->findPk($generatedPkContest->getPrimaryKey(), $this->con));
     }
 
     /**
