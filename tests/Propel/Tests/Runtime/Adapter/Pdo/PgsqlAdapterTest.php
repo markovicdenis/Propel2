@@ -8,11 +8,15 @@
 
 namespace Propel\Tests\Runtime\Adapter\Pdo;
 
+use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
 use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Connection\ConnectionInterface;
+use Propel\Runtime\Connection\StatementInterface;
+use Propel\Runtime\Map\DatabaseMap;
+use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ServiceContainer\StandardServiceContainer;
 use Propel\Tests\Bookstore\BookQuery;
@@ -218,5 +222,30 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $this->assertStringContainsString('MIN(book.title) AS "MinTitle"', $generatedSql);
         $this->assertStringContainsString('ORDER BY MIN(book.title) DESC', $generatedSql);
         $this->assertStringNotContainsString('ORDER BY MinTitle DESC', $generatedSql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testBindValuesUsesStringBindingForUidBinaryColumns(): void
+    {
+        $adapter = new PgsqlAdapter();
+        $dbMap = new DatabaseMap('pgsql');
+        $tableMap = new TableMap('game_session', $dbMap);
+        $tableMap->addColumn('uuid', 'Uuid', 'UID_BINARY');
+        $dbMap->addTableObject($tableMap);
+
+        $stmt = $this->createMock(StatementInterface::class);
+        $stmt
+            ->expects($this->once())
+            ->method('bindValue')
+            ->with(':p1', '0197702f-8b6c-73d0-9f02-32594f9c6a2a', PDO::PARAM_STR)
+            ->willReturn(true);
+
+        $adapter->bindValues($stmt, [[
+            'table' => 'game_session',
+            'column' => 'uuid',
+            'value' => '0197702f-8b6c-73d0-9f02-32594f9c6a2a',
+        ]], $dbMap);
     }
 }

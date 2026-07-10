@@ -1504,7 +1504,7 @@ if (is_resource($columnValueAccessor)) {
 }";
         }
 
-        $pdoType = PropelTypes::getPdoTypeString($column->getType());
+        $pdoType = PropelTypes::getPdoTypeName($column->getPDOType());
         $script .= "\n\$stmt->bindValue($identifier, $columnValueAccessor, $pdoType);";
 
         return preg_replace('/^(.+)/m', $tab . '$1', $script);

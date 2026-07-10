@@ -9,6 +9,7 @@
 namespace Propel\Generator\Model;
 
 use Exception;
+use PDO;
 use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Platform\MysqlPlatform;
@@ -1266,6 +1267,10 @@ class Column extends MappingModel
      */
     public function getPDOType(): int
     {
+        if ($this->requiresUidStringConversion()) {
+            return PDO::PARAM_STR;
+        }
+
         return PropelTypes::getPDOType($this->getType());
     }
 

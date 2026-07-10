@@ -561,6 +561,18 @@ class PropelTypes
     }
 
     /**
+     * Returns the PDO type ('PDO::PARAM_*' constant) name.
+     *
+     * @param int $pdoType
+     *
+     * @return string
+     */
+    public static function getPdoTypeName(int $pdoType): string
+    {
+        return self::$pdoTypeNames[$pdoType];
+    }
+
+    /**
      * Returns an array of mapping types.
      *
      * @return array

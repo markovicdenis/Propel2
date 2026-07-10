@@ -459,6 +459,28 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testDoInsertUsesStringBindingForPostgresUidBinaryColumns()
+    {
+        $database = new Database('foo', new PgsqlPlatform());
+        $table = new Table('Foo');
+        $database->addTable($table);
+
+        $uid = new Column('uid');
+        $uid->setDomain(new Domain('UID_BINARY'));
+        $table->addColumn($uid);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $script = $builder->addDoInsertToScript();
+
+        $this->assertStringContainsString("UuidConverter::uidToString(\$this->uid)", $script);
+        $this->assertStringContainsString("new InsertColumnBindingDto(':p'.\$index++, 'uid', (\$this->uid) ? UuidConverter::uidToString(\$this->uid) : null, PDO::PARAM_STR);", $script);
+    }
+
+    /**
+     * @return void
+     */
     public function testDefaultMutatorUsesSharedCastHelper()
     {
         $table = new Table('Foo');

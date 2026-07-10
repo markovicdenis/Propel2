@@ -7125,7 +7125,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             $constantName = $this->getColumnConstant($column);
             $quotedColumnName = var_export($this->quoteIdentifier($column->getName()), true);
             $valueStatement = $this->getInsertColumnValueStatement($column);
-            $pdoType = PropelTypes::getPdoTypeString($column->getType());
+            $pdoType = PropelTypes::getPdoTypeName($column->getPDOType());
             $isRequired = $column->isNotNull() && $column->isPhpObjectType();
             if ($isRequired) {
                 $script .= "

@@ -416,6 +416,18 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
         }
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function bindValue(StatementInterface $stmt, string $parameter, $value, ColumnMap $cMap, ?int $position = null): bool
+    {
+        if ($cMap->getType() === 'UID_BINARY') {
+            return $stmt->bindValue($parameter, $value, PDO::PARAM_STR);
+        }
+
+        return parent::bindValue($stmt, $parameter, $value, $cMap, $position);
+    }
+
     public function resolveAggregateOrderBy(
         string $clause,
         Criteria $criteria,
