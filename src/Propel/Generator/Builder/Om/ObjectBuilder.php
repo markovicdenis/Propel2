@@ -3268,15 +3268,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *                    Defaults to TableMap::$defaultKeyType.
      * @param bool \$includeLazyLoadColumns (optional) Whether to include lazy loaded columns. Defaults to TRUE.
      * @param array \$alreadyDumpedObjects List of objects to skip to avoid recursion";
-        if ($hasFks) {
-            $script .= "
+        $script .= "
      * @param bool \$includeForeignObjects (optional) Whether to include hydrated related objects. Default to FALSE.";
-        }
         $script .= "
      *
      * @return array An associative array containing the field names (as keys) and field values
      */
-    public function toArray(string \$keyType = TableMap::$defaultKeyType, bool \$includeLazyLoadColumns = true, array \$alreadyDumpedObjects = []" . ($hasFks ? ', bool $includeForeignObjects = false' : '') . "): array
+    public function toArray(string \$keyType = TableMap::$defaultKeyType, bool \$includeLazyLoadColumns = true, array \$alreadyDumpedObjects = [], bool \$includeForeignObjects = false): array
     {
         if (isset(\$alreadyDumpedObjects['$objectClassName'][\$this->hashCode()])) {
             return ['*RECURSION*'];

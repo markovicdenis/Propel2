@@ -1548,6 +1548,10 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringNotContainsString('protected $collBooks', $authorScript);
         $this->assertStringNotContainsString('public function getBooks(', $authorScript);
         $this->assertStringNotContainsString('public function addBook(', $authorScript);
+        $this->assertStringContainsString(
+            'public function toArray(string $keyType = TableMap::TYPE_PHPNAME, bool $includeLazyLoadColumns = true, array $alreadyDumpedObjects = [], bool $includeForeignObjects = false): array',
+            $authorScript,
+        );
 
         $bookBuilder = new TestableObjectBuilder($bookTable);
         $bookBuilder->setGeneratorConfig(new QuickGeneratorConfig());
