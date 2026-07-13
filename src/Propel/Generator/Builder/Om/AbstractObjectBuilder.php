@@ -136,6 +136,11 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
                 if ($col->isNamePlural()) {
                     $this->addHasArrayElement($script, $col);
                 }
+            } elseif ($type === PropelTypes::NATIVE_ARRAY) {
+                $this->addDefaultAccessor($script, $col);
+                if ($col->isNamePlural()) {
+                    $this->addHasArrayElement($script, $col);
+                }
             } elseif ($type === PropelTypes::JSON) {
                 $this->addJsonAccessor($script, $col);
             } elseif ($col->isEnumType()) {
@@ -197,6 +202,14 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
                     }
 
                     break;
+                case PropelTypes::NATIVE_ARRAY:
+                    $this->addDefaultMutator($script, $col);
+                    if ($col->isNamePlural()) {
+                        $this->addAddArrayElement($script, $col);
+                        $this->addRemoveArrayElement($script, $col);
+                    }
+
+                    break;
                 case PropelTypes::JSON:
                     $this->addJsonMutator($script, $col);
 
@@ -245,6 +258,10 @@ abstract class AbstractObjectBuilder extends AbstractOMBuilder
 
         if ($col->getType() === PropelTypes::PHP_ARRAY) {
             return PropelTypes::PHP_ARRAY;
+        }
+
+        if ($col->getType() === PropelTypes::NATIVE_ARRAY) {
+            return PropelTypes::NATIVE_ARRAY;
         }
 
         if ($col->getType() === PropelTypes::JSON) {

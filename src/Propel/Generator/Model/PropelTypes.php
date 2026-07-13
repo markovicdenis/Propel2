@@ -164,6 +164,13 @@ class PropelTypes
     public const PHP_ARRAY = 'ARRAY';
 
     /**
+     * A database-native array. Currently supported by PostgreSQL only.
+     *
+     * @var string
+     */
+    public const NATIVE_ARRAY = 'NATIVE_ARRAY';
+
+    /**
      * @var string
      */
     public const ENUM = 'ENUM';
@@ -326,6 +333,11 @@ class PropelTypes
     /**
      * @var string
      */
+    public const NATIVE_ARRAY_NATIVE_TYPE = 'array';
+
+    /**
+     * @var string
+     */
     public const ENUM_NATIVE_TYPE = 'int';
 
     /**
@@ -404,6 +416,7 @@ class PropelTypes
         self::BOOLEAN_EMU,
         self::OBJECT,
         self::PHP_ARRAY,
+        self::NATIVE_ARRAY,
         self::ENUM,
         self::GEOMETRY,
         // These are pre-epoch dates, which we need to map to String type
@@ -453,6 +466,7 @@ class PropelTypes
         self::BOOLEAN_EMU => self::BOOLEAN_EMU_NATIVE_TYPE,
         self::OBJECT => self::OBJECT_NATIVE_TYPE,
         self::PHP_ARRAY => self::PHP_ARRAY_NATIVE_TYPE,
+        self::NATIVE_ARRAY => self::NATIVE_ARRAY_NATIVE_TYPE,
         self::ENUM => self::ENUM_NATIVE_TYPE,
         self::SET => self::SET_NATIVE_TYPE,
         self::GEOMETRY => self::GEOMETRY,
@@ -496,6 +510,7 @@ class PropelTypes
         self::BOOLEAN_EMU => PDO::PARAM_INT,
         self::OBJECT => PDO::PARAM_LOB,
         self::PHP_ARRAY => PDO::PARAM_STR,
+        self::NATIVE_ARRAY => PDO::PARAM_STR,
         self::ENUM => PDO::PARAM_INT,
         self::SET => PDO::PARAM_INT,
         self::GEOMETRY => PDO::PARAM_LOB,

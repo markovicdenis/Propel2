@@ -409,10 +409,19 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      *
      * @param \Propel\Generator\Model\Column $col
      *
+     * @throws \Propel\Generator\Exception\EngineException
+     *
      * @return string
      */
     public function getColumnDDL(Column $col): string
     {
+        if ($col->isNativeArrayType()) {
+            throw new EngineException(sprintf(
+                'NATIVE_ARRAY column "%s" is only supported by PostgreSQL.',
+                $col->getFullyQualifiedName(),
+            ));
+        }
+
         $domain = $col->getDomain();
 
         $ddl = [$this->quoteIdentifier($col->getName())];
@@ -480,6 +489,8 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
                     } else {
                         $default .= $value;
                     }
+                } elseif ($col->isNativeArrayType()) {
+                    $default .= $this->quote((string)$defaultValue->getValue());
                 } else {
                     $default .= $defaultValue->getValue();
                 }

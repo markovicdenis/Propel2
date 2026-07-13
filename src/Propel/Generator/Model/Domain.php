@@ -9,9 +9,10 @@
 namespace Propel\Generator\Model;
 
 use DOMDocument;
-use DOMNode;
-use Propel\Generator\Exception\EngineException;
 use DOMElement;
+use DOMNode;
+use Propel\Common\Util\PgsqlArrayCodec;
+use Propel\Generator\Exception\EngineException;
 
 use function in_array;
 use function sprintf;
@@ -346,6 +347,9 @@ class Domain extends MappingModel
 
         if ($this->mappingType === PropelTypes::PHP_ARRAY) {
             return $this->getDefaultValueForArray((string)$this->defaultValue->getValue());
+        }
+        if ($this->mappingType === PropelTypes::NATIVE_ARRAY) {
+            return PgsqlArrayCodec::decode((string)$this->defaultValue->getValue(), $this->sqlType);
         }
         if ($this->mappingType === PropelTypes::SET) {
             return $this->getDefaultValueForSet((string)$this->defaultValue->getValue());

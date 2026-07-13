@@ -1491,6 +1491,28 @@ class Column extends MappingModel
     }
 
     /**
+     * Returns whether this column uses a database-native array.
+     *
+     * @return bool
+     */
+    public function isNativeArrayType(): bool
+    {
+        return $this->getType() === PropelTypes::NATIVE_ARRAY;
+    }
+
+    /**
+     * Returns the native array's SQL element type.
+     *
+     * @return string
+     */
+    public function getNativeArrayElementType(): string
+    {
+        $sqlType = trim($this->getSqlType());
+
+        return str_ends_with($sqlType, '[]') ? substr($sqlType, 0, -2) : $sqlType;
+    }
+
+    /**
      * Returns whether this column is an ENUM or SET column.
      *
      * @return bool

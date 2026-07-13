@@ -9,6 +9,7 @@
 namespace Propel\Runtime\Adapter\Pdo;
 
 use PDO;
+use Propel\Common\Util\PgsqlArrayCodec;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\AdapterInterface;
@@ -418,9 +419,19 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
 
     /**
      * @inheritDoc
+     *
+     * @throws \Propel\Runtime\Exception\InvalidArgumentException
      */
     public function bindValue(StatementInterface $stmt, string $parameter, $value, ColumnMap $cMap, ?int $position = null): bool
     {
+        if ($cMap->getType() === 'NATIVE_ARRAY') {
+            if (!is_array($value)) {
+                throw new InvalidArgumentException('NATIVE_ARRAY values must be PHP arrays.');
+            }
+
+            return $stmt->bindValue($parameter, PgsqlArrayCodec::encode($value), PDO::PARAM_STR);
+        }
+
         if ($cMap->getType() === 'UID_BINARY') {
             return $stmt->bindValue($parameter, $value, PDO::PARAM_STR);
         }

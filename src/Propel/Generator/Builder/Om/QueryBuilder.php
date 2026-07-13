@@ -258,6 +258,8 @@ class QueryBuilder extends AbstractOMBuilder
             if ($col->isNamePlural()) {
                 if ($col->getType() === PropelTypes::PHP_ARRAY) {
                     $this->addFilterByArrayCol($script, $col);
+                } elseif ($col->isNativeArrayType()) {
+                    $this->addFilterByNativeArrayCol($script, $col);
                 } elseif ($col->isSetType()) {
                     $this->addFilterBySetCol($script, $col);
                 }
@@ -1058,6 +1060,9 @@ class QueryBuilder extends AbstractOMBuilder
         } elseif ($col->getType() == PropelTypes::PHP_ARRAY) {
             $script .= "
      * @param array \$$variableName The values to use as filter.";
+        } elseif ($col->isNativeArrayType()) {
+            $script .= "
+     * @param array|null \$$variableName The values to use as a native-array filter.";
         } elseif ($col->isTextType()) {
             $script .= "
      * Example usage:
@@ -1116,6 +1121,22 @@ class QueryBuilder extends AbstractOMBuilder
         if (is_object(\$$variableName)) {
             \$$variableName = serialize(\$$variableName);
         }";
+        } elseif ($col->isNativeArrayType()) {
+            $script .= "
+        if (\$$variableName === null) {
+            \$this->addUsingAlias($qualifiedName, null, \$comparison);
+
+            return \$this;
+        }
+        if (!is_array(\$$variableName)) {
+            throw new PropelException('NATIVE_ARRAY filters require a PHP array.');
+        }
+        \$comparison = match (\$comparison) {
+            null, Criteria::CONTAINS_ALL => Criteria::ARRAY_CONTAINS,
+            Criteria::CONTAINS_SOME => Criteria::ARRAY_OVERLAPS,
+            Criteria::CONTAINS_NONE => Criteria::ARRAY_NOT_OVERLAPS,
+            default => \$comparison,
+        };";
         } elseif ($col->getType() == PropelTypes::PHP_ARRAY) {
             $script .= "
         \$key = \$this->getAliasedColName($qualifiedName);
@@ -1251,7 +1272,38 @@ class QueryBuilder extends AbstractOMBuilder
     }
 
     /**
-     * Adds the singular filterByCol method for an Array column.
+     * Adds the singular filter method for a native array column.
+     *
+     * @param string $script
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return void
+     */
+    protected function addFilterByNativeArrayCol(string &$script, Column $col): void
+    {
+        $colPhpName = $col->getPhpName();
+        $singularPhpName = $col->getPhpSingularName();
+        $colName = $col->getName();
+        $variableName = $col->getCamelCaseName();
+        $script .= "
+    /**
+     * Filter the query on the $colName column by one array element.
+     * @param mixed \$$variableName The value to use as filter
+     * @param string|null \$comparison Operator, defaults to Criteria::CONTAINS_ALL
+     *
+     * @return \$this The current query, for fluid interface
+     */
+    public function filterBy$singularPhpName(\$$variableName = null, ?string \$comparison = null)
+    {
+        \$this->filterBy$colPhpName([\$$variableName], \$comparison);
+
+        return \$this;
+    }
+";
+    }
+
+    /**
+     * Adds the singular filterByCol method for a Set column.
      *
      * @param string $script The script will be modified in this method.
      * @param \Propel\Generator\Model\Column $col

@@ -50,6 +50,7 @@
             <xs:enumeration value="BOOLEAN"/>
             <xs:enumeration value="OBJECT"/>
             <xs:enumeration value="ARRAY"/>
+            <xs:enumeration value="NATIVE_ARRAY"/>
             <xs:enumeration value="ENUM"/>
             <xs:enumeration value="SET"/>
         </xs:restriction>

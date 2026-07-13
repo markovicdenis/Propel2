@@ -67,6 +67,10 @@ class CriterionFactory
                 // table.column & ? = 0 (Similar to  "NOT IN")
                 // something like $c->add(BookTableMap::SOME_ARRAY_VAR, 26, Criteria::BINARY_NONE);
                 return new BinaryCriterion($criteria, $column, $value, $comparison);
+            case Criteria::ARRAY_CONTAINS:
+            case Criteria::ARRAY_OVERLAPS:
+            case Criteria::ARRAY_NOT_OVERLAPS:
+                return new NativeArrayCriterion($criteria, $column, $value, $comparison);
             default:
                 // simple comparison
                 // something like $c->add(BookTableMap::PRICE, 12, Criteria::GREATER_THAN);

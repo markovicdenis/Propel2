@@ -452,6 +452,13 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      */
     public function getColumnDDL(Column $col): string
     {
+        if ($col->isNativeArrayType()) {
+            throw new EngineException(sprintf(
+                'NATIVE_ARRAY column "%s" is only supported by PostgreSQL.',
+                $col->getFullyQualifiedName(),
+            ));
+        }
+
         $domain = $col->getDomain();
         $sqlType = $domain->getSqlType();
         $notNullString = $this->getNullString($col->isNotNull());

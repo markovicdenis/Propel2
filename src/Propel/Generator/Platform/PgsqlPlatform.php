@@ -62,6 +62,7 @@ class PgsqlPlatform extends DefaultPlatform
         $this->setSchemaDomainMapping(new Domain(PropelTypes::CLOB, 'TEXT'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::OBJECT, 'BYTEA'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::PHP_ARRAY, 'TEXT'));
+        $this->setSchemaDomainMapping(new Domain(PropelTypes::NATIVE_ARRAY, 'TEXT[]'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::ENUM, 'INT2'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::SET, 'INT4'));
         $this->setSchemaDomainMapping(new Domain(PropelTypes::DECIMAL, 'NUMERIC'));
@@ -687,11 +688,19 @@ DROP TABLE IF EXISTS %s CASCADE;
     /**
      * @param \Propel\Generator\Model\Column $col
      *
+     * @throws \Propel\Generator\Exception\EngineException
+     *
      * @return string
      */
     public function getColumnDDL(Column $col): string
     {
         $domain = $col->getDomain();
+        if ($col->isNativeArrayType() && !preg_match('/^[^\[\]]+\[\]$/', trim($domain->getSqlType()))) {
+            throw new EngineException(sprintf(
+                'NATIVE_ARRAY column "%s" must use a one-dimensional PostgreSQL array sqlType such as TEXT[] or UUID[].',
+                $col->getFullyQualifiedName(),
+            ));
+        }
         $usesIdentityAutoIncrement = $this->usesIdentityAutoIncrement($col);
         $usesCustomSequenceAutoIncrement = $this->usesCustomSequenceAutoIncrement($col);
 
@@ -1022,6 +1031,33 @@ DROP SEQUENCE %s CASCADE;
         $fromSqlType = strtoupper($fromColumn->getDomain()->getSqlType());
         $toSqlType = strtoupper($toColumn->getDomain()->getSqlType());
         $name = $fromColumn->getName();
+
+        if ($fromColumn->isNativeArrayType() && $toColumn->isNativeArrayType()) {
+            return sprintf(' USING %s::%s', $name, $toColumn->getSqlType());
+        }
+
+        if ($fromColumn->isNativeArrayType() && $toColumn->getType() === PropelTypes::PHP_ARRAY) {
+            return sprintf(
+                " USING CASE WHEN %1\$s IS NULL OR cardinality(%1\$s) = 0 THEN NULL ELSE '| ' || array_to_string(%1\$s, ' | ', '') || ' |' END",
+                $name,
+            );
+        }
+
+        if ($fromColumn->isNativeArrayType() && $this->isString($toSqlType)) {
+            return " USING $name::text";
+        }
+
+        if ($fromColumn->getType() === PropelTypes::PHP_ARRAY && $toColumn->isNativeArrayType()) {
+            return sprintf(
+                " USING CASE WHEN %1\$s IS NULL THEN NULL ELSE string_to_array(substring(%1\$s FROM 3 FOR char_length(%1\$s) - 4), ' | ')::%2\$s END",
+                $name,
+                $toColumn->getSqlType(),
+            );
+        }
+
+        if ($this->isString($fromSqlType) && $toColumn->isNativeArrayType()) {
+            return sprintf(' USING %s::%s', $name, $toColumn->getSqlType());
+        }
 
         if ($this->isString($fromSqlType) && $this->isNumber($toSqlType)) {
             //cast from string to int

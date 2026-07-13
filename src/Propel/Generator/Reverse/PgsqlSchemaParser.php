@@ -264,22 +264,29 @@ class PgsqlSchemaParser extends AbstractSchemaParser
 
         $stmt = $this->dbh->prepare("
         SELECT
-            column_name,
-            data_type,
-            column_default,
-            is_identity,
-            is_nullable,
-            numeric_precision,
-            numeric_scale,
-            character_maximum_length
-        FROM information_schema.columns
+            columns.column_name,
+            columns.data_type,
+            columns.column_default,
+            columns.is_identity,
+            columns.is_nullable,
+            columns.numeric_precision,
+            columns.numeric_scale,
+            columns.character_maximum_length,
+            pg_catalog.format_type(attributes.atttypid, attributes.atttypmod) AS formatted_type
+        FROM information_schema.columns AS columns
+        LEFT JOIN pg_catalog.pg_attribute AS attributes
+            ON attributes.attrelid = ?
+            AND attributes.attname = columns.column_name
+            AND attributes.attnum > 0
+            AND NOT attributes.attisdropped
         WHERE
-            table_schema IN ($searchPath) AND table_name = ?
+            columns.table_schema IN ($searchPath) AND columns.table_name = ?
         ");
         if ($stmt === false) {
             throw new RuntimeException('PdoConnection::prepare() failed and did not return statement object for execution.');
         }
 
+        array_unshift($params, $oid);
         $params[] = $table->getCommonName();
         $stmt->execute($params);
 
@@ -296,12 +303,10 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $isIdentity = strtoupper((string)$row['is_identity']) === 'YES';
             $isNullable = ($row['is_nullable'] === true || strtoupper($row['is_nullable']) === 'YES');
 
-            // Check to ensure that this column isn't an array data type
             if ($type === 'ARRAY') {
-                $this->warn(sprintf('Array datatypes are not currently supported [%s.%s]', $table->getName(), $name));
-
-                continue;
+                $type = $row['formatted_type'];
             }
+            $isNativeArray = str_ends_with($type, '[]');
 
             $autoincrement = null;
 
@@ -317,7 +322,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
                 $default = null;
             }
 
-            $propelType = $this->getMappedPropelType($type);
+            $propelType = $isNativeArray ? PropelTypes::NATIVE_ARRAY : $this->getMappedPropelType($type);
             if (!$propelType) {
                 $propelType = Column::DEFAULT_TYPE;
                 $this->warn('Column [' . $table->getName() . '.' . $name . '] has a column type (' . $type . ') that Propel does not support.');
@@ -340,13 +345,16 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $column = new Column($name);
             $column->setTable($table);
             $column->setDomainForType($propelType);
+            if ($isNativeArray) {
+                $column->getDomain()->replaceSqlType($type);
+            }
             $column->getDomain()->replaceSize($size);
             if ($scale) {
                 $column->getDomain()->replaceScale($scale);
             }
 
             if ($default !== null) {
-                if ($this->isColumnDefaultExpression($default)) {
+                if ($isNativeArray || $this->isColumnDefaultExpression($default)) {
                     $defaultType = ColumnDefaultValue::TYPE_EXPR;
                 } else {
                     $defaultType = ColumnDefaultValue::TYPE_VALUE;

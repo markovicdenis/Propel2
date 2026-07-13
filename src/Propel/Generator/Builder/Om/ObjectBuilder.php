@@ -1540,7 +1540,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $cfc = $column->getPhpName();
         $visibility = $column->getAccessorVisibility();
         $singularPhpName = $column->getPhpSingularName();
-        $columnType = ($column->getType() === PropelTypes::PHP_ARRAY) ? 'array' : 'set';
+        $columnType = $column->isSetType() ? 'set' : 'array';
         $script .= "
     /**
      * Test the presence of a value in the [$clo] $columnType column value.
@@ -2334,7 +2334,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $cfc = $col->getPhpName();
         $visibility = $col->getAccessorVisibility();
         $singularPhpName = $col->getPhpSingularName();
-        $columnType = ($col->getType() === PropelTypes::PHP_ARRAY) ? 'array' : 'set';
+        $columnType = $col->isSetType() ? 'set' : 'array';
         $script .= "
     /**
      * Adds a value to the [$clo] $columnType column value.
@@ -2382,7 +2382,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $cfc = $col->getPhpName();
         $visibility = $col->getAccessorVisibility();
         $singularPhpName = $col->getPhpSingularName();
-        $columnType = ($col->getType() === PropelTypes::PHP_ARRAY) ? 'array' : 'set';
+        $columnType = $col->isSetType() ? 'set' : 'array';
         $script .= "
     /**
      * Removes a value from the [$clo] $columnType column value.
@@ -2922,6 +2922,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 \$col = stream_get_contents(\$col);
             }
             \$this->$clo = (\$col) ? UuidConverter::binToUuid(\$col, $uuidSwapFlag) : null;";
+                } elseif ($col->isNativeArrayType()) {
+                    $this->declareClass('\Propel\Common\Util\PgsqlArrayCodec');
+                    $elementType = var_export($col->getNativeArrayElementType(), true);
+                    $script .= "
+            \$this->$clo = PgsqlArrayCodec::decode(\$col, $elementType);";
                 } elseif ($col->isPhpPrimitiveType()) {
                     $script .= "
             \$this->$clo = (null !== \$col) ? (" . $col->getPhpType() . ') $col : null;';
@@ -2999,6 +3004,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             || $column->isUidType()
             || $column->isUuidBinaryType()
             || $column->getType() === PropelTypes::PHP_ARRAY
+            || $column->isNativeArrayType()
             || $column->isSetType()
         ) {
             return null;
@@ -7241,6 +7247,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function getInsertColumnValueStatement(Column $column): string
     {
         $accessValueStatement = $this->getAccessValueStatement($column);
+
+        if ($column->isNativeArrayType()) {
+            $this->declareClass('\Propel\Common\Util\PgsqlArrayCodec');
+
+            return $accessValueStatement . ' !== null ? PgsqlArrayCodec::encode(' . $accessValueStatement . ') : null';
+        }
 
         if ($column->getType() === PropelTypes::DATE) {
             return $accessValueStatement . " ? " . $accessValueStatement . "->format('" . $this->getPlatform()->getDateFormatter() . "') : null";

@@ -27,7 +27,7 @@ trait ObjectBuilderTrait
                 'BOOLEAN' => 'false',
                 'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
                 'UID', 'UID_BINARY' => 'null',
-                'ARRAY' => '[]',
+                'ARRAY', 'NATIVE_ARRAY' => '[]',
                 'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
                 default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
             };
@@ -44,7 +44,7 @@ trait ObjectBuilderTrait
         }
     }
 
-    private function escapeValueForPhpCode(string $value, Column $col): string
+    private function escapeValueForPhpCode(mixed $value, Column $col): string
     {
         return match($col->getType()) {
             'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
@@ -138,7 +138,7 @@ trait ObjectBuilderTrait
             $defaultValue = var_export($val, true);
         } elseif ($column->isPhpObjectType()) {
             $defaultValue = 'new ' . $column->getPhpType() . '(' . var_export($val, true) . ')';
-        } elseif ($column->isPhpArrayType()) {
+        } elseif ($column->isPhpArrayType() || $column->isNativeArrayType()) {
             $defaultValue = var_export($val, true);
         } else {
             throw new EngineException('Cannot get default value string for ' . $column->getFullyQualifiedName());

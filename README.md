@@ -32,6 +32,7 @@ Read the [Propel documentation](http://propelorm.org/documentation/01-installati
 ## Additional Docs
 
 - [ObjectCollection guide](docs/ObjectCollection.md)
+- [Array types guide](docs/ArrayTypes.md)
 
 ## Contribute
 

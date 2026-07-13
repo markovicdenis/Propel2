@@ -588,7 +588,7 @@ class TableMap
      * @param string $type A string specifying the Propel type.
      * @param bool $isNotNull Whether column does not allow NULL values.
      * @param int|null $size An int specifying the size.
-     * @param string|int|bool|null $defaultValue
+     * @param array<mixed>|string|int|bool|null $defaultValue
      * @param bool $pk True if column is a primary key.
      * @param string|null $fkTable A String with the foreign key table name.
      * @param string|null $fkColumn A String with the foreign key column name.

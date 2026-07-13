@@ -131,4 +131,25 @@ class PgsqlSchemaParserTest extends TestCaseFixturesDatabase
         $this->assertTrue($column->isAutoIncrement());
         $this->assertNull($column->getDefaultValue());
     }
+
+    /**
+     * @return void
+     */
+    public function testParseNativeArrayColumn(): void
+    {
+        $this->con->query('create table foo ( tags uuid[] default ARRAY[]::uuid[] );');
+        $parser = new PgsqlSchemaParser($this->con);
+        $parser->setGeneratorConfig(new QuickGeneratorConfig());
+
+        $database = new Database();
+        $database->setSchema('public');
+        $database->setPlatform(new DefaultPlatform());
+
+        $parser->parse($database);
+
+        $column = $database->getTable('foo')->getColumn('tags');
+        $this->assertSame(PropelTypes::NATIVE_ARRAY, $column->getType());
+        $this->assertSame('uuid[]', $column->getSqlType());
+        $this->assertTrue($column->getDefaultValue()->isExpression());
+    }
 }

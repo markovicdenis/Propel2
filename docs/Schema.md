@@ -218,7 +218,7 @@ Notes:
   [tableMapName="/TABLEMAPNAME/"]
   [primaryKey="true|{false}"]
   [required="true|{false}"]
-  [type="BOOLEAN|TINYINT|SMALLINT|INTEGER|BIGINT|DOUBLE|FLOAT|REAL|DECIMAL|NUMERIC|CHAR|VARCHAR|LONGVARCHAR|DATE|TIME|TIMESTAMP|BLOB|CLOB|OBJECT|ARRAY|ENUM|SET|GEOMETRY|BU_DATE|BU_TIMESTAMP|BOOLEAN_EMU|BINARY|VARBINARY|LONGVARBINARY|UUID|UUID_BINARY|UID|UID_BINARY"]
+  [type="BOOLEAN|TINYINT|SMALLINT|INTEGER|BIGINT|DOUBLE|FLOAT|REAL|DECIMAL|NUMERIC|CHAR|VARCHAR|LONGVARCHAR|DATE|TIME|TIMESTAMP|BLOB|CLOB|OBJECT|ARRAY|NATIVE_ARRAY|ENUM|SET|GEOMETRY|BU_DATE|BU_TIMESTAMP|BOOLEAN_EMU|BINARY|VARBINARY|LONGVARBINARY|UUID|UUID_BINARY|UID|UID_BINARY"]
   [phpType="boolean|int|integer|double|float|string|/BuiltInClassName/|/UserDefinedClassName/"]
   [sqlType="/NativeDatabaseColumnType/"]
   [size="/NumericLengthOfColumn/"]
@@ -402,7 +402,8 @@ These are Propel's portable column types and typical MySQL and PHP mappings.
 - `ENUM`: accepts one value from a comma-separated `valueSet`.
 - `SET`: accepts multiple values from a comma-separated `valueSet`.
 - `OBJECT`: maps to a PHP object and is stored as binary.
-- `ARRAY`: maps to a PHP array and is stored as text.
+- `ARRAY`: maps to a PHP array and is stored using Propel's legacy delimiter-encoded text representation.
+- `NATIVE_ARRAY`: maps to a PHP array and uses a PostgreSQL one-dimensional native array; see [Array Types](ArrayTypes.md).
 - `UUID`: uses a database-native UUID column when available, otherwise the binary UUID strategy.
 - `UUID_BINARY`: stores UUID values in a compact binary format. See [UUID And UID Support](UuidSupport.md).
 - `UID`: exposes Symfony `UuidV7` objects at the PHP layer and stores them in the platform's preferred UUID-capable representation.
@@ -414,6 +415,28 @@ UUID-related defaults:
 - `UUID` and `UUID_BINARY` are string-oriented in PHP.
 - `UID` and `UID_BINARY` normalize to Symfony `UuidV7` objects in PHP.
 - See [UUID And UID Support](UuidSupport.md) for platform storage details and runtime conversion behavior.
+
+### Native Arrays (PostgreSQL)
+
+`NATIVE_ARRAY` stores a one-dimensional, homogeneous PHP array in a PostgreSQL native array column. It defaults to `TEXT[]`; use `sqlType` to select another PostgreSQL element type:
+
+```xml
+<column name="tags" type="NATIVE_ARRAY"/>
+<column name="scores" type="NATIVE_ARRAY" sqlType="INTEGER[]" required="true"/>
+<column name="reviewer_ids" type="NATIVE_ARRAY" sqlType="UUID[]"/>
+```
+
+`NATIVE_ARRAY` is PostgreSQL-only. SQL generation on another platform fails with an explicit unsupported-type error. Multidimensional PHP arrays are rejected.
+
+Generated models expose native arrays as PHP arrays and preserve PostgreSQL `NULL` elements. Generated query methods translate Propel's collection comparisons as follows:
+
+| Propel comparison | PostgreSQL operation |
+| --- | --- |
+| `Criteria::CONTAINS_ALL` (default) | `column @> value` |
+| `Criteria::CONTAINS_SOME` | `column && value` |
+| `Criteria::CONTAINS_NONE` | `column IS NULL OR NOT (column && value)` |
+
+For frequently searched arrays, create a PostgreSQL GIN index in a migration, for example `CREATE INDEX event_tags_gin ON event USING GIN (tags);`.
 
 ### Legacy Temporal Types
 

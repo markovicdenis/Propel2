@@ -107,6 +107,21 @@ class Criteria
     public const CONTAINS_NONE = 'CONTAINS_NONE';
 
     /**
+     * @var string PostgreSQL native-array containment operator.
+     */
+    public const ARRAY_CONTAINS = ' @> ';
+
+    /**
+     * @var string PostgreSQL native-array overlap operator.
+     */
+    public const ARRAY_OVERLAPS = ' && ';
+
+    /**
+     * @var string Negated PostgreSQL native-array overlap, including NULL arrays.
+     */
+    public const ARRAY_NOT_OVERLAPS = 'ARRAY_NOT_OVERLAPS';
+
+    /**
      * @var string
      */
     public const ILIKE = ' ILIKE ';
