@@ -319,6 +319,31 @@ END;
     }
 
     /**
+     * @return void
+     */
+    public function testGetModifyColumnDDLDoesNotApplySizeToJson()
+    {
+        $fromTable = new Table('foo');
+        $fromTable->setIdentifierQuoting(true);
+        $fromColumn = new Column('meta');
+        $fromColumn->getDomain()->copy($this->getPlatform()->getDomainForType('JSON'));
+        $fromColumn->getDomain()->replaceSize(1000);
+        $fromTable->addColumn($fromColumn);
+
+        $toTable = new Table('foo');
+        $toTable->setIdentifierQuoting(true);
+        $toColumn = new Column('meta');
+        $toColumn->getDomain()->copy($this->getPlatform()->getDomainForType('JSON'));
+        $toColumn->getDomain()->replaceSize(1200);
+        $toTable->addColumn($toColumn);
+
+        $columnDiff = ColumnComparator::computeDiff($fromColumn, $toColumn);
+
+        $expected = '';
+        $this->assertSame($expected, $this->getPlatform()->getModifyColumnDDL($columnDiff));
+    }
+
+    /**
      * @dataProvider providerForTestGetModifyColumnsDDL
      *
      * @return void

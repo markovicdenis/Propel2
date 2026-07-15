@@ -804,6 +804,18 @@ DROP SEQUENCE "foo_sequence";
     /**
      * @return void
      */
+    public function testGetColumnDDLDoesNotApplySizeToJson()
+    {
+        $column = new Column('meta');
+        $column->getDomain()->copy($this->getPlatform()->getDomainForType(PropelTypes::JSON));
+        $column->getDomain()->replaceSize(1200);
+
+        $this->assertSame('"meta" JSON', $this->getPlatform()->getColumnDDL($column));
+    }
+
+    /**
+     * @return void
+     */
     public function testGetPrimaryKeyDDLSimpleKey()
     {
         $table = new Table('foo');

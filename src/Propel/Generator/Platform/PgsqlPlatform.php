@@ -818,7 +818,7 @@ ALTER TABLE %s RENAME TO %s;
      */
     public function hasSize(string $sqlType): bool
     {
-        return !in_array(strtoupper($sqlType), ['BYTEA', 'TEXT', 'DOUBLE PRECISION'], true);
+        return !in_array(strtoupper($sqlType), ['BYTEA', 'TEXT', 'DOUBLE PRECISION', 'JSON', 'JSONB'], true);
     }
 
     /**
@@ -938,7 +938,11 @@ DROP SEQUENCE %s CASCADE;
             }
         }
 
-        if (isset($changedProperties['size']) || isset($changedProperties['type']) || isset($changedProperties['sqlType']) || isset($changedProperties['scale'])) {
+        $typeChanged = isset($changedProperties['type'])
+            || isset($changedProperties['sqlType'])
+            || isset($changedProperties['scale'])
+            || (isset($changedProperties['size']) && !in_array(strtoupper($toColumn->getSqlType()), ['JSON', 'JSONB'], true));
+        if ($typeChanged) {
             $sqlType = $toColumn->getDomain()->getSqlType();
 
             if ($this->hasSize($sqlType) && $toColumn->isDefaultSqlType($this)) {
