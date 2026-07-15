@@ -980,6 +980,37 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testCustomPhpTypeOnJsonUsesDefaultAccessorsAndMutators()
+    {
+        $database = new Database('test');
+        $table = new Table('Thing');
+        $database->addTable($table);
+        $payload = new Column('payload');
+        $table->addColumn($payload);
+        $payload->loadMapping([
+            'name' => 'payload',
+            'type' => 'JSON',
+            'phpType' => '\\App\\ValueObject\\JsonPayload',
+        ]);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $accessors = '';
+        $builder->addColumnAccessorMethodsToScript($accessors);
+
+        $mutators = '';
+        $builder->addColumnMutatorMethodsToScript($mutators);
+
+        $this->assertStringContainsString('* @return \App\ValueObject\JsonPayload|null', $accessors);
+        $this->assertStringNotContainsString('json_decode(', $accessors);
+        $this->assertStringContainsString('convertValueToObjectType($v, JsonPayload::class, true)', $mutators);
+        $this->assertStringNotContainsString('json_encode(', $mutators);
+    }
+
+    /**
+     * @return void
+     */
     public function testRequiredJsonAccessorCommentStaysNullableAtRuntime()
     {
         $payload = new Column('payload');
@@ -2043,6 +2074,11 @@ class TestableObjectBuilder extends ObjectBuilder
         $this->addDefaultAccessor($script, $column);
     }
 
+    public function addColumnAccessorMethodsToScript(string &$script): void
+    {
+        $this->addColumnAccessorMethods($script);
+    }
+
     public function addDefaultAccessorBodyToScript(string &$script, Column $column): void
     {
         $this->addDefaultAccessorBody($script, $column);
@@ -2076,5 +2112,10 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addDefaultMutatorToScript(string &$script, Column $column): void
     {
         $this->addDefaultMutator($script, $column);
+    }
+
+    public function addColumnMutatorMethodsToScript(string &$script): void
+    {
+        $this->addColumnMutatorMethods($script);
     }
 }

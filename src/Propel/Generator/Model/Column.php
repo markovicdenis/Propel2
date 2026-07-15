@@ -764,6 +764,16 @@ class Column extends MappingModel
     }
 
     /**
+     * Returns whether the schema explicitly defines the PHP type.
+     *
+     * @return bool
+     */
+    public function hasCustomPhpType(): bool
+    {
+        return $this->phpType !== null && $this->phpType !== '';
+    }
+
+    /**
      * Returns the location of this column within the table (one-based).
      *
      * @return int|null
