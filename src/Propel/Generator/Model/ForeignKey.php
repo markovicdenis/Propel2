@@ -447,7 +447,7 @@ class ForeignKey extends MappingModel
     /**
      * Returns the PlatformInterface instance.
      *
-     * @return \Propel\Generator\Platform\PlatformInterface|null
+     * @return PlatformInterface|null
      */
     private function getPlatform(): ?PlatformInterface
     {
@@ -1095,7 +1095,7 @@ class ForeignKey extends MappingModel
     }
 
     /**
-     * @throws \Propel\Runtime\Exception\RuntimeException
+     * @throws RuntimeException
      *
      * @return \Propel\Generator\Model\ForeignKey|null
      */

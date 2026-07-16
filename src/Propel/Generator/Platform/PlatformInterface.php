@@ -46,7 +46,7 @@ interface PlatformInterface
     /**
      * Sets a database connection to use (for quoting, etc.).
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con The database connection to use in this Platform class.
+     * @param ConnectionInterface|null $con The database connection to use in this Platform class.
      *
      * @return void
      */
@@ -55,14 +55,14 @@ interface PlatformInterface
     /**
      * Returns the database connection to use for this Platform class.
      *
-     * @return \Propel\Runtime\Connection\ConnectionInterface|null The database connection or NULL if none has been set.
+     * @return ConnectionInterface|null The database connection or NULL if none has been set.
      */
     public function getConnection(): ?ConnectionInterface;
 
     /**
      * Sets the GeneratorConfigInterface which contains any generator build properties.
      *
-     * @param \Propel\Generator\Config\GeneratorConfigInterface $generatorConfig
+     * @param GeneratorConfigInterface $generatorConfig
      *
      * @return void
      */
@@ -95,7 +95,7 @@ interface PlatformInterface
      *
      * @param string $propelType the Propel type name.
      *
-     * @return \Propel\Generator\Model\Domain The db specific domain.
+     * @return Domain The db specific domain.
      */
     public function getDomainForType(string $propelType): Domain;
 
@@ -119,7 +119,7 @@ interface PlatformInterface
     /**
      * Returns the DDL SQL for a Column object.
      *
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
      * @return string
      */
@@ -128,7 +128,7 @@ interface PlatformInterface
     /**
      * Returns the SQL for the default value of a Column object.
      *
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
      * @return string
      */
@@ -143,7 +143,7 @@ interface PlatformInterface
      * // '"foo","bar"'
      * </code>
      *
-     * @param array<\Propel\Generator\Model\Column>|array<string> $columns
+     * @param array<Column>|array<string> $columns
      * @param string $delimiter The delimiter to use in separating the column names.
      *
      * @return string
@@ -153,7 +153,7 @@ interface PlatformInterface
     /**
      * Returns the SQL for the primary key of a Table object
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -293,7 +293,7 @@ interface PlatformInterface
      * Useful for checking needed definitions/structures. E.g. Unique Indexes for ForeignKey columns,
      * which the most Platforms requires but which is not always explicitly defined in the table model.
      *
-     * @param \Propel\Generator\Model\Table $table The table object which gets modified.
+     * @param Table $table The table object which gets modified.
      *
      * @return void
      */
@@ -318,7 +318,7 @@ interface PlatformInterface
      * Warning: duplicates logic from AdapterInterface::bindValue().
      * Any code modification here must be ported there.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      * @param string $identifier
      * @param string $columnValueAccessor
      * @param string $tab
@@ -340,7 +340,7 @@ interface PlatformInterface
     public function setIdentifierQuoting(bool $enabled): void;
 
     /**
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */

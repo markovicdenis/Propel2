@@ -325,7 +325,7 @@ class Column extends MappingModel
     }
 
     /**
-     * @param \Propel\Generator\Platform\PlatformInterface|null $platform
+     * @param PlatformInterface|null $platform
      *
      * @return \Propel\Generator\Model\Domain
      */
@@ -346,7 +346,7 @@ class Column extends MappingModel
     }
 
     /**
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return void
      */
@@ -1344,7 +1344,7 @@ class Column extends MappingModel
     }
 
     /**
-     * @param \Propel\Generator\Platform\PlatformInterface|null $platform
+     * @param PlatformInterface|null $platform
      *
      * @return bool
      */
@@ -1800,7 +1800,7 @@ class Column extends MappingModel
     /**
      * Returns the auto-increment string.
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return string
      */
@@ -1888,7 +1888,7 @@ class Column extends MappingModel
     /**
      * Returns an instance of PlatformInterface interface.
      *
-     * @return \Propel\Generator\Platform\PlatformInterface|null
+     * @return PlatformInterface|null
      */
     public function getPlatform(): ?PlatformInterface
     {

@@ -101,7 +101,7 @@ class ObjectBuilder extends AbstractObjectBuilder
      * and will throw exceptions for errors that will definitely cause
      * problems.
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return void
      */
@@ -145,7 +145,7 @@ class ObjectBuilder extends AbstractObjectBuilder
     /**
      * Returns the appropriate formatter (from platform) for a date/time column.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string|null
      */
@@ -493,7 +493,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds comment about the attribute (variable) that stores column values.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -534,7 +534,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the declaration of a column value storage attribute.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -551,7 +551,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * has been loaded.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -571,7 +571,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * loaded state.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -587,7 +587,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment about the serialized attribute.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -606,7 +606,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the declaration of the serialized attribute.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -620,7 +620,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -907,7 +907,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($colsWithDefaults as $column) {
-            /** @var \Propel\Generator\Model\Column $column */
+            /** @var Column $column */
             $clo = $column->getLowercasedName();
             $defaultValue = $this->getDefaultValueString($column);
             if ($column->isTemporalType()) {
@@ -939,7 +939,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a date/time/timestamp getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -955,7 +955,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for a temporal accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -981,7 +981,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Gets the default format for a temporal column from the configuration
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string|null
      */
@@ -996,7 +996,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Knows which key in the configuration holds the default format for a
      * temporal type column.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string|null
      */
@@ -1014,7 +1014,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function declaration for a temporal accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1035,7 +1035,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Gets accessor lazy loaded snippets.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -1063,7 +1063,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the body of the temporal accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1101,7 +1101,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds an object getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1135,7 +1135,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for an object accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1159,7 +1159,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1175,7 +1175,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Add the comment for a json accessor method (a getter).
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1202,7 +1202,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function declaration for a JSON accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1223,7 +1223,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1238,7 +1238,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds an array getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1272,7 +1272,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for an array accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1300,7 +1300,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a boolean isser method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1320,7 +1320,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns the name to be used as boolean accessor name
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -1338,7 +1338,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function declaration for a boolean accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1361,7 +1361,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for a boolean accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1383,7 +1383,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds an enum getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1399,7 +1399,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Add the comment for an enum accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1425,7 +1425,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for an enum accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1452,7 +1452,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a SET column getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1468,7 +1468,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Add the comment for a SET column accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1494,7 +1494,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for a SET column accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1530,7 +1530,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a tester method for an array column.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1574,7 +1574,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a normal (non-temporal) getter method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1596,7 +1596,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Add the comment for a default accessor method (a getter).
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1623,7 +1623,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function declaration for a default accessor.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1646,7 +1646,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for a default accessor method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1701,7 +1701,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a nullable accessor for primary key columns.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1746,7 +1746,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the lazy loader method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1762,7 +1762,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for the lazy loader method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1788,7 +1788,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function declaration for the lazy loader method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1804,7 +1804,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the function body for the lazy loader method.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1912,7 +1912,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the open of the mutator (setter) method for a column.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1927,7 +1927,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the open of the mutator (setter) method for a JSON column.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1942,7 +1942,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for a mutator.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1965,7 +1965,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for a mutator.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -1990,7 +1990,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the mutator function declaration.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2024,7 +2024,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the mutator open body part.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2059,7 +2059,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the close of the mutator (setter) method for a column.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2073,7 +2073,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the body of the close part of a mutator.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2143,7 +2143,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see addMutatorClose()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2161,7 +2161,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2191,7 +2191,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2229,7 +2229,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
      * @return void
      */
@@ -2254,7 +2254,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2282,7 +2282,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2312,7 +2312,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2337,7 +2337,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a push method for an array column.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2385,7 +2385,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds a remove method for an array column.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2438,7 +2438,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2470,7 +2470,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for an enum mutator.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2496,7 +2496,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2535,7 +2535,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the comment for a SET column mutator.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -2561,7 +2561,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2590,7 +2590,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
      * @return void
      */
@@ -2619,7 +2619,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see parent::addColumnMutators()
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col The current column.
+     * @param Column $col The current column.
      *
      * @return void
      */
@@ -2671,7 +2671,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds element-wise transformation for array column values.
      *
      * @param string $script
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -3032,7 +3032,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns a resolveFromRow() expression for simple hydration scenarios.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      * @param int $position
      *
      * @return string|null
@@ -3397,7 +3397,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @see toArray
      *
      * @param string|null $phpName
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      * @param bool $plural
      *
      * @return string
@@ -4074,7 +4074,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }";
         }
 
-        /** @var array<\Propel\Generator\Model\ForeignKey> $primaryKeyFKs */
+        /** @var array<ForeignKey> $primaryKeyFKs */
         $primaryKeyFKs = [];
         $foreignKeyPKCount = 0;
         foreach ($this->getTable()->getForeignKeys() as $foreignKey) {
@@ -4351,7 +4351,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Constructs variable name for fkey-related objects.
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string
      */
@@ -4363,7 +4363,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Constructs variable name for objects which referencing current table by specified foreign key.
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string
      */
@@ -4376,7 +4376,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Constructs variable name for single object which references current table by specified foreign key
      * which is ALSO a primary key (hence one-to-one relationship).
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string
      */
@@ -4408,7 +4408,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the class attributes that are needed to store fkey related objects.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return void
      */
@@ -4429,7 +4429,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the mutator (setter) method for setting an fkey related object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return void
      */
@@ -4515,7 +4515,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the unsetter method for setting an fkey related object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return void
      */
@@ -4568,7 +4568,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the has method for checking if an fkey related object is set.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return void
      */
@@ -4603,7 +4603,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the accessor (getter) method for getting an fkey related object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return void
      */
@@ -4755,7 +4755,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that fetches fkey-related (referencing) objects but also joins in data from another table.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -4827,7 +4827,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * <code>private lastVarNameCriteria = null;</code>
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -4895,7 +4895,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param array<\Propel\Generator\Model\ForeignKey> $referrers
+     * @param array<ForeignKey> $referrers
      *
      * @return void
      */
@@ -4933,7 +4933,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that clears the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -4965,7 +4965,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that initializes the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5008,7 +5008,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that adds an object into the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5052,7 +5052,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that returns the size of the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5107,7 +5107,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that returns the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      * @return void
      */
     protected function addRefFKGet(string &$script, ForeignKey $refFK): void
@@ -5194,7 +5194,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5267,7 +5267,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5306,7 +5306,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5360,7 +5360,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * This is for one-to-one relationship special case.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5398,7 +5398,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * This is for one-to-one relationships special case.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK The referencing foreign key.
+     * @param ForeignKey $refFK The referencing foreign key.
      *
      * @return void
      */
@@ -5432,7 +5432,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5472,7 +5472,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5504,7 +5504,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     }
 
     /**
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return string
      */
@@ -5521,7 +5521,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\ForeignKey $crossFK
+     * @param ForeignKey $crossFK
      *
      * @return void
      */
@@ -5541,7 +5541,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5561,7 +5561,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5719,7 +5719,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5785,7 +5785,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that clears the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5815,7 +5815,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that clears the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $refFK
+     * @param ForeignKey $refFK
      *
      * @return void
      */
@@ -5841,7 +5841,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that initializes the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5923,7 +5923,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that check if the referrer fkey collection is initialized.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -5968,7 +5968,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6049,7 +6049,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6252,7 +6252,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6334,7 +6334,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6437,7 +6437,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that adds an object into the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6494,7 +6494,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns a function signature comma separated.
      *
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      * @param string $excludeSignatureItem Which variable to exclude.
      *
      * @return string
@@ -6514,7 +6514,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
     /**
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6614,8 +6614,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     }
 
     /**
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
-     * @param \Propel\Generator\Model\ForeignKey $excludeFK
+     * @param CrossForeignKeys $crossFKs
+     * @param ForeignKey $excludeFK
      *
      * @return string
      */
@@ -6701,7 +6701,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * Adds the method that remove an object from the referrer fkey collection.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     * @param CrossForeignKeys $crossFKs
      *
      * @return void
      */
@@ -6793,7 +6793,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns the timestamp source expression for generated UID primary keys.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -7090,7 +7090,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Boosts ActiveRecord::doInsert() by doing more calculations at buildtime.
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return string
      */
@@ -7252,7 +7252,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * stored on the model in an encoded format, the statement returned by
      * this method includes the statement to decode the value.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -7280,7 +7280,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Returns the value expression used when constructing insert column bindings.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -7694,7 +7694,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $autoIncCols = [];
         foreach ($table->getColumns() as $col) {
-            /** @var \Propel\Generator\Model\Column $col */
+            /** @var Column $col */
             if ($col->isAutoIncrement()) {
                 $autoIncCols[] = $col;
             }
@@ -7986,7 +7986,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     }
 
     /**
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
