@@ -34,6 +34,7 @@ use function sprintf;
 use function strrpos;
 use function strtr;
 use function substr;
+use function is_array;
 
 /**
  * This is used to connect to PostgreSQL databases.

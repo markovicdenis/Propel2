@@ -431,6 +431,10 @@ class XmlDumper implements DumperInterface
             $columnNode->setAttribute('required', 'true');
         }
 
+        if ($column->hasTransformer()) {
+            $columnNode->setAttribute('transformer', $column->getTransformer());
+        }
+
         $defaultValue = $domain->getDefaultValue();
         if ($defaultValue) {
             $type = $defaultValue->isExpression() ? 'defaultExpr' : 'defaultValue';

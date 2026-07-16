@@ -9,10 +9,11 @@
 namespace Propel\Generator\Model;
 
 use Exception;
+use InvalidArgumentException;
 use PDO;
 use Propel\Generator\Exception\EngineException;
-use Propel\Generator\Platform\PlatformInterface;
 use Propel\Generator\Platform\MysqlPlatform;
+use Propel\Generator\Platform\PlatformInterface;
 
 use function count;
 use function in_array;
@@ -106,6 +107,13 @@ class Column extends MappingModel
      * @var string|null
      */
     private $typeHint;
+
+    /**
+     * A built-in string transformer applied by generated objects and queries.
+     *
+     * @var string|null
+     */
+    private $transformer;
 
     /**
      * The name to use for the tableMap constant that identifies this column.
@@ -268,6 +276,55 @@ class Column extends MappingModel
     }
 
     /**
+     * @return string|null
+     */
+    public function getTransformer(): ?string
+    {
+        return $this->transformer;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasTransformer(): bool
+    {
+        return $this->transformer !== null;
+    }
+
+    /**
+     * Set the built-in string transformer for this column.
+     *
+     * `uppercase` and `lowercase` are accepted as readable aliases for the
+     * corresponding PHP functions.
+     *
+     * @param string|null $transformer
+     *
+     * @throws InvalidArgumentException When the transformer is unsupported.
+     *
+     * @return void
+     */
+    public function setTransformer(?string $transformer): void
+    {
+        if ($transformer === null || $transformer === '') {
+            $this->transformer = null;
+
+            return;
+        }
+
+        $transformer = strtolower($transformer);
+        $transformer = match ($transformer) {
+            'upper', 'uppercase', 'strtoupper' => 'strtoupper',
+            'lower', 'lowercase', 'strtolower' => 'strtolower',
+            default => throw new InvalidArgumentException(sprintf(
+                'Unsupported column transformer "%s". Expected strtoupper or strtolower.',
+                $transformer,
+            )),
+        };
+
+        $this->transformer = $transformer;
+    }
+
+    /**
      * @param \Propel\Generator\Platform\PlatformInterface|null $platform
      *
      * @return \Propel\Generator\Model\Domain
@@ -308,6 +365,7 @@ class Column extends MappingModel
             $this->phpSingularName = $this->getAttribute('phpSingularName');
             $this->phpType = $this->getAttribute('phpType');
             $this->typeHint = $this->getAttribute('typeHint');
+            $this->setTransformer($this->getAttribute('transformer'));
             $this->tableMapName = $this->getAttribute('tableMapName');
             $this->description = $this->getAttribute('description');
 
@@ -756,6 +814,7 @@ class Column extends MappingModel
     public function getPhpType(): string
     {
         $phpType = $this->phpType ?: $this->getPhpNative();
+
         return match($phpType) {
             'boolean' => 'bool',
             'double' => 'float',

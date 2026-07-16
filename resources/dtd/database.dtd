@@ -108,6 +108,7 @@ PHP class or method name.
   phpNamingMethod (nochange|underscore|phpname) #IMPLIED
   description CDATA #IMPLIED
   typeHint CDATA #IMPLIED
+  transformer (strtoupper|strtolower|uppercase|lowercase|upper|lower) #IMPLIED
   lazyLoad (true|false) "false"
   primaryString (true|false) "false"
   valueSet CDATA #IMPLIED

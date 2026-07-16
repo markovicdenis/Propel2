@@ -194,6 +194,21 @@ class ColumnTest extends ModelTestCase
     /**
      * @return void
      */
+    public function testTransformer(): void
+    {
+        $column = new Column('currency_code');
+
+        $column->setTransformer('uppercase');
+        $this->assertTrue($column->hasTransformer());
+        $this->assertSame('strtoupper', $column->getTransformer());
+
+        $column->setTransformer(null);
+        $this->assertFalse($column->hasTransformer());
+    }
+
+    /**
+     * @return void
+     */
     public function testSetPosition()
     {
         $column = new Column('');

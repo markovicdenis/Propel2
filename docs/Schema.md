@@ -226,6 +226,7 @@ Notes:
   [defaultValue="/AnyDefaultValueMatchingType/"]
   [defaultExpr="/AnyDefaultExpressionMatchingType/"]
   [valueSet="/CommaSeparatedValues/"]
+  [transformer="strtoupper|strtolower|uppercase|lowercase|upper|lower"]
   [autoIncrement="true|{false}"]
   [lazyLoad="true|{false}"]
   [description="/ColumnDescription/"]
@@ -244,6 +245,7 @@ Notes:
 - `defaultValue`: PHP-side default value for new objects. Interpreted as a string.
 - `defaultExpr`: SQL expression used as the database default in generated DDL.
 - `valueSet`: comma-separated values for `ENUM` and `SET` columns.
+- `transformer`: normalizes generated setter and filter values with `strtoupper` or `strtolower`; `uppercase` and `lowercase` are readable aliases. See the [column transformers guide](ColumnTransformers.md) for scalar and array behavior.
 - `lazyLoad`: omit the column from normal query hydration and fetch it only when the getter is called.
 - `primaryString`: use this column as the default value for `__toString()`.
 

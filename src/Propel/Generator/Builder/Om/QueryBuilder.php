@@ -905,6 +905,13 @@ class QueryBuilder extends AbstractOMBuilder
             // simple primary key
             $col = $pks[0];
             $const = $this->getColumnConstant($col);
+            if ($col->hasTransformer()) {
+                $transformer = $col->getTransformer();
+                $script .= "
+        if (\$key !== null) {
+            \$key = $transformer(\$key);
+        }";
+            }
             $script .= "
         \$this->addUsingAlias($const, \$key, Criteria::EQUAL);
 
@@ -914,6 +921,13 @@ class QueryBuilder extends AbstractOMBuilder
             $i = 0;
             foreach ($pks as $col) {
                 $const = $this->getColumnConstant($col);
+                if ($col->hasTransformer()) {
+                    $transformer = $col->getTransformer();
+                    $script .= "
+        if (\$key[$i] !== null) {
+            \$key[$i] = $transformer(\$key[$i]);
+        }";
+                }
                 $script .= "
         \$this->addUsingAlias($const, \$key[$i], Criteria::EQUAL);";
                 $i++;
@@ -963,6 +977,11 @@ class QueryBuilder extends AbstractOMBuilder
             // simple primary key
             $col = $pks[0];
             $const = $this->getColumnConstant($col);
+            if ($col->hasTransformer()) {
+                $transformer = $col->getTransformer();
+                $script .= "
+        \$keys = array_map('$transformer', \$keys);";
+            }
             $script .= "
         \$this->addUsingAlias($const, \$keys, Criteria::IN);
 
@@ -979,6 +998,13 @@ class QueryBuilder extends AbstractOMBuilder
             $i = 0;
             foreach ($pks as $col) {
                 $const = $this->getColumnConstant($col);
+                if ($col->hasTransformer()) {
+                    $transformer = $col->getTransformer();
+                    $script .= "
+            if (\$key[$i] !== null) {
+                \$key[$i] = $transformer(\$key[$i]);
+            }";
+                }
                 $script .= "
             \$cton$i = \$this->getNewCriterion($const, \$key[$i], Criteria::EQUAL);";
                 if ($i > 0) {
@@ -1097,6 +1123,18 @@ class QueryBuilder extends AbstractOMBuilder
      */
     public function filterBy$colPhpName(" . ($parameterType !== null ? $parameterType . ' ' : '') . "\$$variableName = null, ?string \$comparison = null)
     {";
+        if ($col->hasTransformer()) {
+            $transformer = $col->getTransformer();
+            $script .= "
+        if (is_array(\$$variableName)) {
+            \$$variableName = array_map(
+                static fn (\$value) => \$value === null ? null : $transformer(\$value),
+                \$$variableName,
+            );
+        } elseif (\$$variableName !== null) {
+            \$$variableName = $transformer(\$$variableName);
+        }";
+        }
         if ($col->isNumericType() || $col->isTemporalType()) {
             $script .= "
         if (is_array(\$$variableName)) {

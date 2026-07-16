@@ -27,7 +27,8 @@ class GeneratedNativeArrayColumnTypeTest extends TestCase
         <column name="id" type="INTEGER" primaryKey="true"/>
         <column name="tags" type="NATIVE_ARRAY" sqlType="TEXT[]"/>
         <column name="scores" type="NATIVE_ARRAY" sqlType="INTEGER[]" required="true"/>
-        <column name="currency_codes" type="NATIVE_ARRAY" sqlType="VARCHAR(3)[]"/>
+        <column name="currency_codes" type="NATIVE_ARRAY" sqlType="VARCHAR(3)[]" transformer="uppercase"/>
+        <column name="legacy_currency_codes" type="ARRAY" transformer="lowercase"/>
     </table>
 </database>
 XML);
@@ -47,6 +48,14 @@ XML);
         $this->assertStringContainsString('PgsqlArrayCodec::encode($this->tags)', $classes);
         $this->assertStringContainsString('function addTag($value', $classes);
         $this->assertStringContainsString('function removeTag($value', $classes);
+        $this->assertStringContainsString(
+            'static fn ($value) => $value === null ? null : strtoupper($value)',
+            $classes,
+        );
+        $this->assertStringContainsString(
+            'static fn ($value) => $value === null ? null : strtolower($value)',
+            $classes,
+        );
     }
 
     /**
@@ -60,6 +69,7 @@ XML);
         $this->assertStringContainsString('Criteria::ARRAY_OVERLAPS', $classes);
         $this->assertStringContainsString('Criteria::ARRAY_NOT_OVERLAPS', $classes);
         $this->assertStringContainsString('function filterByTag(', $classes);
+        $this->assertStringContainsString('static fn ($value) => $value === null ? null : strtoupper($value)', $classes);
     }
 
     /**

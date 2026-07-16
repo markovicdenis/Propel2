@@ -9,6 +9,7 @@
 namespace Propel\Runtime\ActiveQuery\Criterion;
 
 use Propel\Runtime\ActiveQuery\Criteria;
+
 use function count;
 
 /**

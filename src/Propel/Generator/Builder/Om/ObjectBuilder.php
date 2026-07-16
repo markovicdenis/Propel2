@@ -2032,6 +2032,18 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $cfc = $column->getPhpName();
+        if (
+            $column->hasTransformer()
+            && !$column->isNativeArrayType()
+            && $column->getType() !== PropelTypes::PHP_ARRAY
+        ) {
+            $transformer = $column->getTransformer();
+            $script .= "
+        if (\$v !== null) {
+            \$v = $transformer(\$v);
+        }
+";
+        }
         if ($column->isLazyLoad()) {
             $script .= "
         // explicitly set the is-loaded flag to true for this lazy load col;
@@ -2309,6 +2321,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $clo = $col->getLowercasedName();
         $cloUnserialized = $clo . '_unserialized';
         $this->addMutatorOpen($script, $col);
+        $this->addArrayElementTransformer($script, $col);
 
         $script .= "
         if (\$this->$cloUnserialized !== \$v) {
@@ -2635,6 +2648,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             }
         }
 
+        if ($col->hasTransformer() && $col->isNativeArrayType()) {
+            $this->addArrayElementTransformer($script, $col);
+        }
+
         $comparison = $col->isPrimaryKey()
             ? "\$this->$clo !== \$v"
             : ($col->isPhpObjectType()
@@ -2648,6 +2665,31 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 ";
         $this->addMutatorClose($script, $col);
+    }
+
+    /**
+     * Adds element-wise transformation for array column values.
+     *
+     * @param string $script
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return void
+     */
+    protected function addArrayElementTransformer(string &$script, Column $column): void
+    {
+        if (!$column->hasTransformer()) {
+            return;
+        }
+
+        $transformer = $column->getTransformer();
+        $script .= "
+        if (\$v !== null) {
+            \$v = array_map(
+                static fn (\$value) => \$value === null ? null : $transformer(\$value),
+                \$v,
+            );
+        }
+";
     }
 
     /**

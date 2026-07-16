@@ -12,6 +12,7 @@ use BackedEnum;
 use InvalidArgumentException;
 use Stringable;
 use UnitEnum;
+
 use function is_array;
 use function is_bool;
 use function is_float;
@@ -25,6 +26,8 @@ use function str_replace;
 use function strtolower;
 use function strtoupper;
 use function trim;
+use function in_array;
+use function strlen;
 
 /**
  * Encodes and decodes PostgreSQL's one-dimensional array text format.
@@ -34,7 +37,7 @@ final class PgsqlArrayCodec
     /**
      * @param array<mixed> $values
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return string
      */
@@ -76,7 +79,7 @@ final class PgsqlArrayCodec
     }
 
     /**
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return array<mixed>|null
      */

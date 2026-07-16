@@ -91,6 +91,24 @@ class XmlDumperTest extends TestCase
     }
 
     /**
+     * @return void
+     */
+    public function testDumpColumnTransformer(): void
+    {
+        $database = new Database('bookstore');
+        $table = new Table('currencies');
+        $database->addTable($table);
+        $column = new Column('currency_code');
+        $column->setTransformer('uppercase');
+        $table->addColumn($column);
+
+        $xml = $this->dumper->dump($database);
+
+        $this->assertStringContainsString('name="currency_code"', $xml);
+        $this->assertStringContainsString('transformer="strtoupper"', $xml);
+    }
+
+    /**
      * @param string $filename
      *
      * @return string
