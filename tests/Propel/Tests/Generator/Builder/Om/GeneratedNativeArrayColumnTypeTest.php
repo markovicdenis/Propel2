@@ -27,6 +27,7 @@ class GeneratedNativeArrayColumnTypeTest extends TestCase
         <column name="id" type="INTEGER" primaryKey="true"/>
         <column name="tags" type="NATIVE_ARRAY" sqlType="TEXT[]"/>
         <column name="scores" type="NATIVE_ARRAY" sqlType="INTEGER[]" required="true"/>
+        <column name="currency_codes" type="NATIVE_ARRAY" sqlType="VARCHAR(3)[]"/>
     </table>
 </database>
 XML);
@@ -59,5 +60,17 @@ XML);
         $this->assertStringContainsString('Criteria::ARRAY_OVERLAPS', $classes);
         $this->assertStringContainsString('Criteria::ARRAY_NOT_OVERLAPS', $classes);
         $this->assertStringContainsString('function filterByTag(', $classes);
+    }
+
+    /**
+     * @return void
+     */
+    public function testGeneratedTableMapRetainsNativeArrayElementTypes(): void
+    {
+        $classes = $this->buildClasses();
+
+        $this->assertStringContainsString("->setNativeArrayElementType('TEXT')", $classes);
+        $this->assertStringContainsString("->setNativeArrayElementType('INTEGER')", $classes);
+        $this->assertStringContainsString("->setNativeArrayElementType('VARCHAR(3)')", $classes);
     }
 }

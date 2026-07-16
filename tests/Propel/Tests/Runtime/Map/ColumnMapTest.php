@@ -92,6 +92,18 @@ class ColumnMapTest extends TestCaseFixtures
     /**
      * @return void
      */
+    public function testNativeArrayElementType(): void
+    {
+        $this->assertNull($this->cmap->getNativeArrayElementType());
+
+        $this->cmap->setNativeArrayElementType('VARCHAR(3)');
+
+        $this->assertSame('VARCHAR(3)', $this->cmap->getNativeArrayElementType());
+    }
+
+    /**
+     * @return void
+     */
     public function tesSize()
     {
         $this->assertEquals(0, $this->cmap->getSize(), 'size is empty until set');

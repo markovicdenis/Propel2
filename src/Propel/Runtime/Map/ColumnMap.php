@@ -109,6 +109,13 @@ class ColumnMap
     protected $valueSet = [];
 
     /**
+     * SQL type of elements in a PostgreSQL native array column.
+     *
+     * @var string|null
+     */
+    protected ?string $nativeArrayElementType = null;
+
+    /**
      * Is this a primaryString column?
      *
      * @var bool
@@ -527,6 +534,28 @@ class ColumnMap
     public function getValueSet(): array
     {
         return $this->valueSet;
+    }
+
+    /**
+     * Sets the SQL type of elements in a PostgreSQL native array column.
+     *
+     * @param string|null $type
+     *
+     * @return void
+     */
+    public function setNativeArrayElementType(?string $type): void
+    {
+        $this->nativeArrayElementType = $type;
+    }
+
+    /**
+     * Gets the SQL type of elements in a PostgreSQL native array column.
+     *
+     * @return string|null
+     */
+    public function getNativeArrayElementType(): ?string
+    {
+        return $this->nativeArrayElementType;
     }
 
     /**

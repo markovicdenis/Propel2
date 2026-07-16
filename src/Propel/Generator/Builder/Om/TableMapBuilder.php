@@ -571,6 +571,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
                 $script .= "
         \$this->getColumn('$columnName')->setValueSet(" . var_export($col->getValueSet(), true) . ');';
             }
+            if ($col->isNativeArrayType()) {
+                $script .= "
+        \$this->getColumn('$columnName')->setNativeArrayElementType(" . var_export($col->getNativeArrayElementType(), true) . ');';
+            }
             if ($col->isPrimaryString()) {
                 $script .= "
         \$this->getColumn('$columnName')->setPrimaryString(true);";
