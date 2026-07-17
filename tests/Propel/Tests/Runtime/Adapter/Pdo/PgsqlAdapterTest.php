@@ -10,8 +10,10 @@ namespace Propel\Tests\Runtime\Adapter\Pdo;
 
 use PDO;
 use PHPUnit\Framework\MockObject\MockObject;
+use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
@@ -222,6 +224,67 @@ class PgsqlAdapterTest extends TestCaseFixtures
         $this->assertStringContainsString('MIN(book.title) AS "MinTitle"', $generatedSql);
         $this->assertStringContainsString('ORDER BY MIN(book.title) DESC', $generatedSql);
         $this->assertStringNotContainsString('ORDER BY MinTitle DESC', $generatedSql);
+    }
+
+    /**
+     * @group database
+     * @group pgsql
+     *
+     * @return void
+     */
+    public function testGroupedOpaqueColumnsUseAnyValue(): void
+    {
+        $tableMap = new TableMap('grouped_value', new DatabaseMap('pgsql'));
+        $tableMap->addColumn('group_id', 'GroupId', PropelTypes::INTEGER, true);
+        $columns = [
+            'uuid' => PropelTypes::UUID,
+            'uuid_binary' => PropelTypes::UUID_BINARY,
+            'uid' => PropelTypes::UID,
+            'uid_binary' => PropelTypes::UID_BINARY,
+            'payload' => PropelTypes::JSON,
+            'legacy_values' => PropelTypes::PHP_ARRAY,
+            'native_values' => PropelTypes::NATIVE_ARRAY,
+            'metadata' => PropelTypes::OBJECT,
+            'shape' => PropelTypes::GEOMETRY,
+        ];
+        foreach ($columns as $name => $type) {
+            $tableMap->addColumn($name, ucfirst($name), $type);
+        }
+
+        $query = new class ($tableMap) extends ModelCriteria {
+            private TableMap $testTableMap;
+
+            /**
+             * @param TableMap $testTableMap
+             */
+            public function __construct(TableMap $testTableMap)
+            {
+                $this->testTableMap = $testTableMap;
+
+                parent::__construct();
+            }
+
+            /**
+             * @return TableMap|null
+             */
+            public function getTableMap(): ?TableMap
+            {
+                return $this->testTableMap;
+            }
+        };
+        $query->addSelectColumn('grouped_value.group_id');
+        foreach (array_keys($columns) as $name) {
+            $query->addSelectColumn("grouped_value.$name");
+        }
+        $query->addGroupByColumn('grouped_value.group_id');
+
+        $fromClause = [];
+        $sql = (new PgsqlAdapter())->createSelectSqlPart($query, $fromClause);
+
+        foreach (array_keys($columns) as $name) {
+            $this->assertStringContainsString("ANY_VALUE(grouped_value.$name)", $sql);
+            $this->assertStringNotContainsString("MAX(grouped_value.$name)", $sql);
+        }
     }
 
     /**

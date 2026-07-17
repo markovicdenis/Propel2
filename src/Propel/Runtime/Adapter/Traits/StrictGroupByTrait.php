@@ -2,6 +2,7 @@
 
 namespace Propel\Runtime\Adapter\Traits;
 
+use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
@@ -37,13 +38,18 @@ trait StrictGroupByTrait
             $criteria instanceof ModelCriteria => $criteria->getTableMap()->findColumnByName($columnName),
             default => null,
         };
-        $type = $columnMap ? $columnMap->getType() : 'VARCHAR';
+        $type = $columnMap ? $columnMap->getType() : PropelTypes::VARCHAR;
         $isPostgres = $adapter instanceof PgsqlAdapter;
+
         return match ($type) {
-            'BOOLEAN' => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
-            'VARCHAR', 'CHAR', 'LONGVARCHAR' => "ANY_VALUE($columnName)",
-            'CLOB', 'BINARY', 'VARBINARY', 'LONGVARBINARY', 'BLOB' => "ANY_VALUE($columnName)",
-            'ENUM', 'SET' => "ANY_VALUE($columnName)",
+            PropelTypes::BOOLEAN => $isPostgres ? "MAX($columnName::int)" : "MAX($columnName)",
+            PropelTypes::VARCHAR, PropelTypes::CHAR, PropelTypes::LONGVARCHAR,
+            PropelTypes::CLOB, PropelTypes::CLOB_EMU,
+            PropelTypes::BINARY, PropelTypes::VARBINARY, PropelTypes::LONGVARBINARY, PropelTypes::BLOB,
+            PropelTypes::ENUM, PropelTypes::SET,
+            PropelTypes::UUID, PropelTypes::UUID_BINARY, PropelTypes::UID, PropelTypes::UID_BINARY,
+            PropelTypes::JSON, PropelTypes::PHP_ARRAY, PropelTypes::NATIVE_ARRAY, PropelTypes::OBJECT,
+            PropelTypes::GEOMETRY => "ANY_VALUE($columnName)",
             default => "MAX($columnName)",
         };
     }

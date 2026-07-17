@@ -302,7 +302,7 @@ class Criteria
     /**
      * Storage of conditions data. Collection of Criterion objects.
      *
-     * @var array<\Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion>
+     * @var array<AbstractCriterion>
      */
     protected $map = [];
 
@@ -323,7 +323,7 @@ class Criteria
     /**
      * Storage of having data.
      *
-     * @var \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|null
+     * @var AbstractCriterion|null
      */
     protected $having;
 
@@ -397,7 +397,7 @@ class Criteria
     /**
      * Storage for Criterions expected to be combined
      *
-     * @var array<string, \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion>
+     * @var array<string, AbstractCriterion>
      */
     protected $namedCriterions = [];
 
@@ -410,7 +410,7 @@ class Criteria
     protected $defaultCombineOperator = self::LOGICAL_AND;
 
     /**
-     * @var \Propel\Runtime\Util\PropelConditionalProxy|null
+     * @var PropelConditionalProxy|null
      */
     protected $conditionalProxy;
 
@@ -453,7 +453,7 @@ class Criteria
     /**
      * Get the criteria map, i.e. the array of Criterions
      *
-     * @return array<\Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion>
+     * @return array<AbstractCriterion>
      */
     public function getMap(): array
     {
@@ -709,7 +709,7 @@ class Criteria
      *
      * @param string $column Column name.
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion A Criterion object.
+     * @return AbstractCriterion A Criterion object.
      */
     public function getCriterion(string $column): AbstractCriterion
     {
@@ -719,7 +719,7 @@ class Criteria
     /**
      * Method to return the latest Criterion in a table.
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|null A Criterion or null no Criterion is added.
+     * @return AbstractCriterion|null A Criterion or null no Criterion is added.
      */
     public function getLastCriterion(): ?AbstractCriterion
     {
@@ -742,7 +742,7 @@ class Criteria
      * @param mixed|null $value
      * @param string|int|null $comparison Criteria comparison constant or PDO binding type
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion
+     * @return AbstractCriterion
      */
     public function getNewCriterion(string $column, $value = null, $comparison = null): AbstractCriterion
     {
@@ -977,7 +977,7 @@ class Criteria
      * The name of the table must be used implicitly in the column name,
      * so the Column name must be something like 'TABLE.id'.
      *
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1 The column to run the comparison on, or a Criterion object.
+     * @param AbstractCriterion|string $p1 The column to run the comparison on, or a Criterion object.
      * @param mixed $value
      * @param string|int|null $comparison A String.
      *
@@ -1019,7 +1019,7 @@ class Criteria
      * so the Column name must be something like 'TABLE.id'.
      *
      * @param string $name name to combine the criterion later
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1 The column to run the comparison on, or AbstractCriterion object.
+     * @param AbstractCriterion|string $p1 The column to run the comparison on, or AbstractCriterion object.
      * @param mixed|null $value
      * @param string|null $comparison A String.
      *
@@ -1039,7 +1039,7 @@ class Criteria
      * @param string $operator logical operator, either Criteria::LOGICAL_AND, or Criteria::LOGICAL_OR
      * @param string|null $name optional name to combine the criterion later
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return $this
      */
@@ -1804,7 +1804,7 @@ class Criteria
     /**
      * Get Having Criterion.
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|null A Criterion object that is the having clause.
+     * @return AbstractCriterion|null A Criterion object that is the having clause.
      */
     public function getHaving(): ?AbstractCriterion
     {
@@ -1949,7 +1949,7 @@ class Criteria
      *                           Defaults to Criteria::LOGICAL_AND, also accepts Criteria::LOGICAL_OR
      *                           This parameter is deprecated, use _or() instead
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return $this The current criteria object
      */
@@ -2077,11 +2077,11 @@ class Criteria
      *  - Otherwise, create a classic Criterion based on a column name and a comparison.
      *    <code>$c->getCriterionForCondition(BookTableMap::TITLE, 'War%', Criteria::LIKE);</code>
      *
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1 A Criterion, or a SQL clause with a question mark placeholder, or a column name
+     * @param AbstractCriterion|string $p1 A Criterion, or a SQL clause with a question mark placeholder, or a column name
      * @param mixed|null $value The value to bind in the condition
      * @param string|int|null $comparison A Criteria class constant, or a PDO::PARAM_ class constant
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion
+     * @return AbstractCriterion
      */
     protected function getCriterionForCondition($p1, $value = null, $comparison = null): AbstractCriterion
     {
@@ -2107,7 +2107,7 @@ class Criteria
      *  - addAnd(column, value)
      *  - addAnd(Criterion)
      *
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1
+     * @param AbstractCriterion|string $p1
      * @param mixed|null $value
      * @param mixed|null $condition
      * @param bool $preferColumnCondition
@@ -2142,7 +2142,7 @@ class Criteria
      *  - addOr(column, value)
      *  - addOr(Criterion)
      *
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1
+     * @param AbstractCriterion|string $p1
      * @param mixed $value
      * @param mixed $condition
      * @param bool $preferColumnCondition
@@ -2171,7 +2171,7 @@ class Criteria
      *
      * @see Criteria::add()
      *
-     * @param \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion|string $p1 The column to run the comparison on (e.g. BookTableMap::ID), or Criterion object
+     * @param AbstractCriterion|string $p1 The column to run the comparison on (e.g. BookTableMap::ID), or Criterion object
      * @param mixed $value
      * @param string|null $operator A String, like Criteria::EQUAL.
      * @param bool $preferColumnCondition If true, the condition is combined with an existing condition on the same column
@@ -2352,7 +2352,7 @@ class Criteria
      * If no primary key is defined for the table the values will be
      * inserted as specified in Criteria and null will be returned.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con A ConnectionInterface connection.
+     * @param ConnectionInterface|null $con A ConnectionInterface connection.
      *
      * @return mixed The primary key for the new row if the primary key is auto-generated. Otherwise will return null.
      */
@@ -2364,7 +2364,7 @@ class Criteria
     /**
      * @param self|null $criteria
      *
-     * @return \Propel\Runtime\Map\ColumnMap|null
+     * @return ColumnMap|null
      */
     public function getPrimaryKey(?self $criteria = null): ?ColumnMap
     {
@@ -2400,7 +2400,7 @@ class Criteria
      * another value AND so on.
      *
      * @param \Propel\Runtime\ActiveQuery\Criteria $updateValues A Criteria object containing values used in set clause.
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The ConnectionInterface connection object to use.
+     * @param ConnectionInterface $con The ConnectionInterface connection object to use.
      *
      * @return int The number of rows affected by last update statement.
      *             For most uses there is only one update statement executed, so this number will
@@ -2414,9 +2414,9 @@ class Criteria
     }
 
     /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
+     * @param ConnectionInterface|null $con
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface
+     * @return DataFetcherInterface
      */
     public function doCount(?ConnectionInterface $con = null): DataFetcherInterface
     {
@@ -2452,7 +2452,7 @@ class Criteria
      * Issue a DELETE query based on the current ModelCriteria
      * This method is called by ModelCriteria::delete() inside a transaction
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con a connection object
+     * @param ConnectionInterface|null $con a connection object
      *
      * @return int The number of deleted rows
      */
@@ -2465,7 +2465,7 @@ class Criteria
      * Issue a DELETE query based on the current ModelCriteria deleting all rows in the table
      * This method is called by ModelCriteria::deleteAll() inside a transaction
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con a connection object
+     * @param ConnectionInterface|null $con a connection object
      *
      * @return int The number of deleted rows
      */
@@ -2477,9 +2477,9 @@ class Criteria
     /**
      * Builds, binds and executes a SELECT query based on the current object.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con A connection object
+     * @param ConnectionInterface|null $con A connection object
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface A dataFetcher using the connection, ready to be fetched
+     * @return DataFetcherInterface A dataFetcher using the connection, ready to be fetched
      */
     public function doSelect(?ConnectionInterface $con = null): DataFetcherInterface
     {
@@ -2517,7 +2517,7 @@ class Criteria
      *
      * @param mixed $cond Casts to bool for variable evaluation
      *
-     * @return \Propel\Runtime\ActiveQuery\Criteria|\Propel\Runtime\Util\PropelConditionalProxy
+     * @return \Propel\Runtime\ActiveQuery\Criteria|PropelConditionalProxy
      */
     public function _if($cond)
     {
@@ -2534,9 +2534,9 @@ class Criteria
      *
      * @param mixed $cond Casts to bool for variable evaluation
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
-     * @return \Propel\Runtime\ActiveQuery\Criteria|\Propel\Runtime\Util\PropelConditionalProxy
+     * @return \Propel\Runtime\ActiveQuery\Criteria|PropelConditionalProxy
      */
     public function _elseif($cond)
     {
@@ -2553,9 +2553,9 @@ class Criteria
      * Returns a PropelConditionalProxy instance.
      * Allows for conditional statements in a fluid interface.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
-     * @return \Propel\Runtime\ActiveQuery\Criteria|\Propel\Runtime\Util\PropelConditionalProxy
+     * @return \Propel\Runtime\ActiveQuery\Criteria|PropelConditionalProxy
      */
     public function _else()
     {
@@ -2570,9 +2570,9 @@ class Criteria
      * Returns the current object
      * Allows for conditional statements in a fluid interface.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
-     * @return \Propel\Runtime\ActiveQuery\Criteria|\Propel\Runtime\Util\PropelConditionalProxy
+     * @return \Propel\Runtime\ActiveQuery\Criteria|PropelConditionalProxy
      */
     public function _endif()
     {

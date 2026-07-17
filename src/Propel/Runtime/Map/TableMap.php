@@ -273,7 +273,7 @@ class TableMap
     /**
      * Get the name of the Table.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return string A String with the name of the table.
      */
@@ -313,7 +313,7 @@ class TableMap
     /**
      * Get the PHP name of the Table.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return string A String with the name of the table.
      */
@@ -354,7 +354,7 @@ class TableMap
     /**
      * Get the ClassName of the Propel Class belonging to this table.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return string
      */
@@ -664,7 +664,7 @@ class TableMap
      * @param string $name A String with the name of the table.
      * @param bool $normalize Normalize the column name (if column name not like FIRST_NAME)
      *
-     * @throws \Propel\Runtime\Map\Exception\ColumnNotFoundException If the column is undefined
+     * @throws ColumnNotFoundException If the column is undefined
      *
      * @return \Propel\Runtime\Map\ColumnMap A ColumnMap.
      */
@@ -697,7 +697,7 @@ class TableMap
      *
      * @param string $phpName A String with the name of the table.
      *
-     * @throws \Propel\Runtime\Map\Exception\ColumnNotFoundException If the column is undefined
+     * @throws ColumnNotFoundException If the column is undefined
      *
      * @return \Propel\Runtime\Map\ColumnMap A ColumnMap.
      */
@@ -956,7 +956,7 @@ class TableMap
      *
      * @param string $name The relation name
      *
-     * @throws \Propel\Runtime\Map\Exception\RelationNotFoundException When called on an inexistent relation
+     * @throws RelationNotFoundException When called on an inexistent relation
      *
      * @return \Propel\Runtime\Map\RelationMap The relation object
      */
@@ -1064,7 +1064,7 @@ class TableMap
     }
 
     /**
-     * @param \Propel\Runtime\ActiveQuery\Criteria $criteria
+     * @param Criteria $criteria
      *
      * @return array|null null if not covered by only pk
      */

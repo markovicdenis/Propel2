@@ -120,14 +120,14 @@ interface ConnectionInterface
     /**
      * @param mixed $data
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface
+     * @return DataFetcherInterface
      */
     public function getSingleDataFetcher($data): DataFetcherInterface;
 
     /**
      * @param mixed $data
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface
+     * @return DataFetcherInterface
      */
     public function getDataFetcher($data): DataFetcherInterface;
 
@@ -183,7 +183,7 @@ interface ConnectionInterface
      *
      * @throws \Propel\Runtime\Connection\Exception\ConnectionException depending on error handling.
      *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface|PDOStatement|false
+     * @return DataFetcherInterface|PDOStatement|false
      */
     public function query(string $statement);
 
