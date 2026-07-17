@@ -10,6 +10,8 @@ namespace Propel\Runtime\ActiveQuery\SqlBuilder;
 
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion;
+use Propel\Runtime\ActiveQuery\Criterion\LikeCriterion;
+use Propel\Runtime\ActiveQuery\Criterion\LikeModelCriterion;
 
 use function array_diff;
 use function array_filter;
@@ -275,7 +277,10 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
      */
     protected function setCriterionsIgnoreCase(AbstractCriterion $criterion, string $realTableName): void
     {
-        if (!$this->criteria->isIgnoreCase()) {
+        if (
+            !$this->criteria->isIgnoreCase()
+            && (!$this->criteria->isLikeIgnoreCase() || !($criterion instanceof LikeCriterion || $criterion instanceof LikeModelCriterion))
+        ) {
             return;
         }
 

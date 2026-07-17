@@ -412,7 +412,9 @@ class PgsqlSchemaParser extends AbstractSchemaParser
      */
     protected function getNativeArrayLiteralDefault(string $default): string
     {
-        preg_match("/^'((?:''|[^'])*)'(?:\\:\\:.*)?$/", $default, $matches);
+        if (preg_match("/^'((?:''|[^'])*)'(?:\\:\\:.*)?$/", $default, $matches) !== 1) {
+            throw new RuntimeException(sprintf('Invalid PostgreSQL native array literal default "%s".', $default));
+        }
 
         return str_replace("''", "'", $matches[1]);
     }

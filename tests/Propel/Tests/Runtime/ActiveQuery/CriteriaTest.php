@@ -362,6 +362,42 @@ class CriteriaTest extends BookstoreTestBase
     /**
      * @return void
      */
+    public function testLikeIgnoreCaseOnlyChangesLikeCriteria()
+    {
+        $serviceContainer = Propel::getStandardServiceContainer();
+        $originalAdapter = $serviceContainer->getAdapter('bookstore');
+        $serviceContainer->setAdapter('bookstore', new PgsqlAdapter());
+
+        try {
+            $likeCriteria = new Criteria('bookstore');
+            $likeCriteria->setLikeIgnoreCase(true);
+            $likeCriteria->add(BookTableMap::COL_TITLE, 'FoO%', Criteria::LIKE);
+            $params = [];
+            $sql = $likeCriteria->createSelectSql($params);
+            $this->assertStringContainsString('book.title ILIKE :p1', $sql);
+
+            $notLikeCriteria = new Criteria('bookstore');
+            $notLikeCriteria->setLikeIgnoreCase(true);
+            $notLikeCriteria->add(BookTableMap::COL_TITLE, 'FoO%', Criteria::NOT_LIKE);
+            $params = [];
+            $sql = $notLikeCriteria->createSelectSql($params);
+            $this->assertStringContainsString('book.title NOT ILIKE :p1', $sql);
+
+            $equalCriteria = new Criteria('bookstore');
+            $equalCriteria->setLikeIgnoreCase(true);
+            $equalCriteria->add(BookTableMap::COL_TITLE, 'FoO', Criteria::EQUAL);
+            $params = [];
+            $sql = $equalCriteria->createSelectSql($params);
+            $this->assertStringContainsString('book.title=:p1', $sql);
+            $this->assertStringNotContainsString('UPPER(book.title)', $sql);
+        } finally {
+            $serviceContainer->setAdapter('bookstore', $originalAdapter);
+        }
+    }
+
+    /**
+     * @return void
+     */
     public function testOrderByIgnoreCase()
     {
         $serviceContainer = Propel::getStandardServiceContainer();

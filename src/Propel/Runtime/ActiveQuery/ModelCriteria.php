@@ -20,6 +20,7 @@ use Propel\Runtime\ActiveQuery\Criterion\CriterionFactory;
 use Propel\Runtime\ActiveQuery\Criterion\CustomCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\ExistsQueryCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\InModelCriterion;
+use Propel\Runtime\ActiveQuery\Criterion\LikeCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\LikeModelCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\RawCriterion;
 use Propel\Runtime\ActiveQuery\Criterion\RawModelCriterion;
@@ -2559,7 +2560,9 @@ class ModelCriteria extends BaseModelCriteria
                 }
 
                 if (
-                    ($this->isIgnoreCase() || method_exists($attachedCriterion, 'setIgnoreCase'))
+                    ($this->isIgnoreCase()
+                        || ($this->isLikeIgnoreCase() && ($attachedCriterion instanceof LikeCriterion || $attachedCriterion instanceof LikeModelCriterion)))
+                    && method_exists($attachedCriterion, 'setIgnoreCase')
                     && $dbMap->getTable($table)->getColumn((string)$attachedCriterion->getColumn())->isText()
                 ) {
                     $attachedCriterion->setIgnoreCase(true);

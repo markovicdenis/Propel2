@@ -10,8 +10,11 @@ namespace Propel\Tests\Generator\Model\Diff;
 
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
+use Propel\Generator\Model\Database;
 use Propel\Generator\Model\Diff\ColumnComparator;
+use Propel\Generator\Model\Table;
 use Propel\Generator\Platform\MysqlPlatform;
+use Propel\Generator\Platform\PgsqlPlatform;
 use Propel\Tests\TestCase;
 
 /**
@@ -176,6 +179,36 @@ class ColumnComparatorTest extends TestCase
             'defaultValueType' => [ColumnDefaultValue::TYPE_VALUE, ColumnDefaultValue::TYPE_EXPR],
         ];
         $this->assertEquals($expectedChangedProperties, ColumnComparator::compareColumns($c1, $c2));
+    }
+
+    /**
+     * @return void
+     */
+    public function testPostgresqlLegacyArrayDefaultMatchesEncodedTextStorage(): void
+    {
+        $platform = new PgsqlPlatform();
+
+        $fromDatabase = new Database('from');
+        $fromDatabase->setPlatform($platform);
+        $fromTable = new Table('example');
+        $fromDatabase->addTable($fromTable);
+        $fromColumn = $fromTable->addColumn([
+            'name' => 'tags',
+            'type' => 'LONGVARCHAR',
+            'defaultValue' => '||foo | bar||',
+        ]);
+
+        $toDatabase = new Database('to');
+        $toDatabase->setPlatform($platform);
+        $toTable = new Table('example');
+        $toDatabase->addTable($toTable);
+        $toColumn = $toTable->addColumn([
+            'name' => 'tags',
+            'type' => 'ARRAY',
+            'defaultValue' => 'foo, bar',
+        ]);
+
+        $this->assertFalse(ColumnComparator::computeDiff($fromColumn, $toColumn));
     }
 
     /**

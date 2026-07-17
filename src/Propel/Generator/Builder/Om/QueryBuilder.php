@@ -452,8 +452,21 @@ class QueryBuilder extends AbstractOMBuilder
      */
     protected function addConstructorBody(string &$script): void
     {
+        $table = $this->getTable();
+        $vendorInfo = $table->getVendorInfoForType('propel');
+
         $script .= "
         parent::__construct(\$dbName, \$modelName, \$modelAlias);";
+
+        if (filter_var($vendorInfo->getParameter('defaultIgnoreCase'), FILTER_VALIDATE_BOOLEAN)) {
+            $script .= "
+        \$this->setIgnoreCase(true);";
+        }
+
+        if (filter_var($vendorInfo->getParameter('defaultLikeIgnoreCase'), FILTER_VALIDATE_BOOLEAN)) {
+            $script .= "
+        \$this->setLikeIgnoreCase(true);";
+        }
     }
 
     /**

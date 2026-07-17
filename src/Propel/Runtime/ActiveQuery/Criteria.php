@@ -259,6 +259,11 @@ class Criteria
     /**
      * @var bool
      */
+    protected $likeIgnoreCase = false;
+
+    /**
+     * @var bool
+     */
     protected $singleRecord = false;
 
     /**
@@ -462,6 +467,7 @@ class Criteria
         $this->map = [];
         $this->namedCriterions = [];
         $this->ignoreCase = false;
+        $this->likeIgnoreCase = false;
         $this->singleRecord = false;
         $this->selectModifiers = [];
         $this->lock = null;
@@ -1502,6 +1508,30 @@ class Criteria
     }
 
     /**
+     * Sets case-insensitive matching for LIKE and NOT LIKE criteria only.
+     *
+     * @param bool $b True if LIKE comparisons should ignore case.
+     *
+     * @return $this Modified Criteria object (for fluent API)
+     */
+    public function setLikeIgnoreCase(bool $b)
+    {
+        $this->likeIgnoreCase = $b;
+
+        return $this;
+    }
+
+    /**
+     * Whether LIKE and NOT LIKE criteria ignore case.
+     *
+     * @return bool True if LIKE comparisons ignore case.
+     */
+    public function isLikeIgnoreCase(): bool
+    {
+        return $this->likeIgnoreCase;
+    }
+
+    /**
      * Set single record? Set this to <code>true</code> if you expect the query
      * to result in only a single result record (the default behaviour is to
      * throw a PropelException if multiple records are returned when the query
@@ -1854,6 +1884,7 @@ class Criteria
                 $this->offset === $criteria->getOffset()
                 && $this->limit === $criteria->getLimit()
                 && $this->ignoreCase === $criteria->isIgnoreCase()
+                && $this->likeIgnoreCase === $criteria->isLikeIgnoreCase()
                 && $this->singleRecord === $criteria->isSingleRecord()
                 && $this->dbName === $criteria->getDbName()
                 && $this->selectModifiers === $criteria->getSelectModifiers()

@@ -108,6 +108,38 @@ XML;
     /**
      * @return void
      */
+    public function testConstructorAppliesCaseSensitivityDefaultsFromPropelVendorInfo()
+    {
+        $databaseXml = <<<'XML'
+<database name="default" namespace="Example\Books" package="Books">
+    <table name="inherited">
+        <column name="id" type="integer" primaryKey="true"/>
+    </table>
+    <table name="overridden">
+        <column name="id" type="integer" primaryKey="true"/>
+        <vendor type="propel">
+            <parameter name="defaultIgnoreCase" value="false"/>
+        </vendor>
+    </table>
+    <vendor type="propel">
+        <parameter name="defaultIgnoreCase" value="true"/>
+        <parameter name="defaultLikeIgnoreCase" value="true"/>
+    </vendor>
+</database>
+XML;
+
+        $inheritedConstructor = TestableQueryBuilder::forTableFromXml($databaseXml, 'inherited')->buildScript('addConstructor');
+        $this->assertStringContainsString('$this->setIgnoreCase(true);', $inheritedConstructor);
+        $this->assertStringContainsString('$this->setLikeIgnoreCase(true);', $inheritedConstructor);
+
+        $overriddenConstructor = TestableQueryBuilder::forTableFromXml($databaseXml, 'overridden')->buildScript('addConstructor');
+        $this->assertStringNotContainsString('$this->setIgnoreCase(true);', $overriddenConstructor);
+        $this->assertStringContainsString('$this->setLikeIgnoreCase(true);', $overriddenConstructor);
+    }
+
+    /**
+     * @return void
+     */
     public function testFactoryUsesLegacyCriteriaReturnType()
     {
         $builder = $this->createBuilder();
