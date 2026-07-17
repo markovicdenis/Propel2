@@ -61,6 +61,23 @@ class BasicCriterionTest extends BaseTestCase
     /**
      * @return void
      */
+    public function testAppendPsToCreatesAPostgresqlTrigramSimilarityCondition()
+    {
+        $cton = new BasicCriterion(new Criteria(), 'games.name', 'olymus', Criteria::TRIGRAM_SIMILAR);
+
+        $params = [];
+        $ps = '';
+        $cton->appendPsTo($ps, $params);
+
+        $this->assertEquals('games.name % :p1', $ps);
+        $this->assertEquals([
+            ['table' => 'games', 'column' => 'name', 'value' => 'olymus'],
+        ], $params);
+    }
+
+    /**
+     * @return void
+     */
     public function testAppendPsToCreatesACaseInsensitiveComparisonIfSpecified()
     {
         $cton = new BasicCriterion(new Criteria(), 'A.COL', 'foo');

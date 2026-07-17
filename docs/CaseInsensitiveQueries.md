@@ -71,3 +71,15 @@ Regenerate the model classes after changing the schema. These defaults affect ge
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX book_title_trgm_idx ON book USING GIN (title gin_trgm_ops);
 ```
+
+## PostgreSQL trigram similarity
+
+PostgreSQL's `pg_trgm` extension provides the `%` trigram-similarity operator. Use `Criteria::TRIGRAM_SIMILAR` with a generated text filter:
+
+```php
+GameQuery::create()
+    ->filterByName('olymus', Criteria::TRIGRAM_SIMILAR)
+    ->find();
+```
+
+This produces `name % :p1`. The right-hand value is a search term, not a `LIKE` pattern, so do not add `%` wildcards. The operator returns rows whose similarity exceeds PostgreSQL's `pg_trgm.similarity_threshold`; `pg_trgm` must be installed. The GIN trigram index shown above also accelerates similarity searches.

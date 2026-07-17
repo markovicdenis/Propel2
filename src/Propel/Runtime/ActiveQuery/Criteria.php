@@ -122,6 +122,11 @@ class Criteria
     public const ARRAY_NOT_OVERLAPS = 'ARRAY_NOT_OVERLAPS';
 
     /**
+     * @var string PostgreSQL pg_trgm similarity operator.
+     */
+    public const TRIGRAM_SIMILAR = ' % ';
+
+    /**
      * @var string
      */
     public const ILIKE = ' ILIKE ';
