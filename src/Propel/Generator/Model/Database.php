@@ -35,7 +35,7 @@ class Database extends ScopedMappingModel
     /**
      * The database's platform.
      *
-     * @var \Propel\Generator\Platform\PlatformInterface|null
+     * @var PlatformInterface|null
      */
     private $platform;
 
@@ -141,7 +141,7 @@ class Database extends ScopedMappingModel
      * Constructs a new Database object.
      *
      * @param string|null $name The database's name
-     * @param \Propel\Generator\Platform\PlatformInterface|null $platform The database's platform
+     * @param PlatformInterface|null $platform The database's platform
      */
     public function __construct(?string $name = null, ?PlatformInterface $platform = null)
     {
@@ -187,7 +187,7 @@ class Database extends ScopedMappingModel
     /**
      * Returns the PlatformInterface implementation for this database.
      *
-     * @return \Propel\Generator\Platform\PlatformInterface|null
+     * @return PlatformInterface|null
      */
     public function getPlatform(): ?PlatformInterface
     {
@@ -197,7 +197,7 @@ class Database extends ScopedMappingModel
     /**
      * Sets the PlatformInterface implementation for this database.
      *
-     * @param \Propel\Generator\Platform\PlatformInterface|null $platform A Platform implementation
+     * @param PlatformInterface|null $platform A Platform implementation
      *
      * @return void
      */
@@ -352,7 +352,7 @@ class Database extends ScopedMappingModel
      *
      * @param string $format
      *
-     * @throws \Propel\Generator\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */
@@ -574,7 +574,7 @@ class Database extends ScopedMappingModel
      *
      * @param \Propel\Generator\Model\Table|array $table
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return \Propel\Generator\Model\Table
      */
@@ -807,7 +807,7 @@ class Database extends ScopedMappingModel
     /**
      * Returns the GeneratorConfigInterface object.
      *
-     * @return \Propel\Generator\Config\GeneratorConfigInterface|null
+     * @return GeneratorConfigInterface|null
      */
     public function getGeneratorConfig(): ?GeneratorConfigInterface
     {

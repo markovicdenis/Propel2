@@ -111,7 +111,7 @@ class ConfigurationManager
      *
      * @param string $name The name of property, expressed as a dot separated level hierarchy
      *
-     * @throws \Propel\Common\Config\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return mixed The configuration property
      */
@@ -198,7 +198,7 @@ class ConfigurationManager
      *                         the constructor to pass a built-in array of configuration, without load it from file. I.e.
      *                         Propel\Generator\Config\QuickGeneratorConfig class.
      *
-     * @throws \Propel\Common\Config\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      *
      * @return void
      */
@@ -229,7 +229,7 @@ class ConfigurationManager
      *
      * @param string $path The directories where to find the configuration files
      *
-     * @throws \Propel\Common\Config\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return array<int, string>
      */

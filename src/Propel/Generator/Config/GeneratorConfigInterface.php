@@ -22,50 +22,50 @@ interface GeneratorConfigInterface
      * Returns a configured data model builder class for specified table and
      * based on type ('ddl', 'sql', etc.).
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      * @param string $type
      *
-     * @return \Propel\Generator\Builder\Om\AbstractOMBuilder
+     * @return AbstractOMBuilder
      */
     public function getConfiguredBuilder(Table $table, string $type): AbstractOMBuilder;
 
     /**
      * Returns a configured Pluralizer class.
      *
-     * @return \Propel\Common\Pluralizer\PluralizerInterface
+     * @return PluralizerInterface
      */
     public function getConfiguredPluralizer(): PluralizerInterface;
 
     /**
      * Creates and configures a new Platform class.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
+     * @param ConnectionInterface|null $con
      * @param string|null $database
      *
      * @throws \Propel\Generator\Exception\ClassNotFoundException if the platform class doesn't exists
      * @throws \Propel\Generator\Exception\BuildException if the class isn't an implementation of PlatformInterface
      *
-     * @return \Propel\Generator\Platform\PlatformInterface|null
+     * @return PlatformInterface|null
      */
     public function getConfiguredPlatform(?ConnectionInterface $con = null, ?string $database = null): ?PlatformInterface;
 
     /**
      * Creates and configures a new SchemaParser class for a specified platform.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
+     * @param ConnectionInterface|null $con
      * @param string|null $database
      *
      * @throws \Propel\Generator\Exception\ClassNotFoundException if the class doesn't exist
      * @throws \Propel\Generator\Exception\BuildException if the class isn't an implementation of SchemaParserInterface
      *
-     * @return \Propel\Generator\Reverse\SchemaParserInterface|null
+     * @return SchemaParserInterface|null
      */
     public function getConfiguredSchemaParser(?ConnectionInterface $con = null, ?string $database = null): ?SchemaParserInterface;
 
     /**
      * Returns the behavior locator.
      *
-     * @return \Propel\Generator\Util\BehaviorLocator
+     * @return BehaviorLocator
      */
     public function getBehaviorLocator(): BehaviorLocator;
 

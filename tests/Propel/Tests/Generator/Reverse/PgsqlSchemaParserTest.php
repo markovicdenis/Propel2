@@ -152,4 +152,31 @@ class PgsqlSchemaParserTest extends TestCaseFixturesDatabase
         $this->assertSame('uuid[]', $column->getSqlType());
         $this->assertTrue($column->getDefaultValue()->isExpression());
     }
+
+    /**
+     * @return void
+     */
+    public function testParseIndexMethodAndOperatorClass(): void
+    {
+        $this->con->query('create table foo ( name varchar(255) );');
+        $this->con->query('create index foo_name_hash_idx on foo using hash (name);');
+        $this->con->query('create index foo_name_pattern_idx on foo (name varchar_pattern_ops);');
+
+        $parser = new PgsqlSchemaParser($this->con);
+        $parser->setGeneratorConfig(new QuickGeneratorConfig());
+
+        $database = new Database();
+        $database->setSchema('public');
+        $database->setPlatform(new DefaultPlatform());
+        $parser->parse($database);
+
+        $indexes = $database->getTable('foo')->getIndices();
+        $indexesByName = [];
+        foreach ($indexes as $index) {
+            $indexesByName[$index->getName()] = $index;
+        }
+
+        $this->assertSame('hash', $indexesByName['foo_name_hash_idx']->getUsing());
+        $this->assertSame('varchar_pattern_ops', $indexesByName['foo_name_pattern_idx']->getColumnOperatorClass('name'));
+    }
 }

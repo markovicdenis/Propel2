@@ -108,8 +108,8 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Parses a database schema.
      *
-     * @param \Propel\Generator\Model\Database $database
-     * @param array<\Propel\Generator\Model\Table> $additionalTables
+     * @param Database $database
+     * @param array<Table> $additionalTables
      *
      * @return int
      */
@@ -141,8 +141,8 @@ class PgsqlSchemaParser extends AbstractSchemaParser
 
     /**
      * @param array $tableWraps
-     * @param \Propel\Generator\Model\Database $database
-     * @param \Propel\Generator\Model\Table|null $filterTable
+     * @param Database $database
+     * @param Table|null $filterTable
      *
      * @return void
      */
@@ -227,7 +227,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Adds Columns to the specified table.
      *
-     * @param \Propel\Generator\Model\Table $table The Table model class to add columns to.
+     * @param Table $table The Table model class to add columns to.
      * @param int $oid The table OID
      *
      * @throws RuntimeException
@@ -398,7 +398,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Load foreign keys for this table.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      * @param int $oid
      *
      * @throws RuntimeException
@@ -527,7 +527,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Load indexes for this table
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      * @param int $oid
      *
      * @throws RuntimeException
@@ -540,9 +540,12 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             DISTINCT ON(cls.relname)
             cls.relname as idxname,
             indkey,
+            indclass,
+            am.amname as index_method,
             indisunique
             FROM pg_index idx
             JOIN pg_class cls ON cls.oid=indexrelid
+            JOIN pg_am am ON am.oid = cls.relam
             WHERE indrelid = ? AND NOT indisprimary
             ORDER BY cls.relname");
         if ($stmt === false) {
@@ -560,6 +563,11 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             throw new RuntimeException('PdoConnection::prepare() failed and did not return statement object for execution.');
         }
 
+        $stmt3 = $this->dbh->prepare('SELECT opcname FROM pg_opclass WHERE oid = ? AND NOT opcdefault');
+        if ($stmt3 === false) {
+            throw new RuntimeException('PdoConnection::prepare() failed and did not return statement object for execution.');
+        }
+
         $indexes = [];
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -572,20 +580,34 @@ class PgsqlSchemaParser extends AbstractSchemaParser
                 } else {
                     $indexes[$name] = new Index($name);
                 }
+                if ($row['index_method'] !== 'btree') {
+                    $indexes[$name]->setUsing($row['index_method']);
+                }
             }
 
             $arrColumns = explode(' ', $row['indkey']);
-            foreach ($arrColumns as $intColNum) {
+            $arrOperatorClasses = explode(' ', $row['indclass']);
+            foreach ($arrColumns as $position => $intColNum) {
                 $stmt2->bindValue(1, $oid);
                 $stmt2->bindValue(2, $intColNum);
                 $stmt2->execute();
 
                 $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
+                $operatorClass = null;
+                if (isset($arrOperatorClasses[$position])) {
+                    $stmt3->bindValue(1, $arrOperatorClasses[$position]);
+                    $stmt3->execute();
+                    $row3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+                    $operatorClass = $row3['opcname'] ?? null;
+                }
+
                 $indexes[$name]->setTable($table);
-                $indexes[$name]->addColumn([
-                    'name' => $row2['attname'],
-                ]);
+                $columnDefinition = ['name' => $row2['attname']];
+                if ($operatorClass !== null) {
+                    $columnDefinition['operatorClass'] = $operatorClass;
+                }
+                $indexes[$name]->addColumn($columnDefinition);
             }
         }
 
@@ -601,7 +623,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Loads the primary key for this table.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      * @param int $oid
      *
      * @throws RuntimeException
@@ -653,7 +675,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
     /**
      * Adds the sequences for this database.
      *
-     * @param \Propel\Generator\Model\Database $database
+     * @param Database $database
      *
      * @throws RuntimeException
      *

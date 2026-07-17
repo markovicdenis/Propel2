@@ -691,7 +691,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param \Propel\Generator\Model\Column|array $col
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return \Propel\Generator\Model\Column
      */
@@ -747,7 +747,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param \Propel\Generator\Model\Column|string $column The Column or its name
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return void
      */
@@ -807,7 +807,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param \Propel\Generator\Model\ForeignKey|array $foreignKey The foreign key mapping
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return \Propel\Generator\Model\ForeignKey
      */
@@ -941,7 +941,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param bool $throwErrors
      *
-     * @throws \Propel\Generator\Exception\BuildException
+     * @throws BuildException
      *
      * @return void
      */
@@ -1214,7 +1214,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param \Propel\Generator\Model\Index|array $index
      *
-     * @throws \Propel\Generator\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return \Propel\Generator\Model\Index
      */
@@ -1271,7 +1271,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Retrieves the configuration object.
      *
-     * @return \Propel\Generator\Config\GeneratorConfigInterface|null
+     * @return GeneratorConfigInterface|null
      */
     public function getGeneratorConfig(): ?GeneratorConfigInterface
     {
@@ -1484,7 +1484,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param string $format
      *
-     * @throws \Propel\Generator\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return void
      */
@@ -2060,7 +2060,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Get the database that contains this table.
      *
-     * @throws \Propel\Generator\Exception\LogicException
+     * @throws LogicException
      *
      * @return \Propel\Generator\Model\Database
      */
@@ -2078,7 +2078,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Returns the Database platform.
      *
-     * @return \Propel\Generator\Platform\PlatformInterface|null
+     * @return PlatformInterface|null
      */
     public function getPlatform(): ?PlatformInterface
     {
@@ -2092,7 +2092,7 @@ class Table extends ScopedMappingModel implements IdMethod
      *
      * @param string $text
      *
-     * @throws \Propel\Runtime\Exception\RuntimeException
+     * @throws RuntimeException
      *
      * @return string
      */
@@ -2207,7 +2207,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Returns the partition-key columns as declared in the schema.
      *
-     * @throws \Propel\Generator\Exception\EngineException When a declared partition-key column does not exist.
+     * @throws EngineException When a declared partition-key column does not exist.
      *
      * @return array<\Propel\Generator\Model\Column>
      */
@@ -2302,7 +2302,7 @@ class Table extends ScopedMappingModel implements IdMethod
     /**
      * Returns the auto incremented primary key.
      *
-     * @throws \Propel\Generator\Exception\LogicException
+     * @throws LogicException
      *
      * @return \Propel\Generator\Model\Column
      */
