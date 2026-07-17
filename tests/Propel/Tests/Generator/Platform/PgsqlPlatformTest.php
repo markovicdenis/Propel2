@@ -964,6 +964,29 @@ CREATE INDEX "postback_user_unlinks_active_idx" ON "postback_user_unlinks" ("use
     }
 
     /**
+     * @return void
+     */
+    public function testAddGinIndexDDLFromSchema(): void
+    {
+        $database = $this->getDatabaseFromSchema(<<<'XML'
+<database name="test" identifierQuoting="true">
+    <table name="games">
+        <column name="id" primaryKey="true" type="INTEGER"/>
+        <column name="name" type="VARCHAR"/>
+        <index name="idx_games_name_trgm" using="gin">
+            <index-column name="name" operatorClass="gin_trgm_ops"/>
+        </index>
+    </table>
+</database>
+XML);
+        $index = $database->getTable('games')->getIndices()[0];
+
+        $expected = "\nCREATE INDEX \"idx_games_name_trgm\" ON \"games\" USING gin (\"name\" gin_trgm_ops);\n";
+
+        $this->assertSame($expected, $this->getPlatform()->getAddIndexDDL($index));
+    }
+
+    /**
      * @dataProvider providerForTestGetIndicesDDL
      *
      * @return void

@@ -30,12 +30,19 @@ class IndexComparator
      */
     public static function computeDiff(Index $fromIndex, Index $toIndex, bool $caseInsensitive = false): bool
     {
+        if ($fromIndex->getUsing() !== $toIndex->getUsing()) {
+            return true;
+        }
+
         // Check for removed index columns in $toIndex
         $fromIndexColumns = $fromIndex->getColumns();
         $max = count($fromIndexColumns);
         for ($i = 0; $i < $max; $i++) {
             $indexColumn = $fromIndexColumns[$i];
             if (!$toIndex->hasColumnAtPosition($i, $indexColumn, $fromIndex->getColumnSize($indexColumn), $caseInsensitive)) {
+                return true;
+            }
+            if ($fromIndex->getColumnOperatorClass($indexColumn, $caseInsensitive) !== $toIndex->getColumnOperatorClass($indexColumn, $caseInsensitive)) {
                 return true;
             }
         }
@@ -46,6 +53,9 @@ class IndexComparator
         for ($i = 0; $i < $max; $i++) {
             $indexColumn = $toIndexColumns[$i];
             if (!$fromIndex->hasColumnAtPosition($i, $indexColumn, $toIndex->getColumnSize($indexColumn), $caseInsensitive)) {
+                return true;
+            }
+            if ($toIndex->getColumnOperatorClass($indexColumn, $caseInsensitive) !== $fromIndex->getColumnOperatorClass($indexColumn, $caseInsensitive)) {
                 return true;
             }
         }

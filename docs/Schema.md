@@ -281,8 +281,8 @@ Use a `foreign-key` element to define relationships to another table.
 ### `index` element
 
 ```xml
-<index [name="/IndexName/"] [where="/SqlPredicate/"]>
-  <index-column name="/ColumnName/" [size="/LengthOfIndexColumn/"] />
+<index [name="/IndexName/"] [where="/SqlPredicate/"] [using="/PostgresqlIndexMethod/"]>
+  <index-column name="/ColumnName/" [size="/LengthOfIndexColumn/"] [operatorClass="/PostgresqlOperatorClass/"] />
   ...
 </index>
 ```
@@ -291,10 +291,22 @@ Use `where` to define a partial index predicate.
 
 - `where`: SQL predicate appended to the generated index DDL.
 - `size`: supported for MySQL index columns.
+- `using`: PostgreSQL index access method, such as `gin`, `gist`, `brin`, `hash`, or `btree`.
+- `operatorClass`: PostgreSQL operator class for an index column.
 
 Platform notes:
 
 - PostgreSQL generates native partial indexes, for example `CREATE INDEX ... WHERE revoked_at IS NULL`.
+- PostgreSQL supports explicit index access methods and operator classes. For example, with the `pg_trgm` extension installed:
+
+  ```xml
+  <index name="idx_games_name_trgm" using="gin">
+    <index-column name="name" operatorClass="gin_trgm_ops" />
+  </index>
+  ```
+
+  generates `CREATE INDEX "idx_games_name_trgm" ON "games" USING gin ("name" gin_trgm_ops);`.
+- Other platforms reject indexes that use `using` or `operatorClass`, rather than silently generating a different index.
 - MySQL does not support non-unique partial indexes. Propel will throw when `where` is used on a non-unique `<index>`.
 
 ### `unique` element

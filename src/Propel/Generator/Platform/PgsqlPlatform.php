@@ -1206,7 +1206,24 @@ ALTER TABLE %s DROP CONSTRAINT %s;
      */
     public function getAddIndexDDL(Index $index): string
     {
-        if (!$index->isUnique() || $index->hasWhere()) {
+        if (
+            !$index->isUnique()
+            || $index->hasWhere()
+            || $index->hasUsing()
+            || $index->hasColumnOperatorClasses()
+        ) {
+            if ($index->hasUsing() || $index->hasColumnOperatorClasses()) {
+                return sprintf(
+                    "\nCREATE %sINDEX %s ON %s%s (%s)%s;\n",
+                    $index->isUnique() ? 'UNIQUE ' : '',
+                    $this->quoteIdentifier($index->getName()),
+                    $this->quoteIdentifier($index->getTable()->getName()),
+                    $index->hasUsing() ? ' USING ' . $index->getUsing() : '',
+                    $this->getIndexColumnListDDL($index),
+                    $this->getIndexWhereDDL($index),
+                );
+            }
+
             return parent::getAddIndexDDL($index);
         }
 
@@ -1220,6 +1237,26 @@ ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);
             $this->quoteIdentifier($index->getName()),
             $this->getColumnListDDL($index->getColumnObjects()),
         );
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @return string
+     */
+    protected function getIndexColumnListDDL(Index $index): string
+    {
+        $columns = [];
+        foreach ($index->getColumnObjects() as $column) {
+            $columnDDL = $this->quoteIdentifier($column->getName());
+            $operatorClass = $index->getColumnOperatorClass($column->getName());
+            if ($operatorClass !== null) {
+                $columnDDL .= ' ' . $operatorClass;
+            }
+            $columns[] = $columnDDL;
+        }
+
+        return implode(',', $columns);
     }
 
     public function fixSqlType(?string $sqlType): ?string

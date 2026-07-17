@@ -66,6 +66,20 @@ class Index extends MappingModel
     protected $where;
 
     /**
+     * The PostgreSQL index access method, for example `gin` or `gist`.
+     *
+     * @var string|null
+     */
+    protected $using;
+
+    /**
+     * PostgreSQL operator classes keyed by indexed column name.
+     *
+     * @var array<string, string>
+     */
+    protected $columnOperatorClasses = [];
+
+    /**
      * Creates a new Index instance.
      *
      * @param string|null $name Name of the index
@@ -112,6 +126,33 @@ class Index extends MappingModel
     public function hasWhere(): bool
     {
         return $this->where !== null;
+    }
+
+    /**
+     * @param string|null $using
+     *
+     * @return void
+     */
+    public function setUsing(?string $using): void
+    {
+        $using = $using !== null ? trim($using) : null;
+        $this->using = $using !== '' ? $using : null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getUsing(): ?string
+    {
+        return $this->using;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasUsing(): bool
+    {
+        return $this->using !== null;
     }
 
     /**
@@ -309,10 +350,64 @@ class Index extends MappingModel
             if (isset($data['size']) && $data['size'] > 0) {
                 $this->columnsSize[$name] = $data['size'];
             }
+            if (isset($data['operatorClass'])) {
+                $this->setColumnOperatorClass($name, $data['operatorClass']);
+            }
             if ($this->getTable()) {
                 $this->columnObjects[] = $this->getTable()->getColumn($name);
             }
         }
+    }
+
+    /**
+     * @param string $name
+     * @param string|null $operatorClass
+     *
+     * @return void
+     */
+    public function setColumnOperatorClass(string $name, ?string $operatorClass): void
+    {
+        $operatorClass = $operatorClass !== null ? trim($operatorClass) : null;
+        if ($operatorClass === '') {
+            $operatorClass = null;
+        }
+
+        if ($operatorClass === null) {
+            unset($this->columnOperatorClasses[$name]);
+
+            return;
+        }
+
+        $this->columnOperatorClasses[$name] = $operatorClass;
+    }
+
+    /**
+     * @param string $name
+     * @param bool $caseInsensitive
+     *
+     * @return string|null
+     */
+    public function getColumnOperatorClass(string $name, bool $caseInsensitive = false): ?string
+    {
+        if ($caseInsensitive) {
+            foreach ($this->columnOperatorClasses as $forName => $operatorClass) {
+                if (strcasecmp($forName, $name) === 0) {
+                    return $operatorClass;
+                }
+            }
+
+            return null;
+        }
+
+        return $this->columnOperatorClasses[$name] ?? null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasColumnOperatorClasses(): bool
+    {
+        return $this->columnOperatorClasses !== [];
     }
 
     /**
@@ -450,6 +545,7 @@ class Index extends MappingModel
     {
         $this->setName($this->getAttribute('name'));
         $this->setWhere($this->getAttribute('where'));
+        $this->setUsing($this->getAttribute('using'));
     }
 
     /**

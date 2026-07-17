@@ -267,6 +267,13 @@
         </xs:choice>
         <xs:attribute name="name" type="index_name" use="optional"/>
         <xs:attribute name="where" type="xs:string" use="optional"/>
+        <xs:attribute name="using" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    PostgreSQL index access method, for example gin, gist, brin, hash, or btree.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="unique">
@@ -284,6 +291,13 @@
         </xs:sequence>
         <xs:attribute name="name" type="column_name" use="required"/>
         <xs:attribute name="size" type="xs:positiveInteger" use="optional"/>
+        <xs:attribute name="operatorClass" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    PostgreSQL operator class for this index column, for example gin_trgm_ops.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
     </xs:complexType>
 
     <xs:complexType name="unique-column">

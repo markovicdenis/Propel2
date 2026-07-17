@@ -34,6 +34,7 @@ Read the [Propel documentation](http://propelorm.org/documentation/01-installati
 - [ObjectCollection guide](docs/ObjectCollection.md)
 - [Array types guide](docs/ArrayTypes.md)
 - [Column transformers guide](docs/ColumnTransformers.md)
+- [Schema reference](docs/Schema.md)
 
 ## Contribute
 

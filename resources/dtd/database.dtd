@@ -146,6 +146,8 @@ PHP class or method name.
 <!ELEMENT index (index-column+,vendor*)>
 <!ATTLIST index
   name CDATA #IMPLIED
+  where CDATA #IMPLIED
+  using CDATA #IMPLIED
 >
 
 <!ELEMENT behavior (parameter*)>
@@ -157,6 +159,7 @@ PHP class or method name.
 <!ATTLIST index-column
   name CDATA #REQUIRED
   size CDATA #IMPLIED
+  operatorClass CDATA #IMPLIED
 >
 
 <!ELEMENT unique (unique-column+)>

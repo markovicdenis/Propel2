@@ -629,6 +629,8 @@ ALTER TABLE %s ADD %s;
      */
     public function getAddIndexDDL(Index $index): string
     {
+        $this->assertNoPostgresqlIndexFeatures($index);
+
         $pattern = "
 CREATE %sINDEX %s ON %s (%s)%s;
 ";
@@ -651,6 +653,25 @@ CREATE %sINDEX %s ON %s (%s)%s;
     protected function getIndexWhereDDL(Index $index): string
     {
         return $index->hasWhere() ? ' WHERE ' . $index->getWhere() : '';
+    }
+
+    /**
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @throws \Propel\Generator\Exception\EngineException
+     *
+     * @return void
+     */
+    protected function assertNoPostgresqlIndexFeatures(Index $index): void
+    {
+        if (!$index->hasUsing() && !$index->hasColumnOperatorClasses()) {
+            return;
+        }
+
+        throw new EngineException(sprintf(
+            'Index "%s" uses PostgreSQL-specific index features, but the current platform does not support them.',
+            $index->getName(),
+        ));
     }
 
     /**
@@ -681,6 +702,8 @@ DROP INDEX %s;
      */
     public function getIndexDDL(Index $index): string
     {
+        $this->assertNoPostgresqlIndexFeatures($index);
+
         return sprintf(
             '%sINDEX %s (%s)%s',
             $index->isUnique() ? 'UNIQUE ' : '',

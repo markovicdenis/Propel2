@@ -606,6 +606,9 @@ class XmlDumper implements DumperInterface
         if ($index->hasWhere()) {
             $indexNode->setAttribute('where', $index->getWhere());
         }
+        if ($nodeType === 'index' && $index->hasUsing()) {
+            $indexNode->setAttribute('using', $index->getUsing());
+        }
 
         foreach ($index->getColumns() as $columnName) {
             $indexColumnNode = $indexNode->appendChild($this->document->createElement($nodeType . '-column'));
@@ -615,6 +618,12 @@ class XmlDumper implements DumperInterface
             $size = $index->getColumnSize($columnName);
             if ($size) {
                 $indexColumnNode->setAttribute('size', (string) $size);
+            }
+            if ($nodeType === 'index') {
+                $operatorClass = $index->getColumnOperatorClass($columnName);
+                if ($operatorClass !== null) {
+                    $indexColumnNode->setAttribute('operatorClass', $operatorClass);
+                }
             }
         }
 

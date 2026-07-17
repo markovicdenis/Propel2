@@ -11,6 +11,7 @@ namespace Propel\Tests\Generator\Schema\Dumper;
 use PHPUnit\Framework\TestCase;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\Database;
+use Propel\Generator\Model\Index;
 use Propel\Generator\Model\Table;
 use Propel\Generator\Model\Unique;
 use Propel\Generator\Platform\MysqlPlatform;
@@ -106,6 +107,29 @@ class XmlDumperTest extends TestCase
 
         $this->assertStringContainsString('name="currency_code"', $xml);
         $this->assertStringContainsString('transformer="strtoupper"', $xml);
+    }
+
+    /**
+     * @return void
+     */
+    public function testDumpPostgresqlIndexAttributes(): void
+    {
+        $database = new Database('bookstore');
+        $database->setPlatform(new MysqlPlatform());
+        $table = new Table('games');
+        $database->addTable($table);
+        $column = new Column('name');
+        $table->addColumn($column);
+        $index = new Index('idx_games_name_trgm');
+        $index->setUsing('gin');
+        $index->addColumn($column);
+        $index->setColumnOperatorClass('name', 'gin_trgm_ops');
+        $table->addIndex($index);
+
+        $xml = $this->dumper->dump($database);
+
+        $this->assertStringContainsString('<index name="idx_games_name_trgm" using="gin">', $xml);
+        $this->assertStringContainsString('<index-column name="name" operatorClass="gin_trgm_ops"/>', $xml);
     }
 
     /**

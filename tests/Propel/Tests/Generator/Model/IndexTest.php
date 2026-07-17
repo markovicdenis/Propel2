@@ -58,6 +58,21 @@ class IndexTest extends ModelTestCase
     /**
      * @return void
      */
+    public function testPostgresqlIndexAttributes(): void
+    {
+        $index = new Index();
+        $index->setUsing('gin');
+        $index->addColumn(['name' => 'name', 'operatorClass' => 'gin_trgm_ops']);
+
+        $this->assertSame('gin', $index->getUsing());
+        $this->assertTrue($index->hasUsing());
+        $this->assertSame('gin_trgm_ops', $index->getColumnOperatorClass('name'));
+        $this->assertTrue($index->hasColumnOperatorClasses());
+    }
+
+    /**
+     * @return void
+     */
     public function testSetWhereNormalizesBlankPredicate()
     {
         $index = new Index();
