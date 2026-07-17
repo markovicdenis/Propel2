@@ -307,6 +307,9 @@ class PgsqlSchemaParser extends AbstractSchemaParser
                 $type = $row['formatted_type'];
             }
             $isNativeArray = str_ends_with($type, '[]');
+            if ($isNativeArray) {
+                $type = $this->normalizeNativeArraySqlType($type);
+            }
 
             $autoincrement = null;
 
@@ -354,7 +357,10 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             }
 
             if ($default !== null) {
-                if ($isNativeArray || $this->isColumnDefaultExpression($default)) {
+                if ($isNativeArray && $this->isNativeArrayLiteralDefault($default)) {
+                    $defaultType = ColumnDefaultValue::TYPE_VALUE;
+                    $default = $this->getNativeArrayLiteralDefault($default);
+                } elseif ($isNativeArray || $this->isColumnDefaultExpression($default)) {
                     $defaultType = ColumnDefaultValue::TYPE_EXPR;
                 } else {
                     $defaultType = ColumnDefaultValue::TYPE_VALUE;
@@ -368,6 +374,47 @@ class PgsqlSchemaParser extends AbstractSchemaParser
 
             $table->addColumn($column);
         }
+    }
+
+    /**
+     * PostgreSQL expands some array element type aliases in `format_type()`,
+     * while Propel schemas commonly use their shorter SQL spelling.
+     *
+     * @param string $sqlType
+     *
+     * @return string
+     */
+    protected function normalizeNativeArraySqlType(string $sqlType): string
+    {
+        $elementType = substr($sqlType, 0, -2);
+        $elementType = preg_replace('/^character varying/i', 'VARCHAR', $elementType);
+        $elementType = preg_replace('/^character/i', 'CHAR', $elementType);
+        $elementType = preg_replace('/^timestamp without time zone/i', 'TIMESTAMP', $elementType);
+        $elementType = preg_replace('/^time without time zone/i', 'TIME', $elementType);
+
+        return $elementType . '[]';
+    }
+
+    /**
+     * @param string $default
+     *
+     * @return bool
+     */
+    protected function isNativeArrayLiteralDefault(string $default): bool
+    {
+        return preg_match("/^'((?:''|[^'])*)'(?:\\:\\:.*)?$/", $default) === 1;
+    }
+
+    /**
+     * @param string $default
+     *
+     * @return string
+     */
+    protected function getNativeArrayLiteralDefault(string $default): string
+    {
+        preg_match("/^'((?:''|[^'])*)'(?:\\:\\:.*)?$/", $default, $matches);
+
+        return str_replace("''", "'", $matches[1]);
     }
 
     /**

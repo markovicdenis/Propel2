@@ -156,6 +156,27 @@ class PgsqlSchemaParserTest extends TestCaseFixturesDatabase
     /**
      * @return void
      */
+    public function testParseNativeArrayLiteralDefaultAndVarcharType(): void
+    {
+        $this->con->query("create table foo ( tags varchar(3)[] not null default '{}'::varchar[] );");
+        $parser = new PgsqlSchemaParser($this->con);
+        $parser->setGeneratorConfig(new QuickGeneratorConfig());
+
+        $database = new Database();
+        $database->setSchema('public');
+        $database->setPlatform(new DefaultPlatform());
+        $parser->parse($database);
+
+        $column = $database->getTable('foo')->getColumn('tags');
+        $this->assertSame(PropelTypes::NATIVE_ARRAY, $column->getType());
+        $this->assertSame('VARCHAR(3)[]', $column->getSqlType());
+        $this->assertSame(ColumnDefaultValue::TYPE_VALUE, $column->getDefaultValue()->getType());
+        $this->assertSame('{}', $column->getDefaultValue()->getValue());
+    }
+
+    /**
+     * @return void
+     */
     public function testParseIndexMethodAndOperatorClass(): void
     {
         $this->con->query('create table foo ( name varchar(255) );');
