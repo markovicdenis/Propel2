@@ -26,28 +26,28 @@ class TableDiff
     /**
      * The first Table object.
      *
-     * @var \Propel\Generator\Model\Table|null
+     * @var Table|null
      */
     protected $fromTable;
 
     /**
      * The second Table object.
      *
-     * @var \Propel\Generator\Model\Table|null
+     * @var Table|null
      */
     protected $toTable;
 
     /**
      * The list of added columns.
      *
-     * @var array<\Propel\Generator\Model\Column>
+     * @var array<Column>
      */
     protected $addedColumns;
 
     /**
      * The list of removed columns.
      *
-     * @var array<\Propel\Generator\Model\Column>
+     * @var array<Column>
      */
     protected $removedColumns;
 
@@ -68,14 +68,14 @@ class TableDiff
     /**
      * The list of added primary key columns.
      *
-     * @var array<\Propel\Generator\Model\Column>
+     * @var array<Column>
      */
     protected $addedPkColumns;
 
     /**
      * The list of removed primary key columns.
      *
-     * @var array<\Propel\Generator\Model\Column>
+     * @var array<Column>
      */
     protected $removedPkColumns;
 
@@ -117,7 +117,7 @@ class TableDiff
     /**
      * The list of removed foreign keys.
      *
-     * @var array<\Propel\Generator\Model\ForeignKey>
+     * @var array<ForeignKey>
      */
     protected $removedFks;
 
@@ -131,8 +131,8 @@ class TableDiff
     /**
      * Constructor.
      *
-     * @param \Propel\Generator\Model\Table|null $fromTable The first table
-     * @param \Propel\Generator\Model\Table|null $toTable The second table
+     * @param Table|null $fromTable The first table
+     * @param Table|null $toTable The second table
      */
     public function __construct(?Table $fromTable = null, ?Table $toTable = null)
     {
@@ -162,7 +162,7 @@ class TableDiff
     /**
      * Sets the fromTable property.
      *
-     * @param \Propel\Generator\Model\Table $fromTable
+     * @param Table $fromTable
      *
      * @return void
      */
@@ -174,7 +174,7 @@ class TableDiff
     /**
      * Returns the fromTable property.
      *
-     * @return \Propel\Generator\Model\Table|null
+     * @return Table|null
      */
     public function getFromTable(): ?Table
     {
@@ -184,7 +184,7 @@ class TableDiff
     /**
      * Sets the toTable property.
      *
-     * @param \Propel\Generator\Model\Table $toTable
+     * @param Table $toTable
      *
      * @return void
      */
@@ -196,7 +196,7 @@ class TableDiff
     /**
      * Returns the toTable property.
      *
-     * @return \Propel\Generator\Model\Table|null
+     * @return Table|null
      */
     public function getToTable(): ?Table
     {
@@ -206,7 +206,7 @@ class TableDiff
     /**
      * Sets the added columns.
      *
-     * @param array<\Propel\Generator\Model\Column> $columns
+     * @param array<Column> $columns
      *
      * @return void
      */
@@ -222,7 +222,7 @@ class TableDiff
      * Adds an added column.
      *
      * @param string $name
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return void
      */
@@ -246,7 +246,7 @@ class TableDiff
     /**
      * Returns the list of added columns
      *
-     * @return array<\Propel\Generator\Model\Column>
+     * @return array<Column>
      */
     public function getAddedColumns(): array
     {
@@ -258,7 +258,7 @@ class TableDiff
      *
      * @param string $columnName
      *
-     * @return \Propel\Generator\Model\Column|null
+     * @return Column|null
      */
     public function getAddedColumn(string $columnName): ?Column
     {
@@ -272,7 +272,7 @@ class TableDiff
     /**
      * Setter for the removedColumns property
      *
-     * @param array<\Propel\Generator\Model\Column> $removedColumns
+     * @param array<Column> $removedColumns
      *
      * @return void
      */
@@ -288,7 +288,7 @@ class TableDiff
      * Adds a removed column.
      *
      * @param string $columnName
-     * @param \Propel\Generator\Model\Column $removedColumn
+     * @param Column $removedColumn
      *
      * @return void
      */
@@ -312,7 +312,7 @@ class TableDiff
     /**
      * Getter for the removedColumns property.
      *
-     * @return array<\Propel\Generator\Model\Column>
+     * @return array<Column>
      */
     public function getRemovedColumns(): array
     {
@@ -324,7 +324,7 @@ class TableDiff
      *
      * @param string $columnName
      *
-     * @return \Propel\Generator\Model\Column|null
+     * @return Column|null
      */
     public function getRemovedColumn(string $columnName): ?Column
     {
@@ -392,8 +392,8 @@ class TableDiff
     /**
      * Add a renamed column
      *
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
+     * @param Column $fromColumn
+     * @param Column $toColumn
      *
      * @return void
      */
@@ -415,7 +415,7 @@ class TableDiff
     /**
      * Sets the list of added primary key columns.
      *
-     * @param array<\Propel\Generator\Model\Column> $addedPkColumns
+     * @param array<Column> $addedPkColumns
      *
      * @return void
      */
@@ -431,9 +431,9 @@ class TableDiff
      * Add an added Pk column
      *
      * @param string $columnName
-     * @param \Propel\Generator\Model\Column $addedPkColumn
+     * @param Column $addedPkColumn
      *
-     * @throws \Propel\Generator\Exception\DiffException
+     * @throws DiffException
      *
      * @return void
      */
@@ -471,7 +471,7 @@ class TableDiff
     /**
      * Sets the list of removed primary key columns.
      *
-     * @param array<\Propel\Generator\Model\Column> $removedPkColumns
+     * @param array<Column> $removedPkColumns
      *
      * @return void
      */
@@ -487,7 +487,7 @@ class TableDiff
      * Add a removed Pk column
      *
      * @param string $columnName
-     * @param \Propel\Generator\Model\Column $removedPkColumn
+     * @param Column $removedPkColumn
      *
      * @return void
      */
@@ -521,7 +521,7 @@ class TableDiff
     /**
      * Sets the list of all renamed primary key columns.
      *
-     * @param array<array<\Propel\Generator\Model\Column>> $renamedPkColumns
+     * @param array<array<Column>> $renamedPkColumns
      *
      * @return void
      */
@@ -537,8 +537,8 @@ class TableDiff
     /**
      * Adds a renamed primary key column.
      *
-     * @param \Propel\Generator\Model\Column $fromColumn The original column
-     * @param \Propel\Generator\Model\Column $toColumn The renamed column
+     * @param Column $fromColumn The original column
+     * @param Column $toColumn The renamed column
      *
      * @return void
      */
@@ -570,7 +570,7 @@ class TableDiff
     /**
      * Sets the list of new added indices.
      *
-     * @param array<\Propel\Generator\Model\Index> $addedIndices
+     * @param array<Index> $addedIndices
      *
      * @return void
      */
@@ -586,7 +586,7 @@ class TableDiff
      * Add an added index.
      *
      * @param string $indexName
-     * @param \Propel\Generator\Model\Index $addedIndex
+     * @param Index $addedIndex
      *
      * @return void
      */
@@ -598,7 +598,7 @@ class TableDiff
     /**
      * Getter for the addedIndices property
      *
-     * @return array<\Propel\Generator\Model\Index>
+     * @return array<Index>
      */
     public function getAddedIndices(): array
     {
@@ -608,7 +608,7 @@ class TableDiff
     /**
      * Sets the list of removed indices.
      *
-     * @param array<\Propel\Generator\Model\Index> $removedIndices
+     * @param array<Index> $removedIndices
      *
      * @return void
      */
@@ -624,7 +624,7 @@ class TableDiff
      * Adds a removed index.
      *
      * @param string $indexName
-     * @param \Propel\Generator\Model\Index $removedIndex
+     * @param Index $removedIndex
      *
      * @return void
      */
@@ -636,7 +636,7 @@ class TableDiff
     /**
      * Getter for the removedIndices property
      *
-     * @return array<\Propel\Generator\Model\Index>
+     * @return array<Index>
      */
     public function getRemovedIndices(): array
     {
@@ -648,7 +648,7 @@ class TableDiff
      *
      * Array must be [ [ Index $fromIndex, Index $toIndex ], [ ... ] ]
      *
-     * @param array<array<\Propel\Generator\Model\Index>> $modifiedIndices An array of modified indices
+     * @param array<array<Index>> $modifiedIndices An array of modified indices
      *
      * @return void
      */
@@ -665,8 +665,8 @@ class TableDiff
      * Add a modified index.
      *
      * @param string $indexName
-     * @param \Propel\Generator\Model\Index $fromIndex
-     * @param \Propel\Generator\Model\Index $toIndex
+     * @param Index $fromIndex
+     * @param Index $toIndex
      *
      * @return void
      */
@@ -688,7 +688,7 @@ class TableDiff
     /**
      * Sets the list of added foreign keys.
      *
-     * @param array<\Propel\Generator\Model\ForeignKey> $addedFks
+     * @param array<ForeignKey> $addedFks
      *
      * @return void
      */
@@ -704,7 +704,7 @@ class TableDiff
      * Adds an added foreign key.
      *
      * @param string $fkName
-     * @param \Propel\Generator\Model\ForeignKey $addedFk
+     * @param ForeignKey $addedFk
      *
      * @return void
      */
@@ -728,7 +728,7 @@ class TableDiff
     /**
      * Getter for the addedFks property
      *
-     * @return array<\Propel\Generator\Model\ForeignKey>
+     * @return array<ForeignKey>
      */
     public function getAddedFks(): array
     {
@@ -738,7 +738,7 @@ class TableDiff
     /**
      * Sets the list of removed foreign keys.
      *
-     * @param array<\Propel\Generator\Model\ForeignKey> $removedFks
+     * @param array<ForeignKey> $removedFks
      *
      * @return void
      */
@@ -754,7 +754,7 @@ class TableDiff
      * Adds a removed foreign key column.
      *
      * @param string $fkName
-     * @param \Propel\Generator\Model\ForeignKey $removedFk
+     * @param ForeignKey $removedFk
      *
      * @return void
      */
@@ -778,7 +778,7 @@ class TableDiff
     /**
      * Returns the list of removed foreign keys.
      *
-     * @return array<\Propel\Generator\Model\ForeignKey>
+     * @return array<ForeignKey>
      */
     public function getRemovedFks(): array
     {
@@ -790,7 +790,7 @@ class TableDiff
      *
      * Array must be [ [ ForeignKey $fromFk, ForeignKey $toFk ], [ ... ] ]
      *
-     * @param array<array<\Propel\Generator\Model\ForeignKey>> $modifiedFks
+     * @param array<array<ForeignKey>> $modifiedFks
      *
      * @return void
      */
@@ -807,8 +807,8 @@ class TableDiff
      * Adds a modified foreign key.
      *
      * @param string $fkName
-     * @param \Propel\Generator\Model\ForeignKey $fromFk
-     * @param \Propel\Generator\Model\ForeignKey $toFk
+     * @param ForeignKey $fromFk
+     * @param ForeignKey $toFk
      *
      * @return void
      */

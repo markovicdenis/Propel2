@@ -43,14 +43,14 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Mapping from Propel types to Domain objects.
      *
-     * @var array<\Propel\Generator\Model\Domain>
+     * @var array<Domain>
      */
     protected $schemaDomainMap;
 
     /**
      * The database connection.
      *
-     * @var \Propel\Runtime\Connection\ConnectionInterface|null Database connection.
+     * @var ConnectionInterface|null Database connection.
      */
     protected $con;
 
@@ -60,7 +60,7 @@ class DefaultPlatform implements PlatformInterface
     protected $identifierQuoting = true;
 
     /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con Optional database connection to use in this platform.
+     * @param ConnectionInterface|null $con Optional database connection to use in this platform.
      */
     public function __construct(?ConnectionInterface $con = null)
     {
@@ -86,7 +86,7 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Sets the database connection to use for this Platform class.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con Database connection to use in this platform.
+     * @param ConnectionInterface|null $con Database connection to use in this platform.
      *
      * @return void
      */
@@ -98,7 +98,7 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Returns the database connection to use for this Platform class.
      *
-     * @return \Propel\Runtime\Connection\ConnectionInterface|null
+     * @return ConnectionInterface|null
      */
     public function getConnection(): ?ConnectionInterface
     {
@@ -126,7 +126,7 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Sets the GeneratorConfigInterface to use in the parsing.
      *
-     * @param \Propel\Generator\Config\GeneratorConfigInterface $generatorConfig
+     * @param GeneratorConfigInterface $generatorConfig
      *
      * @return void
      */
@@ -164,7 +164,7 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Adds a mapping entry for specified Domain.
      *
-     * @param \Propel\Generator\Model\Domain $domain
+     * @param Domain $domain
      *
      * @return void
      */
@@ -231,9 +231,9 @@ class DefaultPlatform implements PlatformInterface
      *
      * @param string $propelType
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
-     * @return \Propel\Generator\Model\Domain
+     * @return Domain
      */
     public function getDomainForType(string $propelType): Domain
     {
@@ -272,7 +272,7 @@ class DefaultPlatform implements PlatformInterface
      * This will create a new name or use one specified in an
      * id-method-parameter tag, if specified.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string|null
      */
@@ -304,7 +304,7 @@ class DefaultPlatform implements PlatformInterface
      * Returns the DDL SQL to add the tables of a database
      * together with index and foreign keys
      *
-     * @param \Propel\Generator\Model\Database $database
+     * @param Database $database
      *
      * @return string
      */
@@ -349,7 +349,7 @@ class DefaultPlatform implements PlatformInterface
     /**
      * Builds the DDL SQL to drop a table
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -364,7 +364,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      * Builds the DDL SQL to add a table
      * without index and foreign keys
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -407,9 +407,9 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     /**
      * Builds the DDL SQL for a Column object.
      *
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return string
      */
@@ -456,7 +456,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     /**
      * Returns the SQL for the default value of a Column object
      *
-     * @param \Propel\Generator\Model\Column $col
+     * @param Column $col
      *
      * @return string
      */
@@ -509,7 +509,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      * // '"foo","bar"'
      * </code>
      *
-     * @param array<\Propel\Generator\Model\Column> $columns
+     * @param array<Column> $columns
      * @param string $delimiter The delimiter to use in separating the column names.
      *
      * @return string
@@ -528,7 +528,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     /**
      * Returns the name of a table primary key.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -542,7 +542,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     /**
      * Returns the SQL for the primary key of a Table object.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -558,7 +558,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     /**
      * Returns the DDL SQL to drop the primary key of a table.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -582,7 +582,7 @@ ALTER TABLE %s DROP CONSTRAINT %s;
     /**
      * Returns the DDL SQL to add the primary key of a table.
      *
-     * @param \Propel\Generator\Model\Table $table From Table
+     * @param Table $table From Table
      *
      * @return string
      */
@@ -606,7 +606,7 @@ ALTER TABLE %s ADD %s;
     /**
      * Returns the DDL SQL to add the indices of a table.
      *
-     * @param \Propel\Generator\Model\Table $table To Table
+     * @param Table $table To Table
      *
      * @return string
      */
@@ -623,7 +623,7 @@ ALTER TABLE %s ADD %s;
     /**
      * Returns the DDL SQL to add an Index.
      *
-     * @param \Propel\Generator\Model\Index $index
+     * @param Index $index
      *
      * @return string
      */
@@ -646,7 +646,7 @@ CREATE %sINDEX %s ON %s (%s)%s;
     }
 
     /**
-     * @param \Propel\Generator\Model\Index $index
+     * @param Index $index
      *
      * @return string
      */
@@ -656,9 +656,9 @@ CREATE %sINDEX %s ON %s (%s)%s;
     }
 
     /**
-     * @param \Propel\Generator\Model\Index $index
+     * @param Index $index
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return void
      */
@@ -677,7 +677,7 @@ CREATE %sINDEX %s ON %s (%s)%s;
     /**
      * Builds the DDL SQL to drop an Index.
      *
-     * @param \Propel\Generator\Model\Index $index
+     * @param Index $index
      *
      * @return string
      */
@@ -696,7 +696,7 @@ DROP INDEX %s;
     /**
      * Builds the DDL SQL for an Index object.
      *
-     * @param \Propel\Generator\Model\Index $index
+     * @param Index $index
      *
      * @return string
      */
@@ -716,7 +716,7 @@ DROP INDEX %s;
     /**
      * Builds the DDL SQL for a Unique constraint object.
      *
-     * @param \Propel\Generator\Model\Unique $unique
+     * @param Unique $unique
      *
      * @return string
      */
@@ -728,7 +728,7 @@ DROP INDEX %s;
     /**
      * Builds the DDL SQL to add the foreign keys of a table.
      *
-     * @param \Propel\Generator\Model\Table $table
+     * @param Table $table
      *
      * @return string
      */
@@ -745,7 +745,7 @@ DROP INDEX %s;
     /**
      * Builds the DDL SQL to add a foreign key.
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string
      */
@@ -768,7 +768,7 @@ ALTER TABLE %s ADD %s;
     /**
      * Builds the DDL SQL to drop a foreign key.
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string|null
      */
@@ -791,7 +791,7 @@ ALTER TABLE %s DROP CONSTRAINT %s;
     /**
      * Builds the DDL SQL for a ForeignKey object.
      *
-     * @param \Propel\Generator\Model\ForeignKey $fk
+     * @param ForeignKey $fk
      *
      * @return string
      */
@@ -856,7 +856,7 @@ ALTER TABLE %s DROP CONSTRAINT %s;
      * Builds the DDL SQL to modify a database
      * based on a DatabaseDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\DatabaseDiff $databaseDiff
+     * @param DatabaseDiff $databaseDiff
      *
      * @return string
      */
@@ -916,7 +916,7 @@ ALTER TABLE %s RENAME TO %s;
      * Builds the DDL SQL to alter a table
      * based on a TableDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
+     * @param TableDiff $tableDiff
      *
      * @return string
      */
@@ -998,7 +998,7 @@ ALTER TABLE %s RENAME TO %s;
      * Builds the DDL SQL to alter a table
      * based on a TableDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
+     * @param TableDiff $tableDiff
      *
      * @return string
      */
@@ -1033,7 +1033,7 @@ ALTER TABLE %s RENAME TO %s;
      * Builds the DDL SQL to alter a table's primary key
      * based on a TableDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
+     * @param TableDiff $tableDiff
      *
      * @return string
      */
@@ -1053,7 +1053,7 @@ ALTER TABLE %s RENAME TO %s;
      * Builds the DDL SQL to alter a table's indices
      * based on a TableDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
+     * @param TableDiff $tableDiff
      *
      * @return string
      */
@@ -1082,7 +1082,7 @@ ALTER TABLE %s RENAME TO %s;
      * Builds the DDL SQL to alter a table's foreign keys
      * based on a TableDiff instance
      *
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
+     * @param TableDiff $tableDiff
      *
      * @return string
      */
@@ -1110,7 +1110,7 @@ ALTER TABLE %s RENAME TO %s;
     /**
      * Builds the DDL SQL to remove a column
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -1130,8 +1130,8 @@ ALTER TABLE %s DROP COLUMN %s;
     /**
      * Builds the DDL SQL to rename a column
      *
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
+     * @param Column $fromColumn
+     * @param Column $toColumn
      *
      * @return string
      */
@@ -1152,7 +1152,7 @@ ALTER TABLE %s RENAME COLUMN %s TO %s;
     /**
      * Builds the DDL SQL to modify a column
      *
-     * @param \Propel\Generator\Model\Diff\ColumnDiff $columnDiff
+     * @param ColumnDiff $columnDiff
      *
      * @return string
      */
@@ -1173,7 +1173,7 @@ ALTER TABLE %s MODIFY %s;
     /**
      * Builds the DDL SQL to modify a list of columns
      *
-     * @param array<\Propel\Generator\Model\Diff\ColumnDiff> $columnDiffs
+     * @param array<ColumnDiff> $columnDiffs
      *
      * @return string
      */
@@ -1209,7 +1209,7 @@ ALTER TABLE %s MODIFY
     /**
      * Builds the DDL SQL to remove a column
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      *
      * @return string
      */
@@ -1229,7 +1229,7 @@ ALTER TABLE %s ADD %s;
     /**
      * Builds the DDL SQL to remove a list of columns
      *
-     * @param array<\Propel\Generator\Model\Column> $columns
+     * @param array<Column> $columns
      *
      * @return string
      */
@@ -1513,7 +1513,7 @@ ALTER TABLE %s ADD
      * Warning: duplicates logic from AdapterInterface::bindValue().
      * Any code modification here must be ported there.
      *
-     * @param \Propel\Generator\Model\Column $column
+     * @param Column $column
      * @param string $identifier
      * @param string $columnValueAccessor
      * @param string $tab
@@ -1610,7 +1610,7 @@ if (is_resource($columnValueAccessor)) {
      * Useful for checking needed definitions/structures. E.g. Unique Indexes for ForeignKey columns,
      * which the most Platforms requires but which is not always explicitly defined in the table model.
      *
-     * @param \Propel\Generator\Model\Table $table The table object which gets modified.
+     * @param Table $table The table object which gets modified.
      *
      * @return void
      */
