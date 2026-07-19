@@ -591,6 +591,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             indkey,
             indclass,
             am.amname as index_method,
+            pg_get_expr(idx.indpred, idx.indrelid, true) AS index_predicate,
             indisunique
             FROM pg_index idx
             JOIN pg_class cls ON cls.oid=indexrelid
@@ -632,6 +633,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
                 if ($row['index_method'] !== 'btree') {
                     $indexes[$name]->setUsing($row['index_method']);
                 }
+                $indexes[$name]->setWhere($row['index_predicate'] ?? null);
             }
 
             $arrColumns = explode(' ', $row['indkey']);
