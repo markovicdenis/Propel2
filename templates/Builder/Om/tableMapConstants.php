@@ -47,7 +47,7 @@
     /**
      * the column name for the <?php echo $col->getName() ?> field
      */
-    public const <?php echo $col->getConstantName() ?> = '<?php echo $tableName ?>.<?php echo $col->getName() ?>';
+    public const string <?php echo $col->getConstantName() ?> = '<?php echo $tableName ?>.<?php echo $col->getName() ?>';
 <?php endforeach; ?>
 
     /**

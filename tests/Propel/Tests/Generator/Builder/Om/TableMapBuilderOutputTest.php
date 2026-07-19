@@ -172,13 +172,21 @@ XML;
 
         $allColumnsPosition = strpos($classBodyDefinition, 'public const array ALL_COLUMNS = [self::COL_ID, self::COL_EMAIL_ADDRESS];');
         $lazyColumnsPosition = strpos($classBodyDefinition, 'public const array LAZY_COLUMNS = [];');
+        $columnConstantPosition = strpos($classBodyDefinition, "public const string COL_EMAIL_ADDRESS = 'email.email_address';");
+        $columnNamesPosition = strpos($classBodyDefinition, "public const array COLUMN_NAMES = ['Id', 'EmailAddress'];");
+        $camelNamesPosition = strpos($classBodyDefinition, "public const array CAMEL_CASE_NAMES = ['id', 'emailAddress'];");
         $fieldNamesPosition = strpos($classBodyDefinition, 'protected static array $fieldNames = [');
 
         $this->assertNotFalse($allColumnsPosition);
         $this->assertNotFalse($lazyColumnsPosition);
+        $this->assertNotFalse($columnConstantPosition);
+        $this->assertNotFalse($columnNamesPosition);
+        $this->assertNotFalse($camelNamesPosition);
         $this->assertNotFalse($fieldNamesPosition);
         $this->assertLessThan($fieldNamesPosition, $allColumnsPosition);
         $this->assertLessThan($fieldNamesPosition, $lazyColumnsPosition);
+        $this->assertLessThan($fieldNamesPosition, $columnNamesPosition);
+        $this->assertLessThan($fieldNamesPosition, $camelNamesPosition);
     }
 
     /**
@@ -296,6 +304,7 @@ XML;
         $fieldAttributesDefinition = $tableMapBuilder->getFieldAttributesDefinition();
 
         $this->assertStringContainsString('protected static array $fieldNames = [', $fieldAttributesDefinition);
+        $this->assertStringContainsString('self::TYPE_CAMELNAME     => self::CAMEL_CASE_NAMES,', $fieldAttributesDefinition);
         $this->assertStringContainsString('self::TYPE_COLNAME       => self::ALL_COLUMNS,', $fieldAttributesDefinition);
         $this->assertStringContainsString("self::TYPE_FIELDNAME     => ['id', 'email_address']", $fieldAttributesDefinition);
         $this->assertStringNotContainsString('protected static array $fieldKeys = [', $fieldAttributesDefinition);

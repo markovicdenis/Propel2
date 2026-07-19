@@ -256,7 +256,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     /**
      * The column name for the " . $col->getName() . " field
      */
-    public const " . $col->getConstantName() . " = '" . $this->getTable()->getName() . '.' . $col->getName() . "';
+    public const string " . $col->getConstantName() . " = '" . $this->getTable()->getName() . '.' . $col->getName() . "';
 ";
         }
     }
@@ -329,7 +329,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $script .= "
     /**
      * Gets the list of values for all ENUM and SET columns
-     * @return array
      */
     public static function getValueSets(): array
     {
@@ -430,12 +429,10 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $table = $this->getTable();
         $tableColumns = $this->getTable()->getColumns();
 
-        $fieldNamesCamelCaseName = [];
         $fieldNamesColname = [];
         $fieldNamesFieldName = [];
 
         foreach ($tableColumns as $col) {
-            $fieldNamesCamelCaseName[] = "'" . $col->getCamelCaseName() . "'";
             $fieldNamesColname[] = $this->getColumnConstant($col, 'self');
             $fieldNamesFieldName[] = "'" . $col->getName() . "'";
         }
@@ -446,7 +443,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
 
         return $this->renderTemplate('tableMapFields', [
                 'fieldNamesPhpName' => 'self::COLUMN_NAMES',
-                'fieldNamesCamelCaseName' => implode(', ', $fieldNamesCamelCaseName),
+                'fieldNamesCamelCaseName' => 'self::CAMEL_CASE_NAMES',
                 'fieldNamesColname' => $fieldNamesColnameDefinition,
                 'fieldNamesFieldName' => implode(', ', $fieldNamesFieldName),
         ]);
@@ -495,7 +492,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * Initialize the table attributes and columns
      * Relations are not initialized by this method since they are lazy loaded
      *
-     * @return void
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function initialize(): void
@@ -1094,9 +1090,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      *
      * This method must be overridden by the stub subclass, because
      * $objectClassName is declared abstract in the schema.
-     *
-     * @param bool \$withPrefix
-     * @return string
      */
     public static function getOMClass(bool \$withPrefix = true): string
     {
@@ -1241,11 +1234,13 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     {
         $allColumns = [];
         $fieldNamesPhpName = [];
+        $fieldNamesCamelCaseName = [];
         $lazyColumns = [];
         foreach ($this->getTable()->getColumns() as $col) {
             $columnConstant = $this->getColumnConstant($col, 'self');
             $allColumns[] = $columnConstant;
             $fieldNamesPhpName[] = "'" . $col->getPhpName() . "'";
+            $fieldNamesCamelCaseName[] = "'" . $col->getCamelCaseName() . "'";
 
             if ($col->isLazyLoad()) {
                 $lazyColumns[] = $columnConstant;
@@ -1255,6 +1250,7 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
         $allColumnsString = implode(', ', $allColumns);
         $lazyColumnsString = implode(', ', $lazyColumns);
         $columnNamesString = implode(', ', $fieldNamesPhpName);
+        $camelNamesString = implode(', ', $fieldNamesCamelCaseName);
 
         $script .= "
     /**
@@ -1271,6 +1267,11 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * Field names in PHPName format, in schema order.
      */
     public const array COLUMN_NAMES = [$columnNamesString];
+
+    /**
+     * Field names in CamelName format, in schema order.
+     */
+    public const array CAMEL_CASE_NAMES = [$camelNamesString];
 ";
     }
 
@@ -1294,7 +1295,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * @param Criteria \$criteria Object containing the columns to add.
      * @param string|null \$alias Optional table alias
 " . $this->getPropelExceptionThrowsDocTag() . "
-     * @return void
      */
     public static function addSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
@@ -1336,7 +1336,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
      * @param Criteria \$criteria Object containing the columns to remove.
      * @param string|null \$alias Optional table alias
 " . $this->getPropelExceptionThrowsDocTag() . "
-     * @return void
      */
     public static function removeSelectColumns(Criteria \$criteria, ?string \$alias = null): void
     {
@@ -1372,7 +1371,6 @@ class " . $this->getUnqualifiedClassName() . " extends TableMap
     /**
      * Returns the TableMap related to this object.
      * This method is not needed for general use but a specific application could have a need.
-     * @return TableMap
 " . $this->getPropelExceptionThrowsDocTag() . "
      */
     public static function getTableMap(): TableMap
