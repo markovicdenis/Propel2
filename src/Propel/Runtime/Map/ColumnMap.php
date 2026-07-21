@@ -491,7 +491,7 @@ class ColumnMap
     /**
      * Get the TableMap object that this column is related to.
      *
-     * @throws \Propel\Runtime\Map\Exception\ForeignKeyNotFoundException when called on a column with no foreign key
+     * @throws ForeignKeyNotFoundException when called on a column with no foreign key
      *
      * @return \Propel\Runtime\Map\TableMap The related TableMap object
      */
@@ -582,7 +582,6 @@ class ColumnMap
      * Performs DB-specific ignore case, but only if the column type necessitates it.
      *
      * @param string $str The expression we want to apply the ignore case formatting to (e.g. the column name).
-     * @param \Propel\Runtime\Adapter\AdapterInterface $db
      *
      * @return string
      */

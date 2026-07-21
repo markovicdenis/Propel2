@@ -12,6 +12,7 @@ use LazyLoadActiveRecord;
 use LazyLoadActiveRecordQuery;
 use Map\LazyLoadActiveRecordTableMap;
 use Propel\Generator\Util\QuickBuilder;
+use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Propel;
 use Propel\Tests\TestCase;
 
@@ -90,6 +91,46 @@ EOF;
         $count = $con->getQueryCount();
         $this->assertEquals('hello', $obj2->getBaz($con));
         $this->assertEquals($count + 1, $con->getQueryCount());
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectionKeepsNonLazyHydrationAlignedAndRejectsLazyColumns()
+    {
+        $con = Propel::getServiceContainer()->getConnection(LazyLoadActiveRecordTableMap::DATABASE_NAME);
+        $this->assertSame(['Id', 'Foo'], LazyLoadActiveRecordTableMap::HYDRATE_COLUMN_NAMES);
+
+        $obj = new LazyLoadActiveRecord();
+        $obj->setFoo('projected');
+        $obj->setBar('lazy');
+        $obj->save($con);
+        LazyLoadActiveRecordTableMap::clearInstancePool();
+
+        $projected = LazyLoadActiveRecordQuery::create()
+            ->filterById($obj->getId())
+            ->project('Foo')
+            ->findOne($con);
+
+        $this->assertTrue($projected->isPartial());
+        $this->assertSame('projected', $projected->getFoo());
+        $this->assertFalse($projected->isColumnLoaded('Bar'));
+        $this->assertSame(['Id', 'Foo'], array_keys($projected->toArray()));
+        $this->assertSame('projected', $projected->toArray()['Foo']);
+
+        $associativeProjection = new LazyLoadActiveRecord();
+        $associativeProjection->hydrateProjection(
+            ['id' => $obj->getId(), 'foo' => 'associative'],
+            ['Id', 'Foo'],
+            TableMap::TYPE_FIELDNAME,
+        );
+        $this->assertSame('associative', $associativeProjection->getFoo());
+
+        $this->expectException(\Propel\Runtime\Exception\PropelException::class);
+        LazyLoadActiveRecordQuery::create()
+            ->filterById($obj->getId())
+            ->project('Bar')
+            ->findOne($con);
     }
 
     /**

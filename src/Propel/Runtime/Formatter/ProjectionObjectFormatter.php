@@ -10,6 +10,8 @@ namespace Propel\Runtime\Formatter;
 use Propel\Runtime\ActiveRecord\ActiveRecordInterface;
 use Propel\Runtime\Exception\LogicException;
 
+use function sprintf;
+
 /**
  * Formats selected root-table columns as partial model objects.
  *

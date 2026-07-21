@@ -47,35 +47,12 @@ use Propel\Runtime\Traits\ParsePKTrait;
 use Propel\Runtime\Util\PropelModelPager;
 
 use function array_key_exists;
-use function array_map;
-use function array_merge;
-use function array_pad;
-use function array_shift;
-use function array_values;
 use function count;
-use function current;
-use function end;
-use function explode;
-use function implode;
 use function in_array;
 use function is_array;
 use function is_object;
-use function join;
-use function key;
-use function lcfirst;
-use function method_exists;
-use function serialize;
 use function sprintf;
-use function str_contains;
-use function str_ireplace;
-use function str_replace;
-use function stripos;
 use function strlen;
-use function strpos;
-use function strrpos;
-use function substr;
-use function substr_count;
-use function trim;
 
 /**
  * This class extends the Criteria by adding runtime introspection abilities
@@ -86,9 +63,9 @@ use function trim;
  *
  * magic methods:
  *
- * @method \Propel\Runtime\ActiveQuery\ModelCriteria leftJoin($relation) Adds a LEFT JOIN clause to the query
- * @method \Propel\Runtime\ActiveQuery\ModelCriteria rightJoin($relation) Adds a RIGHT JOIN clause to the query
- * @method \Propel\Runtime\ActiveQuery\ModelCriteria innerJoin($relation) Adds a INNER JOIN clause to the query
+ * @method ModelCriteria leftJoin($relation) Adds a LEFT JOIN clause to the query
+ * @method ModelCriteria rightJoin($relation) Adds a RIGHT JOIN clause to the query
+ * @method ModelCriteria innerJoin($relation) Adds a INNER JOIN clause to the query
  *
  * @author François Zaninotto
  */
@@ -123,7 +100,7 @@ class ModelCriteria extends BaseModelCriteria
     public const FORMAT_ON_DEMAND = '\Propel\Runtime\Formatter\OnDemandFormatter';
 
     /**
-     * @var \Propel\Runtime\ActiveQuery\ModelCriteria|null
+     * @var ModelCriteria|null
      */
     protected $primaryCriteria;
 
@@ -314,7 +291,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @see ModelCriteria::useExistsQuery() can be used
      *
-     * @param \Propel\Runtime\ActiveQuery\ModelCriteria $existsQueryCriteria the query object used in the EXISTS statement
+     * @param ModelCriteria $existsQueryCriteria the query object used in the EXISTS statement
      * @param string $operator Either ExistsQueryCriterion::TYPE_EXISTS or ExistsQueryCriterion::TYPE_NOT_EXISTS. Defaults to EXISTS
      *
      * @return $this
@@ -331,7 +308,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Negation of {@link ModelCriteria::whereExists()}
      *
-     * @param \Propel\Runtime\ActiveQuery\ModelCriteria $existsQueryCriteria
+     * @param ModelCriteria $existsQueryCriteria
      *
      * @return $this
      */
@@ -391,7 +368,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $columnName The column to order by
      * @param string $order The sorting order. Criteria::ASC by default, also accepts Criteria::DESC
      *
-     * @throws \Propel\Runtime\Exception\UnexpectedValueException
+     * @throws UnexpectedValueException
      *
      * @return $this The current object, for fluid interface
      */
@@ -429,7 +406,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param mixed $columnName an array of columns name (e.g. array('Book.AuthorId', 'Book.AuthorName')) or a single column name (e.g. 'Book.AuthorId')
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -462,7 +439,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $class The class name or alias
      *
-     * @throws \Propel\Runtime\Exception\ClassNotFoundException
+     * @throws ClassNotFoundException
      *
      * @return $this The current object, for fluid interface
      */
@@ -552,7 +529,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param mixed $columnArray A list of column names (e.g. array('Title', 'Category.Name', 'c.Content')) or a single column name (e.g. 'Name')
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -560,6 +537,13 @@ class ModelCriteria extends BaseModelCriteria
     {
         if (!$columnArray) {
             throw new PropelException('You must ask for at least one column');
+        }
+
+        if ($this->projectionColumns !== null) {
+            $this->projectionColumns = null;
+            if ($this->formatter instanceof ProjectionObjectFormatter) {
+                $this->formatter = null;
+            }
         }
 
         if ($columnArray === '*') {
@@ -608,6 +592,10 @@ class ModelCriteria extends BaseModelCriteria
             $projectionColumns[$primaryKey->getPhpName()] = true;
         }
 
+        // A previous select() may have left aliased columns behind after it was
+        // executed. They cannot be combined with projection hydration.
+        parent::clearSelectColumns();
+        $this->select = null;
         $this->projectionColumns = array_keys($projectionColumns);
         $formatter = new ProjectionObjectFormatter($this);
         $formatter->setProjectionColumns($this->projectionColumns);
@@ -694,8 +682,8 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $relation Relation to use for the join
      * @param string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
      *
-     * @throws \Propel\Runtime\Exception\PropelException
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownRelationException
+     * @throws PropelException
+     * @throws UnknownRelationException
      *
      * @return $this The current object, for fluid interface
      */
@@ -768,7 +756,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param string|null $operator The operator to use to add the condition. Defaults to 'AND'
      * @param int|null $bindingType
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -803,7 +791,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $name The relation name or alias on which the join was created
      * @param mixed $condition A Criterion object, or a condition name
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -892,8 +880,8 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $relation Relation to use for the join
      *
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownRelationException
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws UnknownRelationException
+     * @throws PropelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -974,7 +962,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $relationName Relation name or alias
      * @param string|null $secondaryCriteriaClass ClassName for the ModelCriteria to be used
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return self The secondary criteria object
      */
@@ -1008,7 +996,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @see Criteria::mergeWith()
      *
-     * @throws \Propel\Runtime\Exception\RuntimeException
+     * @throws RuntimeException
      *
      * @return self|null The primary criteria object
      */
@@ -1038,10 +1026,10 @@ class ModelCriteria extends BaseModelCriteria
      * @param class-string<\Propel\Runtime\ActiveQuery\Criterion\AbstractInnerQueryCriterion> $abstractInnerQueryCriterionClass
      * @param string $relationName name of the relation
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      * @param string|null $operatorDeclaration Either ExistsQueryCriterion::TYPE_EXISTS or ExistsQueryCriterion::TYPE_NOT_EXISTS. Defaults to EXISTS
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ModelCriteria
      */
     protected function useAbstractInnerQueryCriterion(
         string $abstractInnerQueryCriterionClass,
@@ -1074,10 +1062,10 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $relationName name of the relation
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      * @param string $type Either ExistsQueryCriterion::TYPE_EXISTS or ExistsQueryCriterion::TYPE_NOT_EXISTS. Defaults to EXISTS
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ModelCriteria
      */
     public function useExistsQuery(
         string $relationName,
@@ -1095,9 +1083,9 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $relationName
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ModelCriteria
      */
     public function useNotExistsQuery(string $relationName, ?string $modelAlias = null, ?string $queryClass = null)
     {
@@ -1111,10 +1099,10 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $relationName name of the relation
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      * @param string $type Criteria::IN or Criteria::NOT_IN. Defaults to IN
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ModelCriteria
      */
     public function useInQuery(
         string $relationName,
@@ -1132,9 +1120,9 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $relationName
      * @param string|null $modelAlias sets an alias for the nested query
-     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param class-string<ModelCriteria>|null $queryClass allows to use a custom query class for the exists query, like ExtendedBookQuery::class
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria
+     * @return ModelCriteria
      */
     public function useNotInQuery(string $relationName, ?string $modelAlias = null, ?string $queryClass = null)
     {
@@ -1191,6 +1179,7 @@ class ModelCriteria extends BaseModelCriteria
         $this->primaryCriteria = null;
         $this->formatter = null;
         $this->select = null;
+        $this->projectionColumns = null;
         $this->isSelfSelected = false;
 
         return $this;
@@ -1199,7 +1188,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Sets the primary Criteria for this secondary Criteria
      *
-     * @param \Propel\Runtime\ActiveQuery\ModelCriteria $criteria The primary criteria
+     * @param ModelCriteria $criteria The primary criteria
      * @param \Propel\Runtime\ActiveQuery\Join $previousJoin The previousJoin for this ModelCriteria
      *
      * @return $this
@@ -1215,7 +1204,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Gets the primary criteria for this secondary Criteria
      *
-     * @return \Propel\Runtime\ActiveQuery\ModelCriteria|null The primary criteria
+     * @return ModelCriteria|null The primary criteria
      */
     public function getPrimaryCriteria(): ?self
     {
@@ -1428,7 +1417,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Code to execute before every SELECT statement
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
+     * @param ConnectionInterface $con The connection object used by the query
      *
      * @return void
      */
@@ -1438,7 +1427,7 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con
+     * @param ConnectionInterface $con
      *
      * @return void
      */
@@ -1451,7 +1440,7 @@ class ModelCriteria extends BaseModelCriteria
      * and format the list of results with the current formatter
      * By default, returns an array of model objects
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return \Propel\Runtime\Collection\Collection<\Propel\Runtime\ActiveRecord\ActiveRecordInterface>|mixed the list of results, formatted by the current formatter
      */
@@ -1477,7 +1466,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * Does not work with ->with()s containing one-to-many relations.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1511,7 +1500,7 @@ class ModelCriteria extends BaseModelCriteria
      * Throws an exception when nothing was found.
      *
      * @param mixed $key Primary key to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
@@ -1537,7 +1526,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * Does not work with ->with()s containing one-to-many relations.
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
@@ -1564,7 +1553,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param mixed $column A string representing the column phpName, e.g. 'AuthorId'
      * @param mixed $value A value for the condition
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @throws \Propel\Runtime\Exception\EntityNotFoundException|Exception When nothing is found
      *
@@ -1593,7 +1582,7 @@ class ModelCriteria extends BaseModelCriteria
      * @see requireOne()
      *
      * @param mixed $conditions An array of conditions, using column phpNames as key
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @throws Exception
      *
@@ -1611,7 +1600,7 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return Exception
      */
@@ -1632,9 +1621,9 @@ class ModelCriteria extends BaseModelCriteria
      * and format the result with the current formatter
      * By default, returns a model object
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1673,7 +1662,7 @@ class ModelCriteria extends BaseModelCriteria
      * </code>
      *
      * @param mixed $key Primary key to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1714,9 +1703,9 @@ class ModelCriteria extends BaseModelCriteria
      * </code>
      *
      * @param array $keys Primary keys to use for the query
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return \Propel\Runtime\Collection\Collection<\Propel\Runtime\ActiveRecord\ActiveRecordInterface>|mixed the list of results, formatted by the current formatter
      */
@@ -1750,7 +1739,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $column A string representing the column phpName, e.g. 'AuthorId'
      * @param mixed $value A value for the condition
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con An optional connection object
+     * @param ConnectionInterface|null $con An optional connection object
      *
      * @return \Propel\Runtime\Collection\Collection<\Propel\Runtime\ActiveRecord\ActiveRecordInterface>|mixed the list of results, formatted by the current formatter
      */
@@ -1775,7 +1764,7 @@ class ModelCriteria extends BaseModelCriteria
      * @see find()
      *
      * @param mixed $conditions An array of conditions, using column phpNames as key
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return \Propel\Runtime\Collection\Collection<\Propel\Runtime\ActiveRecord\ActiveRecordInterface>|mixed the list of results, formatted by the current formatter
      */
@@ -1794,7 +1783,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param mixed $column A string representing thecolumn phpName, e.g. 'AuthorId'
      * @param mixed $value A value for the condition
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return mixed the result, formatted by the current formatter
      */
@@ -1819,7 +1808,7 @@ class ModelCriteria extends BaseModelCriteria
      * @see findOne()
      *
      * @param mixed $conditions An array of conditions, using column phpNames as key
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return mixed the list of results, formatted by the current formatter
      */
@@ -1833,7 +1822,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Issue a SELECT COUNT(*) query based on the current ModelCriteria
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
      * @return int The number of results
      */
@@ -1861,11 +1850,6 @@ class ModelCriteria extends BaseModelCriteria
         return $count;
     }
 
-    /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
-     *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface
-     */
     public function doCount(?ConnectionInterface $con = null): DataFetcherInterface
     {
         $this->configureSelectColumns();
@@ -1880,8 +1864,6 @@ class ModelCriteria extends BaseModelCriteria
 
     /**
      * Issue an existence check on the current ModelCriteria
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
      * @return bool column existence
      */
@@ -1913,9 +1895,8 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param int $page number of the page to start the pager on. Page 1 means no offset
      * @param int $maxPerPage maximum number of results per page. Determines the limit
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
      *
-     * @return \Propel\Runtime\Util\PropelModelPager a pager object, supporting iteration
+     * @return PropelModelPager a pager object, supporting iteration
      */
     public function paginate(int $page = 1, int $maxPerPage = 10, ?ConnectionInterface $con = null): PropelModelPager
     {
@@ -1930,7 +1911,7 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * Code to execute before every DELETE statement
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
+     * @param ConnectionInterface $con The connection object used by the query
      *
      * @return int|null
      */
@@ -1940,7 +1921,7 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con
+     * @param ConnectionInterface $con
      *
      * @return int|null
      */
@@ -1953,7 +1934,7 @@ class ModelCriteria extends BaseModelCriteria
      * Code to execute after every DELETE statement
      *
      * @param int $affectedRows the number of deleted rows
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
+     * @param ConnectionInterface $con The connection object used by the query
      *
      * @return int|null
      */
@@ -1964,7 +1945,7 @@ class ModelCriteria extends BaseModelCriteria
 
     /**
      * @param int $affectedRows
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con
+     * @param ConnectionInterface $con
      *
      * @return int|null
      */
@@ -1977,9 +1958,9 @@ class ModelCriteria extends BaseModelCriteria
      * Issue a DELETE query based on the current ModelCriteria
      * An optional hook on basePreDelete() can prevent the actual deletion
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return int The number of deleted rows
      */
@@ -2015,9 +1996,9 @@ class ModelCriteria extends BaseModelCriteria
      * Issue a DELETE query based on the current ModelCriteria deleting all rows in the table
      * An optional hook on basePreDelete() can prevent the actual deletion
      *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return int The number of deleted rows
      */
@@ -2045,7 +2026,7 @@ class ModelCriteria extends BaseModelCriteria
      * Code to execute before every UPDATE statement
      *
      * @param array|Criteria $values The associative array of columns and values for the update
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
+     * @param ConnectionInterface $con The connection object used by the query
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
      *
      * @return int|null
@@ -2057,7 +2038,7 @@ class ModelCriteria extends BaseModelCriteria
 
     /**
      * @param array|Criteria $values
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con
+     * @param ConnectionInterface $con
      * @param bool $forceIndividualSaves
      *
      * @return int|null
@@ -2071,7 +2052,7 @@ class ModelCriteria extends BaseModelCriteria
      * Code to execute after every UPDATE statement
      *
      * @param int $affectedRows the number of updated rows
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con The connection object used by the query
+     * @param ConnectionInterface $con The connection object used by the query
      *
      * @return int|null
      */
@@ -2082,7 +2063,7 @@ class ModelCriteria extends BaseModelCriteria
 
     /**
      * @param int $affectedRows
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con
+     * @param ConnectionInterface $con
      *
      * @return int|null
      */
@@ -2098,11 +2079,11 @@ class ModelCriteria extends BaseModelCriteria
      * will only be triggered if you force individual saves, i.e. if you pass true as second argument.
      *
      * @param mixed $values Associative array of keys and values to replace
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con an optional connection object
+     * @param ConnectionInterface|null $con an optional connection object
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
      *
-     * @throws \Propel\Runtime\Exception\PropelException
-     * @throws Exception|\Propel\Runtime\Exception\PropelException
+     * @throws PropelException
+     * @throws Exception|PropelException
      *
      * @return int Number of updated rows
      */
@@ -2114,6 +2095,9 @@ class ModelCriteria extends BaseModelCriteria
 
         if (count($this->getJoins())) {
             throw new PropelException(__METHOD__ . ' does not support multitable updates, please do not use join()');
+        }
+        if ($forceIndividualSaves && $this->projectionColumns !== null) {
+            throw new LogicException(__METHOD__ . ' cannot individually save projected partial objects. Reload full models or use a direct update.');
         }
 
         if ($con === null) {
@@ -2138,10 +2122,9 @@ class ModelCriteria extends BaseModelCriteria
      * This method is called by ModelCriteria::update() inside a transaction.
      *
      * @param \Propel\Runtime\ActiveQuery\Criteria|array $updateValues Associative array of keys and values to replace
-     * @param \Propel\Runtime\Connection\ConnectionInterface $con a connection object
      * @param bool $forceIndividualSaves If false (default), the resulting call is a Criteria::doUpdate(), otherwise it is a series of save() calls on all the found objects
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return int Number of updated rows
      */
@@ -2195,7 +2178,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param array $conditions The list of condition names, e.g. array('cond1', 'cond2')
      * @param string|null $operator An operator, Criteria::LOGICAL_AND (default) or Criteria::LOGICAL_OR
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion A Criterion or ModelCriterion object
+     * @return AbstractCriterion A Criterion or ModelCriterion object
      */
     protected function getCriterionForConditions(array $conditions, ?string $operator = null): AbstractCriterion
     {
@@ -2215,9 +2198,9 @@ class ModelCriteria extends BaseModelCriteria
      * @param mixed $value A value for the condition
      * @param int|null $bindingType
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
-     * @return \Propel\Runtime\ActiveQuery\Criterion\AbstractCriterion a Criterion object
+     * @return AbstractCriterion a Criterion object
      */
     protected function getCriterionForClause(string $clause, $value, ?int $bindingType = null): AbstractCriterion
     {
@@ -2225,7 +2208,7 @@ class ModelCriteria extends BaseModelCriteria
         if ($this->replaceNames($clause)) {
             // at least one column name was found and replaced in the clause
             // this is enough to determine the type to bind the parameter to
-            /** @var \Propel\Runtime\Map\ColumnMap $colMap */
+            /** @var ColumnMap $colMap */
             $colMap = $this->replacedColumns[0];
             $value = $this->convertValueForColumn($value, $colMap);
             $clauseLen = strlen($clause);
@@ -2271,9 +2254,8 @@ class ModelCriteria extends BaseModelCriteria
      * Converts value for some column types
      *
      * @param mixed $value The value to convert
-     * @param \Propel\Runtime\Map\ColumnMap $colMap The ColumnMap object
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return mixed The converted value
      */
@@ -2349,8 +2331,8 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $columnName String representing the column name in a pseudo SQL clause, e.g. 'Book.Title'
      * @param bool $failSilently
      *
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownColumnException
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownModelException
+     * @throws UnknownColumnException
+     * @throws UnknownModelException
      *
      * @return array List($columnMap, $realColumnName)
      */
@@ -2429,10 +2411,6 @@ class ModelCriteria extends BaseModelCriteria
 
     /**
      * Builds, binds and executes a SELECT query based on the current object.
-     *
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con A connection object
-     *
-     * @return \Propel\Runtime\DataFetcher\DataFetcherInterface A dataFetcher using the connection, ready to be fetched
      */
     public function doSelect(?ConnectionInterface $con = null): DataFetcherInterface
     {
@@ -2460,21 +2438,32 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return void
      */
     public function configureSelectColumns(): void
     {
         if ($this->projectionColumns !== null) {
-            if ($this->getWith() || $this->getAsColumns()) {
-                throw new LogicException('Projection queries do not support with(), joinWith(), or withColumn().');
+            if (
+                !$this->formatter instanceof ProjectionObjectFormatter
+                || $this->getJoins()
+                || $this->getWith()
+                || $this->getAsColumns()
+                || $this->getSelectQueries()
+                || $this->getGroupByColumns()
+                || $this->getHaving()
+            ) {
+                throw new LogicException('Projection queries require ProjectionObjectFormatter and do not support joins, subqueries, grouped results, with(), joinWith(), or withColumn().');
             }
 
             $this->selectColumns = [];
             foreach ($this->projectionColumns as $columnName) {
                 $columnMap = $this->getTableMapOrFail()->getColumnByPhpName($columnName);
-                $this->addSelectColumn($columnMap->getFullyQualifiedName());
+                $tableName = $this->useAliasInSQL
+                    ? $this->getModelAlias()
+                    : $columnMap->getTableName();
+                $this->addSelectColumn($tableName . '.' . $columnMap->getName());
             }
 
             return;
@@ -2509,13 +2498,29 @@ class ModelCriteria extends BaseModelCriteria
     }
 
     /**
+     * Clear a projection together with the SQL select list. This is important
+     * for exists() and count() clones, which replace the selected columns.
+     *
+     * @return $this
+     */
+    public function clearSelectColumns()
+    {
+        $this->projectionColumns = null;
+        if ($this->formatter instanceof ProjectionObjectFormatter) {
+            $this->formatter = null;
+        }
+
+        return parent::clearSelectColumns();
+    }
+
+    /**
      * Special case for subquery columns
      *
      * @param string $class
      * @param string $phpName
      * @param bool $failSilently
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return array List($columnMap, $realColumnName)
      */
@@ -2549,7 +2554,7 @@ class ModelCriteria extends BaseModelCriteria
      *
      * @param string $columnName the Column phpName, without the table name
      *
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownColumnException
+     * @throws UnknownColumnException
      *
      * @return string the fully qualified column name
      */
@@ -2666,7 +2671,7 @@ class ModelCriteria extends BaseModelCriteria
      * @param string $name
      * @param array $arguments
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return mixed
      */

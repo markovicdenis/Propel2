@@ -3339,23 +3339,25 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
         \$alreadyDumpedObjects['$objectClassName'][\$this->hashCode()] = true;
         \$keys = " . $this->getTableMapClassName() . "::getFieldNames(\$keyType);
-        \$result = [";
+        \$result = [];";
         foreach ($this->getTable()->getColumns() as $num => $col) {
+            $script .= "
+        if (!\$this->isPartial() || \$this->isColumnLoaded('" . $col->getPhpName() . "')) {";
             if ($col->isLazyLoad()) {
                 $script .= "
-            \$keys[$num] => (\$includeLazyLoadColumns) ? \$this->get" . $col->getPhpName() . '() : null,';
+            \$result[\$keys[$num]] = (\$includeLazyLoadColumns) ? \$this->get" . $col->getPhpName() . '() : null;';
             } else {
                 $script .= "
-            \$keys[$num] => \$this->get" . $col->getPhpName() . '(),';
+            \$result[\$keys[$num]] = \$this->get" . $col->getPhpName() . '();';
             }
+            $script .= "
+        }";
         }
-        $script .= "
-        ];";
 
         foreach ($this->getTable()->getColumns() as $num => $col) {
             if ($col->isTemporalType()) {
                 $script .= "
-        if (\$result[\$keys[$num]] instanceof \DateTimeInterface) {
+        if (isset(\$result[\$keys[$num]]) && \$result[\$keys[$num]] instanceof \DateTimeInterface) {
             \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
         }
         ";

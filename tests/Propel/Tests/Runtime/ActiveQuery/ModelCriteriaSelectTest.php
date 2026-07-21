@@ -108,6 +108,86 @@ class ModelCriteriaSelectTest extends BookstoreTestBase
     /**
      * @return void
      */
+    public function testProjectionDoesNotLeakIntoCountExistsClearOrSelect()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $existsCriteria = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->keepQuery(false);
+        $this->assertTrue($existsCriteria->exists($this->con));
+
+        $criteria = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->keepQuery(false);
+        $this->assertSame(4, $criteria->count($this->con));
+
+        $criteria->clear();
+        $book = $criteria->findOne($this->con);
+        $this->assertFalse($book->isPartial());
+
+        $title = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->select('Title')
+            ->findOne($this->con);
+        $this->assertIsString($title);
+
+        $reused = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
+        $reused->select('Title')->find($this->con);
+        $book = $reused->project('Title')->findOne($this->con);
+        $this->assertTrue($book->isPartial());
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectionRejectsJoins()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $this->expectException(\Propel\Runtime\Exception\LogicException::class);
+        (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->join('Propel\Tests\Bookstore\Book.Author')
+            ->find($this->con);
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectionUsesTheModelAlias()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $book = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->setModelAlias('b', true)
+            ->project('Title')
+            ->findOne($this->con);
+
+        $this->assertTrue($book->isPartial());
+        $this->assertSame('Harry Potter and the Order of the Phoenix', $book->getTitle());
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectionRejectsIndividualSaveUpdates()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $this->expectException(\Propel\Runtime\Exception\LogicException::class);
+        (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->update(['Title' => 'must not update'], $this->con, true);
+    }
+
+    /**
+     * @return void
+     */
     public function testSelectThrowsExceptionWhenCalledWithAnEmptyString()
     {
         $this->expectException(PropelException::class);

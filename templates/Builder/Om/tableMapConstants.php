@@ -42,6 +42,20 @@
      * The number of columns to hydrate (NUM_COLUMNS - NUM_LAZY_LOAD_COLUMNS)
      */
     public const NUM_HYDRATE_COLUMNS = <?php echo $nbHydrateColumns ?>;
+
+    /**
+     * PHP names of columns present in a normal hydration row, in row order.
+     * Lazy-loaded columns are intentionally excluded.
+     *
+     * @var list<string>
+     */
+    public const HYDRATE_COLUMN_NAMES = [
+<?php foreach ($columns as $col) : ?>
+<?php if (!$col->isLazyLoad()) : ?>
+        '<?php echo $col->getPhpName() ?>',
+<?php endif; ?>
+<?php endforeach; ?>
+    ];
 <?php foreach ($columns as $col) : ?>
 
     /**

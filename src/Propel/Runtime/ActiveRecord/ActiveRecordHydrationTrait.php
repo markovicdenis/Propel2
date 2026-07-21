@@ -10,6 +10,14 @@ namespace Propel\Runtime\ActiveRecord;
 
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
+use ReflectionClass;
+
+use function array_key_exists;
+use function constant;
+use function count;
+use function defined;
+use function is_array;
+use function sprintf;
 
 trait ActiveRecordHydrationTrait
 {
@@ -32,18 +40,71 @@ trait ActiveRecordHydrationTrait
      */
     public function hydrateProjection(array $row, array $columnNames, string $indexType = TableMap::TYPE_NUM): void
     {
+        /** @var array<class-string, array{positions: array<string, int>, lazyColumns: array<string, true>, hydrateColumnCount: int}> $plans */
+        static $plans = [];
+        $class = static::class;
         $tableMapClass = static::TABLE_MAP;
-        $allColumns = $tableMapClass::getFieldNames(TableMap::TYPE_PHPNAME);
-        $positions = array_flip($allColumns);
-        $fullRow = array_fill(0, count($allColumns), null);
+        if (!isset($plans[$class])) {
+            $tableMap = $tableMapClass::getTableMap();
+            $allColumns = $tableMapClass::getFieldNames(TableMap::TYPE_PHPNAME);
+
+            $hydrateColumnNamesConstant = $tableMapClass . '::HYDRATE_COLUMN_NAMES';
+            $hydrateColumns = defined($hydrateColumnNamesConstant)
+                ? constant($hydrateColumnNamesConstant)
+                : null;
+
+            if (is_array($hydrateColumns)) {
+                /** @var list<string> $hydrateColumns */
+                $positions = array_flip($hydrateColumns);
+                $lazyColumns = array_fill_keys(array_diff($allColumns, $hydrateColumns), true);
+                $hydratePosition = count($hydrateColumns);
+            } else {
+                // Compatibility fallback for models generated before explicit
+                // hydration metadata was added to generated table maps.
+                $reflection = new ReflectionClass($this);
+                $positions = [];
+                $lazyColumns = [];
+                $hydratePosition = 0;
+                foreach ($allColumns as $columnName) {
+                    $column = $tableMap->getColumnByPhpName($columnName);
+                    $propertyName = strtolower($column->getName()) . '_isLoaded';
+                    if ($reflection->hasProperty($propertyName)) {
+                        $lazyColumns[$columnName] = true;
+                        continue;
+                    }
+
+                    $positions[$columnName] = $hydratePosition++;
+                }
+            }
+
+            $plans[$class] = [
+                'positions' => $positions,
+                'lazyColumns' => $lazyColumns,
+                'hydrateColumnCount' => $hydratePosition,
+            ];
+        }
+
+        $plan = $plans[$class];
+        $positions = $plan['positions'];
+        $lazyColumns = $plan['lazyColumns'];
+        $fullRow = array_fill(0, $plan['hydrateColumnCount'], null);
         $loadedColumns = [];
 
         foreach ($columnNames as $position => $columnName) {
-            if (!isset($positions[$columnName])) {
+            if (isset($lazyColumns[$columnName])) {
+                throw new PropelException(sprintf(
+                    'Lazy-loaded column "%s" cannot be used in a projection for %s.',
+                    $columnName,
+                    static::class
+                ));
+            }
+            if (!array_key_exists($columnName, $positions)) {
                 throw new PropelException(sprintf('Unknown projection column "%s" for %s.', $columnName, static::class));
             }
 
-            $rowKey = $indexType === TableMap::TYPE_NUM ? $position : $columnName;
+            $rowKey = $indexType === TableMap::TYPE_NUM
+                ? $position
+                : $tableMapClass::translateFieldName($columnName, TableMap::TYPE_PHPNAME, $indexType);
             if (!array_key_exists($rowKey, $row)) {
                 throw new PropelException(sprintf('Projection result is missing column "%s" for %s.', $columnName, static::class));
             }
