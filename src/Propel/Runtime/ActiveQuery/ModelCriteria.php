@@ -37,6 +37,7 @@ use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Exception\RuntimeException;
 use Propel\Runtime\Exception\UnexpectedValueException;
+use Propel\Runtime\Formatter\ProjectionObjectFormatter;
 use Propel\Runtime\Formatter\SimpleArrayFormatter;
 use Propel\Runtime\Map\ColumnMap;
 use Propel\Runtime\Map\RelationMap;
@@ -114,12 +115,22 @@ class ModelCriteria extends BaseModelCriteria
     /**
      * @var string
      */
+    public const FORMAT_PROJECTION = '\Propel\Runtime\Formatter\ProjectionObjectFormatter';
+
+    /**
+     * @var string
+     */
     public const FORMAT_ON_DEMAND = '\Propel\Runtime\Formatter\OnDemandFormatter';
 
     /**
      * @var \Propel\Runtime\ActiveQuery\ModelCriteria|null
      */
     protected $primaryCriteria;
+
+    /**
+     * @var list<string>|null PHP column names selected for partial objects.
+     */
+    protected ?array $projectionColumns = null;
 
     /**
      * @var string|null
@@ -561,6 +572,56 @@ class ModelCriteria extends BaseModelCriteria
         $this->isSelfSelected = true;
 
         return $this;
+    }
+
+    /**
+     * Select a subset of this model's columns and return partial model objects
+     * rather than scalar arrays. Primary-key columns are added automatically so
+     * callers can explicitly reload a returned object when a full model is
+     * required.
+     *
+     * Projection is intentionally limited to columns of the root model. Do not
+     * combine it with joins, with(), joinWith(), or withColumn().
+     *
+     * @param string|list<string> $columnArray PHP names or normal Propel column names
+     * @return $this
+     */
+    public function project($columnArray)
+    {
+        if (!$columnArray) {
+            throw new PropelException('You must ask for at least one projection column');
+        }
+
+        $columnArray = is_array($columnArray) ? $columnArray : [$columnArray];
+        $tableMap = $this->getTableMapOrFail();
+        $projectionColumns = [];
+
+        foreach ($columnArray as $columnName) {
+            [$columnMap] = $this->getColumnFromName($columnName);
+            if ($columnMap->getTable() !== $tableMap) {
+                throw new PropelException('Projection columns must belong to the root model table.');
+            }
+            $projectionColumns[$columnMap->getPhpName()] = true;
+        }
+
+        foreach ($tableMap->getPrimaryKeys() as $primaryKey) {
+            $projectionColumns[$primaryKey->getPhpName()] = true;
+        }
+
+        $this->projectionColumns = array_keys($projectionColumns);
+        $formatter = new ProjectionObjectFormatter($this);
+        $formatter->setProjectionColumns($this->projectionColumns);
+        $this->setFormatter($formatter);
+
+        return $this;
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    public function getProjectionColumns(): ?array
+    {
+        return $this->projectionColumns;
     }
 
     /**
@@ -2405,6 +2466,20 @@ class ModelCriteria extends BaseModelCriteria
      */
     public function configureSelectColumns(): void
     {
+        if ($this->projectionColumns !== null) {
+            if ($this->getWith() || $this->getAsColumns()) {
+                throw new LogicException('Projection queries do not support with(), joinWith(), or withColumn().');
+            }
+
+            $this->selectColumns = [];
+            foreach ($this->projectionColumns as $columnName) {
+                $columnMap = $this->getTableMapOrFail()->getColumnByPhpName($columnName);
+                $this->addSelectColumn($columnMap->getFullyQualifiedName());
+            }
+
+            return;
+        }
+
         if (!$this->select) {
             return;
         }

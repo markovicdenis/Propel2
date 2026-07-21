@@ -12,6 +12,8 @@ use Propel\Runtime\ActiveQuery\ModelCriteria;
 use Propel\Runtime\Collection\Collection;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Formatter\OnDemandFormatter;
+use Propel\Runtime\Formatter\ProjectionObjectFormatter;
+use Propel\Tests\Bookstore\Book;
 use Propel\Tests\Bookstore\BookQuery;
 use Propel\Tests\Bookstore\Map\AuthorTableMap;
 use Propel\Tests\Bookstore\Map\BookTableMap;
@@ -27,6 +29,82 @@ use Propel\Tests\Helpers\Bookstore\BookstoreTestBase;
  */
 class ModelCriteriaSelectTest extends BookstoreTestBase
 {
+    /**
+     * @return void
+     */
+    public function testProjectReturnsPartialModelsWithoutUsingTheInstancePool()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $criteria = new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book');
+        $book = $criteria->project('Title')->findOne($this->con);
+
+        $this->assertInstanceOf(Book::class, $book);
+        $this->assertInstanceOf(ProjectionObjectFormatter::class, $criteria->getFormatter());
+        $this->assertTrue($book->isPartial());
+        $this->assertSame(['Title', 'Id'], $book->getLoadedColumns());
+        $this->assertTrue($book->isColumnLoaded('Title'));
+        $this->assertTrue($book->isColumnLoaded('Id'));
+        $this->assertFalse($book->isColumnLoaded('ISBN'));
+        $this->assertSame('Harry Potter and the Order of the Phoenix', $book->getTitle());
+
+        $fullyHydrated = BookQuery::create()->findPk($book->getId(), $this->con);
+        $this->assertNotSame($fullyHydrated, $book);
+        $this->assertFalse($fullyHydrated->isPartial());
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectedModelRejectsUnselectedColumnsAndPersistence()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $book = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->findOne($this->con);
+
+        $this->expectException(PropelException::class);
+        $book->getISBN();
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectedModelCannotBeSavedBeforeReload()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $book = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->findOne($this->con);
+
+        $this->expectException(PropelException::class);
+        $book->save($this->con);
+    }
+
+    /**
+     * @return void
+     */
+    public function testProjectedModelBecomesFullAfterReload()
+    {
+        BookstoreDataPopulator::depopulate($this->con);
+        BookstoreDataPopulator::populate($this->con);
+
+        $book = (new ModelCriteria('bookstore', 'Propel\Tests\Bookstore\Book'))
+            ->project('Title')
+            ->findOne($this->con);
+
+        $book->reload(false, $this->con);
+
+        $this->assertFalse($book->isPartial());
+        $this->assertTrue($book->isColumnLoaded('ISBN'));
+        $this->assertSame('043935806X', $book->getISBN());
+    }
+
     /**
      * @return void
      */

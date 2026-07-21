@@ -1075,6 +1075,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $this->declareClasses($dateTimeClass);
 
+        $script .= $this->getProjectionColumnGuardSnippet($column);
+
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1143,6 +1145,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $cloUnserialized = $clo . '_unserialized';
+        $script .= $this->getProjectionColumnGuardSnippet($column);
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1231,6 +1234,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $script .= "
+        \$this->assertColumnLoaded('" . $column->getPhpName() . "');
         return json_decode(\$this->$clo, \$asArray);";
     }
 
@@ -1280,6 +1284,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $cloUnserialized = $clo . '_unserialized';
+        $script .= $this->getProjectionColumnGuardSnippet($column);
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1432,6 +1437,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addEnumAccessorBody(string &$script, Column $column): void
     {
         $clo = $column->getLowercasedName();
+        $script .= $this->getProjectionColumnGuardSnippet($column);
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1502,6 +1508,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
         $cloConverted = $clo . '_converted';
+        $script .= $this->getProjectionColumnGuardSnippet($column);
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1653,6 +1660,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addDefaultAccessorBody(string &$script, Column $column): void
     {
         $clo = $column->getLowercasedName();
+        $script .= $this->getProjectionColumnGuardSnippet($column);
         if ($column->isLazyLoad()) {
             $script .= $this->getAccessorLazyLoadSnippet($column);
         }
@@ -1694,6 +1702,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $script .= "
     }
+";
+    }
+
+    protected function getProjectionColumnGuardSnippet(Column $column): string
+    {
+        return "
+        \$this->assertColumnLoaded('" . $column->getPhpName() . "');
 ";
     }
 
@@ -3012,6 +3027,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         $script .= "
+            \$this->resetProjectionState();
             \$this->setNew(false);
 
             if (\$rehydrate) {
@@ -7458,6 +7474,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
         if (\$this->isDeleted()) {
             throw new PropelException(\"You cannot save an object that has been deleted.\");
+        }
+
+        if (\$this->isPartial()) {
+            throw new PropelException(\"Cannot save a partial object. Reload it before making changes.\");
         }
 
         if (\$this->alreadyInSave) {
