@@ -10,7 +10,6 @@ namespace Propel\Runtime\ActiveRecord;
 
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
-use ReflectionClass;
 
 use function array_key_exists;
 use function constant;
@@ -45,42 +44,29 @@ trait ActiveRecordHydrationTrait
         $class = static::class;
         $tableMapClass = static::TABLE_MAP;
         if (!isset($plans[$class])) {
-            $tableMap = $tableMapClass::getTableMap();
             $allColumns = $tableMapClass::getFieldNames(TableMap::TYPE_PHPNAME);
 
             $hydrateColumnNamesConstant = $tableMapClass . '::HYDRATE_COLUMN_NAMES';
-            $hydrateColumns = defined($hydrateColumnNamesConstant)
-                ? constant($hydrateColumnNamesConstant)
-                : null;
-
-            if (is_array($hydrateColumns)) {
-                /** @var list<string> $hydrateColumns */
-                $positions = array_flip($hydrateColumns);
-                $lazyColumns = array_fill_keys(array_diff($allColumns, $hydrateColumns), true);
-                $hydratePosition = count($hydrateColumns);
-            } else {
-                // Compatibility fallback for models generated before explicit
-                // hydration metadata was added to generated table maps.
-                $reflection = new ReflectionClass($this);
-                $positions = [];
-                $lazyColumns = [];
-                $hydratePosition = 0;
-                foreach ($allColumns as $columnName) {
-                    $column = $tableMap->getColumnByPhpName($columnName);
-                    $propertyName = strtolower($column->getName()) . '_isLoaded';
-                    if ($reflection->hasProperty($propertyName)) {
-                        $lazyColumns[$columnName] = true;
-                        continue;
-                    }
-
-                    $positions[$columnName] = $hydratePosition++;
-                }
+            if (!defined($hydrateColumnNamesConstant)) {
+                throw new PropelException(sprintf(
+                    '%s is missing HYDRATE_COLUMN_NAMES. Regenerate models before using projections.',
+                    $tableMapClass,
+                ));
             }
+
+            $hydrateColumns = constant($hydrateColumnNamesConstant);
+            if (!is_array($hydrateColumns)) {
+                throw new PropelException(sprintf('%s must be a list of PHP column names.', $hydrateColumnNamesConstant));
+            }
+
+            /** @var list<string> $hydrateColumns */
+            $positions = array_flip($hydrateColumns);
+            $lazyColumns = array_fill_keys(array_diff($allColumns, $hydrateColumns), true);
 
             $plans[$class] = [
                 'positions' => $positions,
                 'lazyColumns' => $lazyColumns,
-                'hydrateColumnCount' => $hydratePosition,
+                'hydrateColumnCount' => count($hydrateColumns),
             ];
         }
 
@@ -158,14 +144,6 @@ trait ActiveRecordHydrationTrait
 
     /**
      * Resolves and optionally transforms a hydrated row value.
-     *
-     * @param array $row
-     * @param int $position
-     * @param int $startcol
-     * @param string $indexType
-     * @param callable|null $transformer
-     *
-     * @return mixed
      */
     protected function resolveFromRow(
         array $row,
@@ -173,7 +151,7 @@ trait ActiveRecordHydrationTrait
         int $startcol = 0,
         string $indexType = TableMap::TYPE_NUM,
         ?callable $transformer = null
-    ) {
+    ): mixed {
         $value = $this->getRowValue($row, $position, $startcol, $indexType);
 
         if ($value === null) {
@@ -186,16 +164,9 @@ trait ActiveRecordHydrationTrait
     /**
      * Gets a row value by schema position and index type.
      *
-     * @param array $row
-     * @param int $position
-     * @param int $offset
-     * @param string $indexType
-     *
-     * @throws \Propel\Runtime\Exception\PropelException
-     *
-     * @return mixed
+     * @throws PropelException
      */
-    protected function getRowValue(array $row, int $position, int $offset = 0, string $indexType = TableMap::TYPE_NUM)
+    protected function getRowValue(array $row, int $position, int $offset = 0, string $indexType = TableMap::TYPE_NUM): mixed
     {
         $key = $indexType === TableMap::TYPE_NUM
             ? $position + $offset

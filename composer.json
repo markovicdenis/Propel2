@@ -78,7 +78,8 @@
             "dev-builder": "2.3-dev",
             "dev-collections": "2.4-dev",
             "dev-uuid": "2.5-dev",
-            "dev-partitioning": "2.6-dev"
+            "dev-partitioning": "2.6-dev",
+            "dev-projection": "2.7-dev"
         }
     },
     "config": {
