@@ -11,6 +11,7 @@ namespace Propel\Runtime\ActiveQuery;
 use ArrayIterator;
 use IteratorAggregate;
 use Propel\Runtime\ActiveQuery\Exception\UnknownModelException;
+use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\Exception\LogicException;
 use Propel\Runtime\Formatter\AbstractFormatter;
@@ -24,8 +25,18 @@ use function is_string;
 /**
  * @implements IteratorAggregate<(int|string), mixed>
  */
-class BaseModelCriteria extends Criteria implements IteratorAggregate
+abstract class BaseModelCriteria extends Criteria implements IteratorAggregate
 {
+    /**
+     * Execute this model query and return the formatted result.
+     *
+     * Concrete model criteria provide the query execution implementation used
+     * by getIterator().
+     *
+     * @return mixed
+     */
+    abstract public function find(?ConnectionInterface $con = null);
+
     /**
      * @var string|null
      */
@@ -33,7 +44,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
 
     /**
      * @var string|null
-     * @phpstan-var class-string<\Propel\Runtime\Map\TableMap>|null
+     * @phpstan-var class-string<TableMap>|null
      */
     protected $modelTableMapName;
 
@@ -48,12 +59,12 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
     protected $modelAlias;
 
     /**
-     * @var \Propel\Runtime\Map\TableMap
+     * @var TableMap
      */
     protected $tableMap;
 
     /**
-     * @var \Propel\Runtime\Formatter\AbstractFormatter|null
+     * @var AbstractFormatter|null
      */
     protected $formatter;
 
@@ -63,7 +74,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
     protected $with = [];
 
     /**
-     * @phpstan-var class-string<\Propel\Runtime\Formatter\AbstractFormatter>
+     * @phpstan-var class-string<AbstractFormatter>
      *
      * @var string
      */
@@ -120,9 +131,9 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
      * $c->setFormatter(ModelCriteria::FORMAT_ARRAY);
      * </code>
      *
-     * @param \Propel\Runtime\Formatter\AbstractFormatter|string $formatter a formatter class name, or a formatter instance
+     * @param AbstractFormatter|string $formatter a formatter class name, or a formatter instance
      *
-     * @throws \Propel\Runtime\Exception\InvalidArgumentException
+     * @throws InvalidArgumentException
      *
      * @return $this The current object, for fluid interface
      */
@@ -144,8 +155,6 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
     /**
      * Gets the formatter to use for the find() output
      * Defaults to an instance of ModelCriteria::$defaultFormatterClass, i.e. PropelObjectsFormatter
-     *
-     * @return \Propel\Runtime\Formatter\AbstractFormatter
      */
     public function getFormatter(): AbstractFormatter
     {
@@ -170,9 +179,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
     /**
      * Returns the name of the class for this model criteria
      *
-     * @throws \Propel\Runtime\Exception\LogicException
-     *
-     * @return string
+     * @throws LogicException
      */
     public function getModelNameOrFail(): string
     {
@@ -191,7 +198,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
      *
      * @param string|null $modelName
      *
-     * @throws \Propel\Runtime\ActiveQuery\Exception\UnknownModelException
+     * @throws UnknownModelException
      *
      * @return $this The current object, for fluid interface
      */
@@ -296,8 +303,6 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
 
     /**
      * Returns the TableMap object for this Criteria
-     *
-     * @return \Propel\Runtime\Map\TableMap|null
      */
     public function getTableMap(): ?TableMap
     {
@@ -307,9 +312,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
     /**
      * Returns the TableMap object for this Criteria
      *
-     * @throws \Propel\Runtime\Exception\LogicException
-     *
-     * @return \Propel\Runtime\Map\TableMap
+     * @throws LogicException
      */
     public function getTableMapOrFail(): TableMap
     {
@@ -345,7 +348,7 @@ class BaseModelCriteria extends Criteria implements IteratorAggregate
      * constructed on a Propel\Runtime\Collection\PropelCollection.
      * Compulsory for implementation of \IteratorAggregate.
      *
-     * @throws \Propel\Runtime\Exception\LogicException
+     * @throws LogicException
      *
      * @return Traversable
      */

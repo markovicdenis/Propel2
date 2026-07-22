@@ -30,6 +30,8 @@ use function sprintf;
  *
  * @method static string getOMClass(array $row, int $column, bool $withPrefix = true)
  * @method static string|null getPrimaryKeyHashFromRow(array $row, int $offset = 0, string $indexType = \Propel\Runtime\Map\TableMap::TYPE_NUM)
+ * @method static void addSelectColumns(Criteria $criteria, ?string $alias = null)
+ * @method static void removeSelectColumns(Criteria $criteria, ?string $alias = null)
  */
 class TableMap
 {
@@ -41,7 +43,7 @@ class TableMap
      *
      * @var string
      */
-    public const TYPE_PHPNAME = 'phpName';
+    public const string TYPE_PHPNAME = 'phpName';
 
     /**
      * camelCase type
@@ -49,7 +51,7 @@ class TableMap
      *
      * @var string
      */
-    public const TYPE_CAMELNAME = 'camelName';
+    public const string TYPE_CAMELNAME = 'camelName';
 
     /**
      * column (tableMap) name type
@@ -57,7 +59,7 @@ class TableMap
      *
      * @var string
      */
-    public const TYPE_COLNAME = 'colName';
+    public const string TYPE_COLNAME = 'colName';
 
     /**
      * column fieldname type
@@ -65,7 +67,7 @@ class TableMap
      *
      * @var string
      */
-    public const TYPE_FIELDNAME = 'fieldName';
+    public const string TYPE_FIELDNAME = 'fieldName';
 
     /**
      * num type
@@ -73,7 +75,7 @@ class TableMap
      *
      * @var string
      */
-    public const TYPE_NUM = 'num';
+    public const string TYPE_NUM = 'num';
 
     /**
      * Columns in the table
