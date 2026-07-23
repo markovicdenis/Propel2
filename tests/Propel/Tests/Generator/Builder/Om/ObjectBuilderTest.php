@@ -9,6 +9,7 @@
 namespace Propel\Tests\Generator\Builder\Om;
 
 use Propel\Generator\Builder\Om\ObjectBuilder;
+use Propel\Generator\Builder\Util\SchemaReader;
 use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
@@ -1880,6 +1881,125 @@ class ObjectBuilderTest extends TestCase
         $this->assertStringContainsString("\$this->setTemporalValue(\$this->register_stamp, \$v, '\\DateTime', FooTableMap::COL_REGISTER_STAMP, 'Y-m-d H:i:s.u');", $script);
     }
 
+    /**
+     * A partitioned table keeps a single-column model key, but its physical key is the pair
+     * (model key, partition key). Without the partition key in the criteria the database cannot
+     * prune, so every UPDATE, DELETE and reload has to visit every partition.
+     *
+     * @return void
+     */
+    public function testBuildPkeyCriteriaAddsPartitionKeyForPartitionedTable()
+    {
+        $schema = <<<EOF
+<database name="test">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+        <column name="payload" type="LONGVARCHAR"/>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildPkeyCriteriaBody($schema);
+
+        $this->assertStringContainsString('$criteria->add(EventTableMap::COL_ID, $this->id);', $script);
+        $this->assertStringContainsString(
+            'if ($this->created_at !== null && !$this->isColumnModified(EventTableMap::COL_CREATED_AT)) {',
+            $script,
+        );
+        $this->assertStringContainsString('$criteria->add(EventTableMap::COL_CREATED_AT, $this->created_at);', $script);
+    }
+
+    /**
+     * The guard matters as much as the predicate: a modified partition key no longer identifies
+     * the stored row, and on PostgreSQL updating it moves the row to another partition. Falling
+     * back to the unpruned key is the correct behaviour there, so the value must never be added
+     * unconditionally.
+     *
+     * @return void
+     */
+    public function testBuildPkeyCriteriaGuardsPartitionKeyAgainstNullAndModifiedValues()
+    {
+        $schema = <<<EOF
+<database name="test">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildPkeyCriteriaBody($schema);
+
+        $this->assertMatchesRegularExpression(
+            '/if \(\$this->created_at !== null && !\$this->isColumnModified\(EventTableMap::COL_CREATED_AT\)\) \{\s*\$criteria->add\(/',
+            $script,
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testBuildPkeyCriteriaLeavesNonPartitionedTableUnchanged()
+    {
+        $schema = <<<EOF
+<database name="test">
+    <table name="event">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildPkeyCriteriaBody($schema);
+
+        $this->assertStringContainsString('$criteria->add(EventTableMap::COL_ID, $this->id);', $script);
+        $this->assertStringNotContainsString('COL_CREATED_AT', $script);
+        $this->assertStringNotContainsString('isColumnModified', $script);
+    }
+
+    /**
+     * When the partition key is already part of the primary key the parent loop has emitted it,
+     * so it must not be added a second time.
+     *
+     * @return void
+     */
+    public function testBuildPkeyCriteriaDoesNotRepeatPartitionKeyAlreadyInPrimaryKey()
+    {
+        $schema = <<<EOF
+<database name="test">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="VARCHAR" size="36"/>
+        <column name="created_at" primaryKey="true" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildPkeyCriteriaBody($schema);
+
+        $this->assertSame(1, substr_count($script, 'EventTableMap::COL_CREATED_AT'));
+        $this->assertStringNotContainsString('isColumnModified', $script);
+    }
+
+    /**
+     * @return void
+     */
+    private function buildPkeyCriteriaBody(string $schema): string
+    {
+        $platform = new PgsqlPlatform();
+        $schemaReader = new SchemaReader($platform);
+        $table = $schemaReader->parseString($schema)->getDatabase()->getTable('event');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform($platform);
+
+        $script = '';
+        $builder->addBuildPkeyCriteriaBodyToScript($script);
+
+        return $script;
+    }
+
 }
 
 class TestableObjectBuilder extends ObjectBuilder
@@ -1887,6 +2007,11 @@ class TestableObjectBuilder extends ObjectBuilder
     public function getDefaultValueString(Column $col, bool $acceptNull = true): string
     {
         return parent::getDefaultValueString($col, $acceptNull);
+    }
+
+    public function addBuildPkeyCriteriaBodyToScript(string &$script): void
+    {
+        $this->addBuildPkeyCriteriaBody($script);
     }
 
     public function getTableMapClass(): string

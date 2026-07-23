@@ -3173,7 +3173,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addBuildPkeyCriteriaBody(string &$script): void
     {
-        if (!$this->getTable()->getPrimaryKey()) {
+        $table = $this->getTable();
+
+        if (!$table->getPrimaryKey()) {
             $script .= "
         throw new LogicException('The {$this->getObjectName()} object has no primary key');";
 
@@ -3182,10 +3184,55 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         $script .= "
         \$criteria = " . $this->getQueryClassName() . '::create();';
-        foreach ($this->getTable()->getPrimaryKey() as $col) {
+        foreach ($table->getPrimaryKey() as $col) {
             $clo = $col->getLowercasedName();
             $script .= "
         \$criteria->add(" . $this->getColumnConstant($col) . ", \$this->$clo);";
+        }
+
+        $this->addBuildPkeyCriteriaPartitionKey($script);
+    }
+
+    /**
+     * Restricts the criteria to the partition that holds this row.
+     *
+     * On a partitioned table the model key stays single-column while the physical key is the pair
+     * (model key, partition key). A criteria carrying only the model key gives the database
+     * nothing to prune with, so every UPDATE, DELETE and reload opens, locks and probes every
+     * partition — cost that grows with the partition count instead of staying constant.
+     *
+     * The partition key is only added when it holds a value and is not pending modification. A
+     * modified partition key no longer identifies the stored row — and on PostgreSQL updating it
+     * moves the row to another partition — so there the unpruned key is the correct criteria.
+     *
+     * @see addBuildPkeyCriteriaBody()
+     *
+     * @param string $script The script will be modified in this method.
+     *
+     * @return void
+     */
+    protected function addBuildPkeyCriteriaPartitionKey(string &$script): void
+    {
+        $table = $this->getTable();
+
+        if (!$table->isPartitioned()) {
+            return;
+        }
+
+        foreach ($table->getPartitionKeyColumns() as $col) {
+            if ($col->isPrimaryKey()) {
+                continue;
+            }
+
+            $clo = $col->getLowercasedName();
+            $constant = $this->getColumnConstant($col);
+
+            $script .= "
+
+        // Partition pruning: the physical key of this table is (primary key, {$col->getName()}).
+        if (\$this->$clo !== null && !\$this->isColumnModified($constant)) {
+            \$criteria->add($constant, \$this->$clo);
+        }";
         }
     }
 
