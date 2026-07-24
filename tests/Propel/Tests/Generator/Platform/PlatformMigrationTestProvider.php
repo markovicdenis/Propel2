@@ -664,4 +664,42 @@ EOF;
 
         return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
     }
+
+    public static function providerForTestMigrateToCitextColumn()
+    {
+        $tableColumnsFrom = <<<EOF
+        <column name="name" type="VARCHAR" size="255" required="true"/>
+EOF;
+        $tableColumnsTo = <<<EOF
+        <column name="name" type="VARCHAR" sqlType="citext" required="true"/>
+EOF;
+
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+    }
+
+    public static function providerForTestMigrateFromCitextColumn()
+    {
+        $tableColumnsFrom = <<<EOF
+        <column name="name" type="VARCHAR" sqlType="citext" required="true"/>
+EOF;
+        $tableColumnsTo = <<<EOF
+        <column name="name" type="VARCHAR" size="255" required="true"/>
+EOF;
+
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+    }
+
+    public static function providerForTestMigrateCitextToTextColumn()
+    {
+        // Down-migration of a citext column whose original type was LONGVARCHAR (TEXT).
+        // Before TEXT was recognised as a string type this produced "USING NULL".
+        $tableColumnsFrom = <<<EOF
+        <column name="name" type="LONGVARCHAR" sqlType="citext" required="true"/>
+EOF;
+        $tableColumnsTo = <<<EOF
+        <column name="name" type="LONGVARCHAR" required="true"/>
+EOF;
+
+        return [[static::createProviderInstance()->buildTableDiff('foo', $tableColumnsFrom, $tableColumnsTo)]];
+    }
 }

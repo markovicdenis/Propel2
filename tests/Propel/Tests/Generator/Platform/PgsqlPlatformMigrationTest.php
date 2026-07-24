@@ -533,6 +533,54 @@ END;
     }
 
     /**
+     * @dataProvider providerForTestMigrateToCitextColumn
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestMigrateToCitextColumn')]
+    public function testMigrateToCitextColumn($tableDiff)
+    {
+        $expected = <<<END
+
+ALTER TABLE "foo" ALTER COLUMN "name" TYPE citext USING name::citext;
+
+END;
+        $this->assertEquals($expected, $this->getPlatform()->getModifyTableColumnsDDL($tableDiff));
+    }
+
+    /**
+     * @dataProvider providerForTestMigrateFromCitextColumn
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestMigrateFromCitextColumn')]
+    public function testMigrateFromCitextColumn($tableDiff)
+    {
+        $expected = <<<END
+
+ALTER TABLE "foo" ALTER COLUMN "name" TYPE VARCHAR(255);
+
+END;
+        $this->assertEquals($expected, $this->getPlatform()->getModifyTableColumnsDDL($tableDiff));
+    }
+
+    /**
+     * @dataProvider providerForTestMigrateCitextToTextColumn
+     *
+     * @return void
+     */
+    #[DataProvider('providerForTestMigrateCitextToTextColumn')]
+    public function testMigrateCitextToTextColumn($tableDiff)
+    {
+        $expected = <<<END
+
+ALTER TABLE "foo" ALTER COLUMN "name" TYPE TEXT;
+
+END;
+        $this->assertEquals($expected, $this->getPlatform()->getModifyTableColumnsDDL($tableDiff));
+    }
+
+    /**
      * @return void
      */
     public function testGetModifyColumnDDLAddsIdentityForAutoIncrementColumn()

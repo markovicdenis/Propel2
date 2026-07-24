@@ -100,11 +100,6 @@ class PgsqlPlatform extends DefaultPlatform
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return bool
-     */
     protected function usesIdentityAutoIncrement(Column $column): bool
     {
         $table = $column->getTable();
@@ -115,11 +110,6 @@ class PgsqlPlatform extends DefaultPlatform
             && !$table->getIdMethodParameters();
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return bool
-     */
     protected function usesCustomSequenceAutoIncrement(Column $column): bool
     {
         $table = $column->getTable();
@@ -130,11 +120,6 @@ class PgsqlPlatform extends DefaultPlatform
             && (bool)$table->getIdMethodParameters();
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     protected function getSequenceDefaultValueExpression(Table $table): string
     {
         return sprintf("nextval('%s'::regclass)", $this->getSequenceName($table));
@@ -188,10 +173,6 @@ class PgsqlPlatform extends DefaultPlatform
     /**
      * Override to provide sequence names that conform to postgres' standard when
      * no id-method-parameter specified.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     public function getSequenceName(Table $table): string
     {
@@ -216,11 +197,6 @@ class PgsqlPlatform extends DefaultPlatform
         return $result;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     protected function getAddSequenceDDL(Table $table): string
     {
         if (
@@ -240,11 +216,6 @@ CREATE SEQUENCE %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     protected function getDropSequenceDDL(Table $table): string
     {
         if (
@@ -264,11 +235,6 @@ DROP SEQUENCE %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Database $database
-     *
-     * @return string
-     */
     public function getAddSchemasDDL(Database $database): string
     {
         $ret = '';
@@ -284,11 +250,6 @@ DROP SEQUENCE %s;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getAddSchemaDDL(Table $table): string
     {
         $vi = $table->getVendorInfoForType('pgsql');
@@ -303,11 +264,6 @@ CREATE SCHEMA %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getUseSchemaDDL(Table $table): string
     {
         $vi = $table->getVendorInfoForType('pgsql');
@@ -322,11 +278,6 @@ SET search_path TO %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getResetSchemaDDL(Table $table): string
     {
         $vi = $table->getVendorInfoForType('pgsql');
@@ -339,11 +290,6 @@ SET search_path TO public;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Database $database
-     *
-     * @return string
-     */
     public function getAddTablesDDL(Database $database): string
     {
         $ret = $this->getAddSchemasDDL($database);
@@ -369,11 +315,6 @@ SET search_path TO public;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return string
-     */
     public function getForeignKeyDDL(ForeignKey $fk): string
     {
         $script = parent::getForeignKeyDDL($fk);
@@ -422,11 +363,6 @@ COMMIT;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getAddTableDDL(Table $table): string
     {
         $ret = $this->getUseSchemaDDL($table);
@@ -497,10 +433,6 @@ COMMENT ON TABLE %s IS %s;
     /**
      * Returns the trailing "PARTITION BY <strategy> (<columns>)" clause for a
      * partitioned table, or an empty string when the table is not partitioned.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     protected function getPartitionByClause(Table $table): string
     {
@@ -519,10 +451,6 @@ COMMENT ON TABLE %s IS %s;
      * Returns the PRIMARY KEY clause for a partitioned table in PARTITION_PK_COMPOSITE
      * mode: the model primary-key columns, extended with any partition-key columns
      * that are not already part of the primary key (required by PostgreSQL).
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     protected function getPartitionedPrimaryKeyDDL(Table $table): string
     {
@@ -550,10 +478,6 @@ COMMENT ON TABLE %s IS %s;
      *
      * Returns an empty string for non-partitioned tables, composite mode, or
      * tables without a model primary key.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     protected function getPartitionKeyIndexDDL(Table $table): string
     {
@@ -583,11 +507,6 @@ COMMENT ON TABLE %s IS %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     protected function getAddColumnsComments(Table $table): string
     {
         $ret = '';
@@ -598,11 +517,6 @@ COMMENT ON TABLE %s IS %s;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getAddIndicesDDL(Table $table): string
     {
         $ret = parent::getAddIndicesDDL($table);
@@ -616,11 +530,6 @@ COMMENT ON TABLE %s IS %s;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
-     */
     protected function getAddColumnComment(Column $column): string
     {
         $pattern = "
@@ -638,11 +547,6 @@ COMMENT ON COLUMN %s.%s IS %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getDropTableDDL(Table $table): string
     {
         $ret = $this->getUseSchemaDDL($table);
@@ -656,11 +560,6 @@ DROP TABLE IF EXISTS %s CASCADE;
         return $ret;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getPrimaryKeyName(Table $table): string
     {
         $tableName = $table->getCommonName();
@@ -686,11 +585,7 @@ DROP TABLE IF EXISTS %s CASCADE;
     }
 
     /**
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @throws \Propel\Generator\Exception\EngineException
-     *
-     * @return string
+     * @throws EngineException
      */
     public function getColumnDDL(Column $col): string
     {
@@ -763,11 +658,6 @@ DROP TABLE IF EXISTS %s CASCADE;
         return implode(' ', $ddl);
     }
 
-    /**
-     * @param \Propel\Generator\Model\Unique $unique
-     *
-     * @return string
-     */
     public function getUniqueDDL(Unique $unique): string
     {
         return sprintf(
@@ -777,12 +667,6 @@ DROP TABLE IF EXISTS %s CASCADE;
         );
     }
 
-    /**
-     * @param string $fromTableName
-     * @param string $toTableName
-     *
-     * @return string
-     */
     public function getRenameTableDDL(string $fromTableName, string $toTableName): string
     {
         $pos = strpos($toTableName, '.');
@@ -837,11 +721,6 @@ ALTER TABLE %s RENAME TO %s;
         return true;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Diff\TableDiff $tableDiff
-     *
-     * @return string
-     */
     public function getModifyTableDDL(TableDiff $tableDiff): string
     {
         $ret = parent::getModifyTableDDL($tableDiff);
@@ -861,10 +740,6 @@ ALTER TABLE %s RENAME TO %s;
      * @author Niklas Närhinen <niklas@narhinen.net>
      *
      * @see DefaultPlatform::getModifyColumnDDL
-     *
-     * @param \Propel\Generator\Model\Diff\ColumnDiff $columnDiff
-     *
-     * @return string
      */
     public function getModifyColumnDDL(ColumnDiff $columnDiff): string
     {
@@ -1007,9 +882,26 @@ DROP SEQUENCE %s CASCADE;
      */
     public function isString(string $type): bool
     {
-        $strings = ['VARCHAR'];
+        // SQL types (not Propel types) that Postgres treats as the text family and can
+        // freely cast between via implicit/assignment casts. LONGVARCHAR/CLOB are mapped
+        // to TEXT before reaching here (see initialize()); CHAR is emitted as-is by the
+        // generator while introspection reports it as BPCHAR, so both are listed.
+        $strings = ['VARCHAR', 'TEXT', 'CHAR', 'BPCHAR', 'CITEXT'];
 
         return in_array(strtoupper($type), $strings, true);
+    }
+
+    /**
+     * Whether the given SQL type is the citext (case-insensitive text) type
+     * provided by the PostgreSQL "citext" extension.
+     *
+     * @param string $type
+     *
+     * @return bool
+     */
+    public function isCitext(string $type): bool
+    {
+        return strtoupper($type) === 'CITEXT';
     }
 
     /**
@@ -1024,12 +916,6 @@ DROP SEQUENCE %s CASCADE;
         return in_array(strtoupper($type), $numbers, true);
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return string
-     */
     public function getUsingCast(Column $fromColumn, Column $toColumn): string
     {
         $fromSqlType = strtoupper($fromColumn->getDomain()->getSqlType());
@@ -1075,6 +961,15 @@ DROP SEQUENCE %s CASCADE;
             return " USING decode(CAST($name as text), 'escape')";
         }
 
+        // citext is a case-insensitive text type. Postgres has assignment casts
+        // between citext and the regular text types, but without an explicit USING
+        // clause Propel falls through to "USING NULL" below, which nulls the column
+        // and breaks NOT NULL constraints. Cast explicitly so existing values are
+        // preserved. citext -> other text types is handled by the string branch below.
+        if ($this->isCitext($toSqlType) && !$fromColumn->isNativeArrayType()) {
+            return $this->isCitext($fromSqlType) ? '' : " USING $name::citext";
+        }
+
         if (
             ($this->isNumber($fromSqlType) && $this->isNumber($toSqlType)) ||
             ($this->isString($fromSqlType) && $this->isString($toSqlType)) ||
@@ -1099,9 +994,6 @@ DROP SEQUENCE %s CASCADE;
      *
      * @see DefaultPlatform::getModifyColumnsDDL
      *
-     * @param array<\Propel\Generator\Model\Diff\ColumnDiff> $columnDiffs
-     *
-     * @return string
      */
     public function getModifyColumnsDDL(array $columnDiffs): string
     {
@@ -1120,7 +1012,7 @@ DROP SEQUENCE %s CASCADE;
      *
      * @see DefaultPlatform::getAddColumnsDLL
      *
-     * @param array<\Propel\Generator\Model\Column> $columns
+     * @param array<Column> $columns
      *
      * @return string
      */
@@ -1140,10 +1032,6 @@ DROP SEQUENCE %s CASCADE;
      * @author Niklas Närhinen <niklas@narhinen.net>
      *
      * @see DefaultPlatform::getDropIndexDDL
-     *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
      */
     public function getDropIndexDDL(Index $index): string
     {
@@ -1173,7 +1061,7 @@ ALTER TABLE %s DROP CONSTRAINT %s;
      * @param string $tab
      * @param string|null $phpType
      *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return string
      */
@@ -1199,11 +1087,6 @@ ALTER TABLE %s DROP CONSTRAINT %s;
         );
     }
 
-    /**
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
-     */
     public function getAddIndexDDL(Index $index): string
     {
         if (
@@ -1239,11 +1122,6 @@ ALTER TABLE %s ADD CONSTRAINT %s UNIQUE (%s);
         );
     }
 
-    /**
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
-     */
     protected function getIndexColumnListDDL(Index $index): string
     {
         $columns = [];
