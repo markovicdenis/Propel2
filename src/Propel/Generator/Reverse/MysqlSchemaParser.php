@@ -90,6 +90,19 @@ class MysqlSchemaParser extends AbstractSchemaParser
     ];
 
     /**
+     * Integer display widths reported by MySQL before 8.0.19.
+     *
+     * @var array<int>
+     */
+    protected static $legacyIntegerDisplayWidths = [
+        'tinyint' => 4,
+        'smallint' => 6,
+        'mediumint' => 9,
+        'int' => 11,
+        'bigint' => 20,
+    ];
+
+    /**
      * Gets a type mapping from native types to Propel types
      *
      * @return array<string>
@@ -99,9 +112,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
         return self::$mysqlTypeMap;
     }
 
-    /**
-     * @param \Propel\Runtime\Connection\ConnectionInterface|null $dbh Optional database connection
-     */
     public function __construct(?ConnectionInterface $dbh = null)
     {
         parent::__construct($dbh);
@@ -109,12 +119,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
         $this->setPlatform(new MysqlPlatform());
     }
 
-    /**
-     * @param \Propel\Generator\Model\Database $database
-     * @param array<\Propel\Generator\Model\Table> $additionalTables
-     *
-     * @return int
-     */
     public function parse(Database $database, array $additionalTables = []): int
     {
         if ($this->getGeneratorConfig() !== null) {
@@ -146,12 +150,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
     }
 
     /**
-     * @param \Propel\Generator\Model\Database $database
-     * @param \Propel\Generator\Model\Table|null $filterTable
-     *
      * @throws RuntimeException
-     *
-     * @return void
      */
     protected function parseTables(Database $database, ?Table $filterTable = null): void
     {
@@ -198,7 +197,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
     /**
      * Adds Columns to the specified table.
      *
-     * @param \Propel\Generator\Model\Table $table The Table model class to add columns to.
+     * @param Table $table The Table model class to add columns to.
      *
      * @return void
      */
@@ -218,10 +217,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
      * based on a row from the 'show columns from ' MySQL query result.
      *
      * @param array $row An associative array with the following keys:
-     *                     Field, Type, Null, Key, Default, Extra.
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return \Propel\Generator\Model\Column
+     * Field, Type, Null, Key, Default, Extra.
      */
     public function getColumnFromRow(array $row, Table $table): Column
     {
@@ -253,6 +249,14 @@ class MysqlSchemaParser extends AbstractSchemaParser
             }
             if ($matches[3]) {
                 $sqlType = $row['Type'];
+                // MySQL >= 8.0.19 stops reporting the (redundant) integer display width in
+                // SHOW COLUMNS (e.g. "int unsigned" instead of "int(11) unsigned"), while a
+                // schema.xml written for older MySQL still declares it explicitly via sqlType.
+                // Reinsert the implied width so reverse-engineered columns keep comparing equal
+                // to their schema.xml counterpart instead of producing a no-op CHANGE on every diff.
+                if (!$matches[2] && isset(static::$legacyIntegerDisplayWidths[$nativeType])) {
+                    $sqlType = sprintf('%s(%d) %s', $nativeType, static::$legacyIntegerDisplayWidths[$nativeType], $matches[3]);
+                }
             }
             if (isset(static::$defaultTypeSizes[$nativeType]) && $scale == null && $size === static::$defaultTypeSizes[$nativeType]) {
                 $size = null;
@@ -322,10 +326,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
 
     /**
      * Load and set table description.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return void
      */
     protected function addDescriptionToTable(Table $table): void
     {
@@ -337,10 +337,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
 
     /**
      * Sets column descriptions according to source.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return void
      */
     protected function addColumnDescriptionsToTable(Table $table): void
     {
@@ -355,11 +351,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
     /**
      * Load a comment for this table.
      *
-     * @param \Propel\Generator\Model\Table $table
-     *
      * @throws RuntimeException
-     *
-     * @return string|null
      */
     protected function loadTableDescription(Table $table): ?string
     {
@@ -383,11 +375,7 @@ EOT;
     /**
      * Load a comment for this column.
      *
-     * @param \Propel\Generator\Model\Column $column
-     *
      * @throws RuntimeException
-     *
-     * @return string|null
      */
     protected function loadColumnDescription(Column $column): ?string
     {
@@ -413,11 +401,7 @@ EOT;
     /**
      * Load foreign keys for this table.
      *
-     * @param \Propel\Generator\Model\Table $table
-     *
      * @throws RuntimeException
-     *
-     * @return void
      */
     protected function addForeignKeys(Table $table): void
     {
@@ -515,10 +499,6 @@ EOT;
 
     /**
      * Load indexes for this table
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return void
      */
     protected function addIndexes(Table $table): void
     {
@@ -528,7 +508,7 @@ EOT;
         // Loop through the returned results, grouping the same key_name together
         // adding each column for that key.
 
-        /** @var array<\Propel\Generator\Model\Index> $indexes */
+        /** @var array<Index> $indexes */
         $indexes = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $colName = $row['Column_name'];
@@ -570,10 +550,6 @@ EOT;
 
     /**
      * Loads the primary key for this table.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return void
      */
     protected function addPrimaryKey(Table $table): void
     {
@@ -597,10 +573,6 @@ EOT;
 
     /**
      * Adds vendor-specific info for table.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return void
      */
     protected function addTableVendorInfo(Table $table): void
     {
