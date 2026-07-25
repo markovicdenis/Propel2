@@ -212,6 +212,91 @@ class ColumnComparatorTest extends TestCase
     }
 
     /**
+     * @return array<string, array<string>>
+     */
+    public static function deprecatedIntegerDisplayWidthProvider(): array
+    {
+        return [
+            'default width' => ['int unsigned', 'int(11) unsigned'],
+            'narrower than default' => ['int unsigned', 'int(3) unsigned'],
+            'wider than default' => ['int unsigned', 'int(10) unsigned'],
+            'signed' => ['int', 'int(11)'],
+            'bigint' => ['bigint unsigned', 'bigint(20) unsigned'],
+            'tinyint' => ['tinyint unsigned', 'tinyint(4) unsigned'],
+            // MySQL only exempts a *signed* tinyint(1); the unsigned one loses its width too.
+            'unsigned tinyint(1)' => ['tinyint unsigned', 'tinyint(1) unsigned'],
+        ];
+    }
+
+    /**
+     * MySQL >= 8.0.19 no longer reports integer display widths, so a reverse-engineered column
+     * reads back as plain `int` no matter how the schema spelled it. That is not a change.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('deprecatedIntegerDisplayWidthProvider')]
+    public function testMysqlIntegerDisplayWidthIsNotAChange(string $reversedSqlType, string $schemaSqlType): void
+    {
+        $fromColumn = $this->buildMysqlColumn('from', $reversedSqlType);
+        $toColumn = $this->buildMysqlColumn('to', $schemaSqlType);
+
+        $this->assertFalse(ColumnComparator::computeDiff($fromColumn, $toColumn));
+    }
+
+    /**
+     * A signed `tinyint(1)` is how MySQL stores a boolean and it still reports the width, so
+     * dropping it would hide a real change.
+     *
+     * @return void
+     */
+    public function testMysqlSignedTinyintOneKeepsItsDisplayWidth(): void
+    {
+        $fromColumn = $this->buildMysqlColumn('from', 'tinyint');
+        $toColumn = $this->buildMysqlColumn('to', 'tinyint(1)');
+
+        $this->assertNotFalse(ColumnComparator::computeDiff($fromColumn, $toColumn));
+    }
+
+    /**
+     * @return void
+     */
+    public function testMysqlZerofillKeepsItsDisplayWidth(): void
+    {
+        $fromColumn = $this->buildMysqlColumn('from', 'int(4) unsigned zerofill');
+        $toColumn = $this->buildMysqlColumn('to', 'int(8) unsigned zerofill');
+
+        $this->assertNotFalse(ColumnComparator::computeDiff($fromColumn, $toColumn));
+    }
+
+    /**
+     * @return void
+     */
+    public function testMysqlIntegerTypeChangeIsStillAChange(): void
+    {
+        $fromColumn = $this->buildMysqlColumn('from', 'int unsigned');
+        $toColumn = $this->buildMysqlColumn('to', 'bigint(20) unsigned');
+
+        $this->assertNotFalse(ColumnComparator::computeDiff($fromColumn, $toColumn));
+    }
+
+    /**
+     * @return \Propel\Generator\Model\Column
+     */
+    private function buildMysqlColumn(string $databaseName, string $sqlType): Column
+    {
+        $database = new Database($databaseName);
+        $database->setPlatform($this->platform);
+        $table = new Table('example');
+        $database->addTable($table);
+
+        return $table->addColumn([
+            'name' => 'amount',
+            'type' => 'INTEGER',
+            'sqlType' => $sqlType,
+        ]);
+    }
+
+    /**
      * @see http://www.propelorm.org/ticket/1141
      *
      * @return void

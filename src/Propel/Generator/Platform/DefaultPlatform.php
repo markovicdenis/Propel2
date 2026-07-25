@@ -454,6 +454,14 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     }
 
     /**
+     * Returns the DDL SQL of a Column object, normalized for comparing two columns.
+     */
+    public function getComparableColumnDDL(Column $col): string
+    {
+        return $this->getColumnDDL($col);
+    }
+
+    /**
      * Returns the SQL for the default value of a Column object
      *
      * @param Column $col

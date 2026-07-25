@@ -431,11 +431,6 @@ CREATE TABLE %s
         return $tableOptions;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getDropTableDDL(Table $table): string
     {
         return "
@@ -444,11 +439,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     }
 
     /**
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @throws \Propel\Generator\Exception\EngineException
-     *
-     * @return string
+     * @throws EngineException
      */
     public function getColumnDDL(Column $col): string
     {
@@ -540,6 +531,53 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
         }
 
         return implode(' ', $ddl);
+    }
+
+    /**
+     * Returns the DDL SQL of a Column object, normalized for comparing two columns.
+     *
+     * The display width of an integer column (the `11` in `int(11)`) is deprecated as of MySQL
+     * 8.0.19 and is no longer reported by `SHOW COLUMNS`, so a reverse-engineered column reads
+     * back as plain `int` however the schema spelled it. Comparing the widths would then report
+     * a change on every diff, for every integer column a schema declares a width for, and the
+     * resulting `CHANGE` would not alter anything. Strip the width so the comparison only sees
+     * differences the server would actually act on.
+     *
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return string
+     */
+    public function getComparableColumnDDL(Column $col): string
+    {
+        return $this->stripDeprecatedIntegerDisplayWidth($this->getColumnDDL($col));
+    }
+
+    /**
+     * Removes integer display widths that MySQL >= 8.0.19 ignores.
+     *
+     * Two spellings keep their width, because the server keeps reporting it and stripping it
+     * here would hide a real difference:
+     *
+     * - a *signed* `tinyint(1)`, the conventional boolean column, which Propel reads back as
+     *   BOOLEAN. `tinyint(1) unsigned` is not exempt and does come back as plain `tinyint`.
+     * - ZEROFILL columns, where the width still pads the displayed value.
+     *
+     * @param string $ddl
+     *
+     * @return string
+     */
+    protected function stripDeprecatedIntegerDisplayWidth(string $ddl): string
+    {
+        $pattern = '/\b(tinyint|smallint|mediumint|int|integer|bigint)\((\d+)\)((?:\s+unsigned)?(?:\s+zerofill)?)/i';
+
+        return (string)preg_replace_callback($pattern, function (array $match): string {
+            $isZerofill = stripos($match[3], 'zerofill') !== false;
+            $isBooleanTinyint = strtolower($match[1]) === 'tinyint'
+                && $match[2] === '1'
+                && stripos($match[3], 'unsigned') === false;
+
+            return $isZerofill || $isBooleanTinyint ? $match[0] : $match[1] . $match[3];
+        }, $ddl);
     }
 
     /**

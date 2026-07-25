@@ -20,8 +20,8 @@ class ColumnComparator
     /**
      * Compute and return the difference between two column objects
      *
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
+     * @param Column $fromColumn
+     * @param Column $toColumn
      *
      * @return \Propel\Generator\Model\Diff\ColumnDiff|false return false if the two columns are similar
      */
@@ -31,7 +31,7 @@ class ColumnComparator
         if ($changedProperties) {
             if ($fromColumn->hasPlatform() || $toColumn->hasPlatform()) {
                 $platform = $fromColumn->hasPlatform() ? $fromColumn->getPlatform() : $toColumn->getPlatform();
-                if ($platform->getColumnDDL($fromColumn) == $platform->getColumnDDl($toColumn)) {
+                if ($platform->getComparableColumnDDL($fromColumn) == $platform->getComparableColumnDDL($toColumn)) {
                     return false;
                 }
             }
@@ -44,12 +44,6 @@ class ColumnComparator
         return false;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return array
-     */
     public static function compareColumns(Column $fromColumn, Column $toColumn): array
     {
         $changedProperties = [];

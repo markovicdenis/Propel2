@@ -126,6 +126,18 @@ interface PlatformInterface
     public function getColumnDDL(Column $col): string;
 
     /**
+     * Returns the DDL SQL of a Column object, normalized for comparing two columns.
+     *
+     * Platforms override this when their DDL can spell the same column in more than one way, so
+     * that purely cosmetic differences do not register as a schema change.
+     *
+     * @param Column $col
+     *
+     * @return string
+     */
+    public function getComparableColumnDDL(Column $col): string;
+
+    /**
      * Returns the SQL for the default value of a Column object.
      *
      * @param Column $col

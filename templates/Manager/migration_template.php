@@ -15,8 +15,6 @@ class <?= $migrationClassName ?>
     public $comment = '<?= $commentString ?>';
 
     /**
-     * @param \Propel\Generator\Manager\MigrationManager $manager
-     *
      * @return null|false|void
      */
     public function preUp(MigrationManager $manager)
@@ -25,8 +23,6 @@ class <?= $migrationClassName ?>
     }
 
     /**
-     * @param \Propel\Generator\Manager\MigrationManager $manager
-     *
      * @return null|false|void
      */
     public function postUp(MigrationManager $manager)
@@ -35,8 +31,6 @@ class <?= $migrationClassName ?>
     }
 
     /**
-     * @param \Propel\Generator\Manager\MigrationManager $manager
-     *
      * @return null|false|void
      */
     public function preDown(MigrationManager $manager)
@@ -45,8 +39,6 @@ class <?= $migrationClassName ?>
     }
 
     /**
-     * @param \Propel\Generator\Manager\MigrationManager $manager
-     *
      * @return null|false|void
      */
     public function postDown(MigrationManager $manager)
@@ -62,14 +54,14 @@ class <?= $migrationClassName ?>
      */
     public function getUpSQL(): array
     {
-<?php foreach($migrationsUp as $connectionName => $sql): ?>
+<?php foreach ($migrationsUp as $connectionName => $sql): ?>
         <?= $connectionToVariableName[$connectionName] ?> = <<< 'EOT'
 <?= $sql ?>
 EOT;
 
 <?php endforeach;?>
         return [
-<?php foreach($connectionToVariableName as $connectionName => $variableName): ?>
+<?php foreach ($connectionToVariableName as $connectionName => $variableName): ?>
             '<?= $connectionName ?>' => <?= $variableName ?>,
 <?php endforeach;?>
         ];
@@ -83,14 +75,14 @@ EOT;
      */
     public function getDownSQL(): array
     {
-<?php foreach($migrationsDown as $connectionName => $sql): ?>
+<?php foreach ($migrationsDown as $connectionName => $sql): ?>
         <?= $connectionToVariableName[$connectionName] ?> = <<< 'EOT'
 <?= $sql ?>
 EOT;
 
 <?php endforeach;?>
         return [
-<?php foreach($connectionToVariableName as $connectionName => $variableName): ?>
+<?php foreach ($connectionToVariableName as $connectionName => $variableName): ?>
             '<?= $connectionName ?>' => <?= $variableName ?>,
 <?php endforeach;?>
         ];

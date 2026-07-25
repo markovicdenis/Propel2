@@ -90,19 +90,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
     ];
 
     /**
-     * Integer display widths reported by MySQL before 8.0.19.
-     *
-     * @var array<int>
-     */
-    protected static $legacyIntegerDisplayWidths = [
-        'tinyint' => 4,
-        'smallint' => 6,
-        'mediumint' => 9,
-        'int' => 11,
-        'bigint' => 20,
-    ];
-
-    /**
      * Gets a type mapping from native types to Propel types
      *
      * @return array<string>
@@ -249,14 +236,6 @@ class MysqlSchemaParser extends AbstractSchemaParser
             }
             if ($matches[3]) {
                 $sqlType = $row['Type'];
-                // MySQL >= 8.0.19 stops reporting the (redundant) integer display width in
-                // SHOW COLUMNS (e.g. "int unsigned" instead of "int(11) unsigned"), while a
-                // schema.xml written for older MySQL still declares it explicitly via sqlType.
-                // Reinsert the implied width so reverse-engineered columns keep comparing equal
-                // to their schema.xml counterpart instead of producing a no-op CHANGE on every diff.
-                if (!$matches[2] && isset(static::$legacyIntegerDisplayWidths[$nativeType])) {
-                    $sqlType = sprintf('%s(%d) %s', $nativeType, static::$legacyIntegerDisplayWidths[$nativeType], $matches[3]);
-                }
             }
             if (isset(static::$defaultTypeSizes[$nativeType]) && $scale == null && $size === static::$defaultTypeSizes[$nativeType]) {
                 $size = null;
