@@ -303,7 +303,10 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $isIdentity = strtoupper((string)$row['is_identity']) === 'YES';
             $isNullable = ($row['is_nullable'] === true || strtoupper($row['is_nullable']) === 'YES');
 
-            if ($type === 'ARRAY') {
+            // Types an extension provides -- citext, hstore, ltree -- are reported by
+            // information_schema only as the placeholder 'USER-DEFINED'. The real type name is
+            // in the formatted type, and without it the column reads back as a plain VARCHAR.
+            if (($type === 'ARRAY' || $type === 'USER-DEFINED') && $row['formatted_type']) {
                 $type = $row['formatted_type'];
             }
             $isNativeArray = str_ends_with($type, '[]');
@@ -326,8 +329,15 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             }
 
             $propelType = $isNativeArray ? PropelTypes::NATIVE_ARRAY : $this->getMappedPropelType($type);
+            $isUnmappedType = false;
             if (!$propelType) {
                 $propelType = Column::DEFAULT_TYPE;
+                // Types Propel has no mapping for -- citext, hstore, ltree, anything an extension
+                // adds -- still have to survive the round trip. Falling back to the domain's SQL
+                // type would report the column as a plain VARCHAR, so a schema declaring
+                // sqlType="citext" would never match what was read back and the migration
+                // converting it would be regenerated on every diff, forever.
+                $isUnmappedType = true;
                 $this->warn('Column [' . $table->getName() . '.' . $name . '] has a column type (' . $type . ') that Propel does not support.');
             }
 
@@ -348,7 +358,7 @@ class PgsqlSchemaParser extends AbstractSchemaParser
             $column = new Column($name);
             $column->setTable($table);
             $column->setDomainForType($propelType);
-            if ($isNativeArray) {
+            if ($isNativeArray || $isUnmappedType) {
                 $column->getDomain()->replaceSqlType($type);
             }
             $column->getDomain()->replaceSize($size);
