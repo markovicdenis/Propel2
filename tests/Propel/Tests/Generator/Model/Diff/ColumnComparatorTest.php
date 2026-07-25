@@ -280,6 +280,29 @@ class ColumnComparatorTest extends TestCase
     }
 
     /**
+     * Foreign keys are compared by the SQL type of the columns they join, which has to ignore
+     * the deprecated display width too or the key gets dropped and re-added on every diff.
+     *
+     * @return void
+     */
+    public function testMysqlFixSqlTypeIgnoresDeprecatedIntegerDisplayWidth(): void
+    {
+        $this->assertSame(
+            $this->platform->fixSqlType('int unsigned'),
+            $this->platform->fixSqlType('int(11) unsigned'),
+        );
+        $this->assertSame(
+            $this->platform->fixSqlType('int unsigned'),
+            $this->platform->fixSqlType('int(3) unsigned'),
+        );
+        $this->assertNotSame(
+            $this->platform->fixSqlType('tinyint'),
+            $this->platform->fixSqlType('tinyint(1)'),
+        );
+        $this->assertNull($this->platform->fixSqlType(null));
+    }
+
+    /**
      * @return \Propel\Generator\Model\Column
      */
     private function buildMysqlColumn(string $databaseName, string $sqlType): Column

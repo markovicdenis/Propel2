@@ -82,11 +82,6 @@ class MysqlPlatform extends DefaultPlatform
         $this->setUuidTypeMapping();
     }
 
-    /**
-     * @param \Propel\Generator\Config\GeneratorConfigInterface $generatorConfig
-     *
-     * @return void
-     */
     public function setGeneratorConfig(GeneratorConfigInterface $generatorConfig): void
     {
         parent::setGeneratorConfig($generatorConfig);
@@ -205,11 +200,6 @@ class MysqlPlatform extends DefaultPlatform
         return true;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return bool
-     */
     public function supportsForeignKeys(Table $table): bool
     {
         $vendorSpecific = $table->getVendorInfoForType('mysql');
@@ -224,11 +214,6 @@ class MysqlPlatform extends DefaultPlatform
         return strtolower($mysqlTableType) === 'innodb';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Database $database
-     *
-     * @return string
-     */
     public function getAddTablesDDL(Database $database): string
     {
         $ret = '';
@@ -269,10 +254,6 @@ SET FOREIGN_KEY_CHECKS = 1;
 
     /**
      * Returns the SQL for the primary key of a Table object
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     public function getPrimaryKeyDDL(Table $table): string
     {
@@ -297,11 +278,6 @@ SET FOREIGN_KEY_CHECKS = 1;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
-     */
     public function getAddTableDDL(Table $table): string
     {
         $lines = [];
@@ -370,8 +346,6 @@ CREATE TABLE %s
     }
 
     /**
-     * @param \Propel\Generator\Model\Table $table
-     *
      * @return array<string>
      */
     protected function getTableOptions(Table $table): array
@@ -542,10 +516,6 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      * a change on every diff, for every integer column a schema declares a width for, and the
      * resulting `CHANGE` would not alter anything. Strip the width so the comparison only sees
      * differences the server would actually act on.
-     *
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @return string
      */
     public function getComparableColumnDDL(Column $col): string
     {
@@ -581,13 +551,27 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
     }
 
     /**
+     * Normalizes a SQL type before two of them are compared.
+     *
+     * Foreign keys are compared by the SQL type of the columns they join, which runs into the
+     * same deprecated display width as the column comparison does: the schema says
+     * `int(11) unsigned` where the server reports `int unsigned`, and the key would be dropped
+     * and re-added on every diff without ever converging.
+     */
+    public function fixSqlType(?string $sqlType): ?string
+    {
+        if ($sqlType === null) {
+            return null;
+        }
+
+        return $this->stripDeprecatedIntegerDisplayWidth($sqlType);
+    }
+
+    /**
      * Returns the SQL type as a string.
      *
      * @see Domain::getSqlType()
      *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
      */
     public function getSqlTypeExpression(Column $column): string
     {
@@ -597,23 +581,11 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
         return (!$hasSize) ? $sqlType : $sqlType . $column->getSizeDefinition();
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return string
-     */
     protected function getChangeColumnToUuidBinaryType(Column $fromColumn, Column $toColumn): string
     {
         return MysqlUuidMigrationBuilder::create($this)->buildMigration($fromColumn, $toColumn, true);
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return string
-     */
     protected function getChangeColumnFromUuidBinaryType(Column $fromColumn, Column $toColumn): string
     {
         return MysqlUuidMigrationBuilder::create($this)->buildMigration($fromColumn, $toColumn, false);
@@ -623,10 +595,6 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      * Creates a comma-separated list of column names for the index.
      * For MySQL unique indexes there is the option of specifying size, so we cannot simply use
      * the getColumnsList() method.
-     *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
      */
     protected function getIndexColumnListDDL(Index $index): string
     {
@@ -646,11 +614,7 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
      * MySQL has no native partial indexes. For unique indexes, emulate the
      * predicate by adding a functional key part that is NULL for excluded rows.
      *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @throws \Propel\Generator\Exception\EngineException
-     *
-     * @return string
+     * @throws EngineException
      */
     protected function getPartialUniqueIndexConditionDDL(Index $index): string
     {
@@ -663,10 +627,6 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
 
     /**
      * Builds the DDL SQL to drop the primary key of a table.
-     *
-     * @param \Propel\Generator\Model\Table $table
-     *
-     * @return string
      */
     public function getDropPrimaryKeyDDL(Table $table): string
     {
@@ -681,10 +641,6 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
 
     /**
      * Builds the DDL SQL to add an Index.
-     *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
      */
     public function getAddIndexDDL(Index $index): string
     {
@@ -703,10 +659,6 @@ CREATE %sINDEX %s ON %s (%s);
 
     /**
      * Builds the DDL SQL to drop an Index.
-     *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
      */
     public function getDropIndexDDL(Index $index): string
     {
@@ -723,10 +675,6 @@ DROP INDEX %s ON %s;
 
     /**
      * Builds the DDL SQL for an Index object.
-     *
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
      */
     public function getIndexDDL(Index $index): string
     {
@@ -738,11 +686,6 @@ DROP INDEX %s ON %s;
         );
     }
 
-    /**
-     * @param \Propel\Generator\Model\Index $index
-     *
-     * @return string
-     */
     protected function getIndexType(Index $index): string
     {
         $type = '';
@@ -756,11 +699,6 @@ DROP INDEX %s ON %s;
         return $type;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Unique $unique
-     *
-     * @return string
-     */
     public function getUniqueDDL(Unique $unique): string
     {
         return sprintf(
@@ -770,11 +708,6 @@ DROP INDEX %s ON %s;
         );
     }
 
-    /**
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return string
-     */
     public function getAddForeignKeyDDL(ForeignKey $fk): string
     {
         if ($this->supportsForeignKeys($fk->getTable())) {
@@ -786,10 +719,6 @@ DROP INDEX %s ON %s;
 
     /**
      * Builds the DDL SQL for a ForeignKey object.
-     *
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return string
      */
     public function getForeignKeyDDL(ForeignKey $fk): string
     {
@@ -800,11 +729,6 @@ DROP INDEX %s ON %s;
         return '';
     }
 
-    /**
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return string|null
-     */
     public function getDropForeignKeyDDL(ForeignKey $fk): ?string
     {
         if (!$this->supportsForeignKeys($fk->getTable())) {
@@ -843,10 +767,6 @@ ALTER TABLE %s DROP FOREIGN KEY %s;
     /**
      * Builds the DDL SQL to modify a database
      * based on a DatabaseDiff instance
-     *
-     * @param \Propel\Generator\Model\Diff\DatabaseDiff $databaseDiff
-     *
-     * @return string
      */
     public function getModifyDatabaseDDL(DatabaseDiff $databaseDiff): string
     {
@@ -898,10 +818,6 @@ RENAME TABLE %s TO %s;
 
     /**
      * Builds the DDL SQL to remove a column
-     *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
      */
     public function getRemoveColumnDDL(Column $column): string
     {
@@ -918,11 +834,6 @@ ALTER TABLE %s DROP %s;
 
     /**
      * Builds the DDL SQL to rename a column
-     *
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return string
      */
     public function getRenameColumnDDL(Column $fromColumn, Column $toColumn): string
     {
@@ -931,10 +842,6 @@ ALTER TABLE %s DROP %s;
 
     /**
      * Builds the DDL SQL to modify a column
-     *
-     * @param \Propel\Generator\Model\Diff\ColumnDiff $columnDiff
-     *
-     * @return string
      */
     public function getModifyColumnDDL(ColumnDiff $columnDiff): string
     {
@@ -956,11 +863,6 @@ ALTER TABLE %s DROP %s;
 
     /**
      * Builds the DDL SQL to change a column
-     *
-     * @param \Propel\Generator\Model\Column $fromColumn
-     * @param \Propel\Generator\Model\Column $toColumn
-     *
-     * @return string
      */
     public function getChangeColumnDDL(Column $fromColumn, Column $toColumn): string
     {
@@ -975,9 +877,7 @@ ALTER TABLE %s DROP %s;
     /**
      * Builds the DDL SQL to modify a list of columns
      *
-     * @param array<\Propel\Generator\Model\Diff\ColumnDiff> $columnDiffs
-     *
-     * @return string
+     * @param array<ColumnDiff> $columnDiffs
      */
     public function getModifyColumnsDDL(array $columnDiffs): string
     {
@@ -988,10 +888,6 @@ ALTER TABLE %s DROP %s;
 
     /**
      * Builds the DDL SQL to add a column
-     *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
      */
     public function getAddColumnDDL(Column $column): string
     {
@@ -1025,9 +921,7 @@ ALTER TABLE %s ADD %s %s;
     /**
      * Builds the DDL SQL to add a list of columns
      *
-     * @param array<\Propel\Generator\Model\Column> $columns
-     *
-     * @return string
+     * @param array<Column> $columns
      */
     public function getAddColumnsDDL(array $columns): string
     {
@@ -1108,14 +1002,6 @@ ALTER TABLE %s ADD %s %s;
         return '`' . strtr($text, ['.' => '`.`']) . '`';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     * @param string $identifier
-     * @param string $columnValueAccessor
-     * @param string $tab
-     *
-     * @return string
-     */
     public function getColumnBindingPHP(Column $column, string $identifier, string $columnValueAccessor, string $tab = '            '): string
     {
         // FIXME - This is a temporary hack to get around apparent bugs w/ PDO+MYSQL
@@ -1135,8 +1021,6 @@ ALTER TABLE %s ADD %s %s;
 
     /**
      * Get the default On Delete behavior for foreign keys when not explicity set.
-     *
-     * @return string
      */
     public function getDefaultForeignKeyOnDeleteBehavior(): string
     {
@@ -1147,8 +1031,6 @@ ALTER TABLE %s ADD %s %s;
 
     /**
      * Get the default On Update behavior for foreign keys when not explicity set.
-     *
-     * @return string
      */
     public function getDefaultForeignKeyOnUpdateBehavior(): string
     {
@@ -1159,8 +1041,6 @@ ALTER TABLE %s ADD %s %s;
 
     /**
      * Get the server version of the platform
-     *
-     * @return string|null
      */
     protected function getServerVersion(): ?string
     {
