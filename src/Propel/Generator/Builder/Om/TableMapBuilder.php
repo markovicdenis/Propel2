@@ -102,8 +102,7 @@ class TableMapBuilder extends AbstractOMBuilder
  */
 class " . $this->getUnqualifiedClassName() . " extends TableMap
 {
-    use InstancePoolTrait;
-    use TableMapTrait;
+    use InstancePoolTrait, TableMapTrait;
 
 ";
     }
