@@ -26,16 +26,12 @@ class ModelManager extends AbstractManager
     /**
      * A Filesystem object.
      *
-     * @var \Symfony\Component\Filesystem\Filesystem
+     * @var Filesystem
      */
     private $filesystem;
 
     /**
      * Sets the filesystem object.
-     *
-     * @param \Symfony\Component\Filesystem\Filesystem $filesystem
-     *
-     * @return void
      */
     public function setFilesystem(Filesystem $filesystem): void
     {
@@ -62,6 +58,12 @@ class ModelManager extends AbstractManager
                 $this->log(' - Database: ' . $database->getName());
 
                 foreach ($database->getTables() as $table) {
+                    if ($table->isSkipPhp()) {
+                        $this->log('  - Table: ' . $table->getName() . ' (skipPhp)');
+
+                        continue;
+                    }
+
                     if (!$table->isForReferenceOnly()) {
                         $nbWrittenFiles = 0;
                         $this->log('  + Table: ' . $table->getName());
@@ -130,7 +132,7 @@ class ModelManager extends AbstractManager
                         // ----------------------------------
                         if ($table->hasAdditionalBuilders()) {
                             foreach ($table->getAdditionalBuilders() as $builderClass) {
-                                /** @var \Propel\Generator\Builder\Om\AbstractOMBuilder $builder */
+                                /** @var AbstractOMBuilder $builder */
                                 $builder = new $builderClass($table);
                                 $builder->setGeneratorConfig($generatorConfig);
                                 $nbWrittenFiles += $this->doBuild($builder, $builder->overwrite ?? true);
@@ -159,7 +161,7 @@ class ModelManager extends AbstractManager
      * This method assumes that the DataModelBuilder class has been initialized
      * with the build properties.
      *
-     * @param \Propel\Generator\Builder\Om\AbstractOMBuilder $builder
+     * @param AbstractOMBuilder $builder
      * @param bool $overwrite
      *
      * @return int

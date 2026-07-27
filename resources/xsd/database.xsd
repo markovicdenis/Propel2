@@ -731,6 +731,13 @@
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
+        <xs:attribute name="skipPhp" type="xs:boolean" default="false">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    Instructs Propel not to generate any PHP code for the specified table: no object, query, table map, stub or behaviour classes, and no entry in the table map loader script. This is the counterpart of skipSql - DDL SQL and migrations are still generated, so the table remains schema-managed while being accessed through plain SQL only.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
         <xs:attribute name="readOnly" type="xs:boolean" default="false">
             <xs:annotation>
                 <xs:documentation xml:lang="en">

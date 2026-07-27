@@ -33,13 +33,10 @@ class TableMapLoaderScriptBuilder
     public const FILENAME = 'loadDatabase.php';
 
     /**
-     * @var \Propel\Generator\Config\GeneratorConfigInterface
+     * @var GeneratorConfigInterface
      */
     protected $generatorConfig;
 
-    /**
-     * @param \Propel\Generator\Config\GeneratorConfigInterface $generatorConfig
-     */
     public function __construct(GeneratorConfigInterface $generatorConfig)
     {
         $this->generatorConfig = $generatorConfig;
@@ -69,9 +66,7 @@ class TableMapLoaderScriptBuilder
     /**
      * @param array<\Propel\Generator\Model\Schema> $schemas
      *
-     * @throws \Propel\Generator\Exception\BuildException
-     *
-     * @return array
+     * @throws BuildException
      */
     protected function buildDatabaseNameToTableMapDumps(array $schemas): array
     {
@@ -92,16 +87,15 @@ class TableMapLoaderScriptBuilder
         return $databaseNameToTableMapDumps;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Database $database
-     *
-     * @return \Propel\Runtime\Map\DatabaseMap
-     */
     protected function buildDatabaseMap(Database $database): DatabaseMap
     {
         $databaseName = $database->getName();
         $databaseMap = new DatabaseMap($databaseName);
         foreach ($database->getTables() as $table) {
+            if ($table->isSkipPhp()) {
+                continue;
+            }
+
             $tableName = $table->getName();
             $phpName = $table->getPhpName();
             $tableMapClass = $this->getFullyQualifiedTableMapClassName($table);
@@ -123,8 +117,6 @@ class TableMapLoaderScriptBuilder
     }
 
     /**
-     * @param \Propel\Generator\Model\Table $table
-     *
      * @return class-string<\Propel\Runtime\Map\TableMap>
      */
     protected function getFullyQualifiedTableMapClassName(Table $table): string

@@ -110,6 +110,8 @@ class Table extends ScopedMappingModel implements IdMethod
 
     private bool $skipSql = false;
 
+    private bool $skipPhp = false;
+
     private bool $readOnly = false;
 
     private bool $isAbstract = false;
@@ -270,6 +272,7 @@ class Table extends ScopedMappingModel implements IdMethod
         $this->allowPkInsert = $this->booleanValue($this->getAttribute('allowPkInsert'));
 
         $this->skipSql = $this->booleanValue($this->getAttribute('skipSql'));
+        $this->skipPhp = $this->booleanValue($this->getAttribute('skipPhp'));
         $this->readOnly = $this->booleanValue($this->getAttribute('readOnly'));
 
         $this->isAbstract = $this->booleanValue($this->getAttribute('abstract'));
@@ -1572,6 +1575,33 @@ class Table extends ScopedMappingModel implements IdMethod
     public function setSkipSql(bool $skip): void
     {
         $this->skipSql = $skip;
+    }
+
+    /**
+     * Returns whether Propel has to skip PHP code generation for this table.
+     * No object, query, table map, stub or behaviour classes are written, and
+     * the table is left out of the table map loader script. This is the
+     * counterpart of isSkipSql(): DDL SQL and migrations are still generated,
+     * so the table stays under schema management while being accessed through
+     * plain SQL only.
+     *
+     * @return bool
+     */
+    public function isSkipPhp(): bool
+    {
+        return $this->skipPhp;
+    }
+
+    /**
+     * Sets whether this table should have its PHP code generated.
+     *
+     * @param bool $skip
+     *
+     * @return void
+     */
+    public function setSkipPhp(bool $skip): void
+    {
+        $this->skipPhp = $skip;
     }
 
     /**

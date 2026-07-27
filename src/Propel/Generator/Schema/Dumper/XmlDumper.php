@@ -252,6 +252,10 @@ class XmlDumper implements DumperInterface
             $tableNode->setAttribute('skipSql', 'true');
         }
 
+        if ($table->isSkipPhp()) {
+            $tableNode->setAttribute('skipPhp', 'true');
+        }
+
         if ($table->isAbstract()) {
             $tableNode->setAttribute('abstract', 'true');
         }
