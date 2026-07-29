@@ -2188,21 +2188,19 @@ class QueryBuilder extends AbstractOMBuilder
             \$con = Propel::getServiceContainer()->getWriteConnection(" . $this->getTableMapClass() . "::DATABASE_NAME);
         }
 
-        \$criteria = \$this;
-
         // Set the correct dbName
-        \$criteria->setDbName(" . $this->getTableMapClass() . "::DATABASE_NAME);
+        \$this->setDbName(" . $this->getTableMapClass() . "::DATABASE_NAME);
 
-        // use transaction because \$criteria could contain info
+        // use transaction because this criteria could contain info
         // for more than one table or we could emulating ON DELETE CASCADE, etc.
-        return \$con->transaction(function () use (\$con, \$criteria) {
+        return \$con->transaction(function () use (\$con) {
             \$affectedRows = 0; // initialize var to track total num of affected rows
             ";
 
         if ($this->isDeleteCascadeEmulationNeeded()) {
             $script .= "
             // cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-            \$c = clone \$criteria;
+            \$c = clone \$this;
             \$affectedRows += \$c->doOnDeleteCascade(\$con);
             ";
         }
@@ -2210,13 +2208,13 @@ class QueryBuilder extends AbstractOMBuilder
         if ($this->isDeleteSetNullEmulationNeeded()) {
             $script .= "
             // cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-            \$c = clone \$criteria;
+            \$c = clone \$this;
             \$c->doOnDeleteSetNull(\$con);
             ";
         }
 
         $script .= "
-            {$this->getTableMapClassName()}::removeInstanceFromPool(\$criteria);
+            {$this->getTableMapClassName()}::removeInstanceFromPool(\$this);
         ";
 
         $script .= "
