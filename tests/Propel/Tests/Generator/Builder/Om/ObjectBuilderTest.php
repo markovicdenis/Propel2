@@ -2339,6 +2339,44 @@ EOF;
     }
 
     /**
+     * A writable model may reference lookup tables that are read only and therefore do not generate
+     * persistence methods. The owning model still needs to sync the FK value from the attached
+     * object, but it must not emit a cascade save call that targets a non-persistable model.
+     *
+     * @return void
+     */
+    public function testDoSaveSkipsSavingReadonlyForeignKeyTargets()
+    {
+        $schema = <<<'EOF'
+<database name="test">
+    <table name="player">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+    </table>
+    <table name="currency" readOnly="true">
+        <column name="money_type" primaryKey="true" type="CHAR" required="true"/>
+    </table>
+    <table name="item">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        <column name="player_id" type="INTEGER"/>
+        <column name="money_type" type="CHAR"/>
+        <foreign-key foreignTable="player">
+            <reference local="player_id" foreign="id"/>
+        </foreign-key>
+        <foreign-key foreignTable="currency">
+            <reference local="money_type" foreign="money_type"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildObjectScript($schema, 'addDoSave');
+
+        $this->assertStringContainsString('$affectedRows += $this->aPlayer->save($con);', $script);
+        $this->assertStringNotContainsString('$affectedRows += $this->aCurrency->save($con);', $script);
+        $this->assertStringContainsString('$this->setCurrency($this->aCurrency);', $script);
+    }
+
+    /**
      * The attribute of a column does not always hold the value in the PHP type of the column,
      * some types are stored encoded and only converted in the accessor.
      *

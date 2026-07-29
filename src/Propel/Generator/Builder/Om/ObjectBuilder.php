@@ -7059,11 +7059,18 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
             foreach ($table->getForeignKeys() as $fk) {
                 $aVarName = $this->getFKVarName($fk);
+                $foreignTable = $fk->getForeignTable();
                 $script .= "
             if (\$this->$aVarName !== null) {
+";
+                if ($foreignTable === null || !$foreignTable->isReadOnly()) {
+                    $script .= "
                 if (\$this->" . $aVarName . '->isModified() || $this->' . $aVarName . "->isNew()) {
                     \$affectedRows += \$this->" . $aVarName . "->save(\$con);
                 }
+";
+                }
+                $script .= "
                 \$this->set" . $this->getFKPhpNameAffix($fk, false) . "(\$this->$aVarName);
             }
 ";
