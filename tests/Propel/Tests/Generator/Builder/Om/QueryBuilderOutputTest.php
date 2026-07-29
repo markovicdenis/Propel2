@@ -384,13 +384,32 @@ XML;
     }
 
     /**
+     * The doc type of a native array filter does not allow anything but an array, so its type
+     * guard reads as redundant, while the filter can be built programmatically.
+     *
+     * @return void
+     */
+    public function testNativeArrayFilterIgnoresTheRedundantTypeGuard()
+    {
+        $filterDefinition = $this->buildFilterByCol('codes');
+
+        $this->assertStringContainsString(
+            "// @phpstan-ignore function.alreadyNarrowedType"
+                . " (the doc type is not enforced when the query is built programmatically)\n"
+                . '        if (!is_array($codes)) {',
+            $filterDefinition,
+        );
+        $this->assertStringContainsString("throw new PropelException('NATIVE_ARRAY filters require a PHP array.');", $filterDefinition);
+    }
+
+    /**
      * @param string $columnName
      *
      * @return string
      */
     private function buildFilterByCol(string $columnName): string
     {
-        $builder = TestableQueryBuilder::forTableFromXml(self::TRANSFORMER_SCHEMA_XML, 'item');
+        $builder = TestableQueryBuilder::forTableFromXml(self::FILTER_SCHEMA_XML, 'item');
 
         return $builder->buildScript('addFilterByCol', $builder->getTable()->getColumn($columnName));
     }
@@ -398,12 +417,13 @@ XML;
     /**
      * @var string
      */
-    private const TRANSFORMER_SCHEMA_XML = <<<'XML'
+    private const FILTER_SCHEMA_XML = <<<'XML'
 <database name="default" namespace="Example\Books" package="Books">
     <table name="item">
         <column name="id" type="integer" primaryKey="true"/>
         <column name="label" type="VARCHAR" size="10" transformer="uppercase"/>
         <column name="tags" type="ARRAY" transformer="lowercase"/>
+        <column name="codes" type="NATIVE_ARRAY" sqlType="TEXT[]"/>
     </table>
 </database>
 XML;

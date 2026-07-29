@@ -1174,6 +1174,7 @@ class QueryBuilder extends AbstractOMBuilder
 
             return \$this;
         }
+        // @phpstan-ignore function.alreadyNarrowedType (the doc type is not enforced when the query is built programmatically)
         if (!is_array(\$$variableName)) {
             throw new PropelException('NATIVE_ARRAY filters require a PHP array.');
         }
