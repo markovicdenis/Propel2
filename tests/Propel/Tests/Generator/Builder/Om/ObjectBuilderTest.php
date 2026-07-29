@@ -820,6 +820,43 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testAccessorDefaultsUseEffectivePhpType()
+    {
+        $cases = [
+            ['amount', 'BIGINT', 'int', '0', 'return $this->amount ?? 0;'],
+            ['enabled', 'BOOLEAN', 'bool', 'true', 'return $this->enabled ?? true;'],
+            ['ratio', 'DOUBLE', 'float', '1.25', 'return $this->ratio ?? 1.25;'],
+            ['code', 'VARCHAR', 'int', '42', 'return $this->code ?? 42;'],
+        ];
+
+        foreach ($cases as [$name, $type, $phpType, $defaultValue, $expectedReturn]) {
+            $database = new Database('test');
+            $table = new Table('DefaultValue');
+            $database->addTable($table);
+
+            $column = new Column($name);
+            $table->addColumn($column);
+            $column->loadMapping([
+                'name' => $name,
+                'type' => $type,
+                'phpType' => $phpType,
+                'required' => true,
+                'defaultValue' => $defaultValue,
+            ]);
+
+            $builder = new TestableObjectBuilder($table);
+            $builder->setPlatform(new MysqlPlatform());
+
+            $body = '';
+            $builder->addDefaultAccessorBodyToScript($body, $column);
+
+            $this->assertStringContainsString($expectedReturn, $body);
+        }
+    }
+
+    /**
+     * @return void
+     */
     public function testIsPrimaryKeyNullUsesDirectGetterForSinglePrimaryKey()
     {
         $table = new Table('BalanceTransaction');

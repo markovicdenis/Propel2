@@ -52,20 +52,9 @@ trait ObjectBuilderTrait
         }
     }
 
-    private function escapeValueForPhpCode(mixed $value, Column $col): string
-    {
-        return match($col->getType()) {
-            'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
-            'FLOAT', 'DOUBLE', 'REAL' => number_format((float)$value, 1),
-            'BOOLEAN' => $value === 'true' ? 'true' : 'false',
-            default => var_export($value, true),
-        };
-    }
-
     private function normalizedDefaultValueForColumn(Column $column): string
     {
-        $defaultValue = $column->getPhpDefaultValue();
-        return $this->escapeValueForPhpCode($defaultValue, $column);
+        return $this->getDefaultValueString($column);
     }
 
     protected function getUnsetValueForAccessor(Column $column): ?string
@@ -98,9 +87,7 @@ trait ObjectBuilderTrait
      * Returns the type-casted and stringified default value for the specified
      * Column. This only works for scalar default values currently.
      *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return string
      */
