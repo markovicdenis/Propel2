@@ -14,6 +14,7 @@ use Propel\Generator\Config\QuickGeneratorConfig;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
+use Propel\Generator\Model\ForeignKey;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\Domain;
 use Propel\Generator\Model\Table;
@@ -2053,6 +2054,182 @@ EOF;
     }
 
     /**
+     * The attribute of a column does not always hold the value in the PHP type of the column,
+     * some types are stored encoded and only converted in the accessor.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function columnStorageTypeProvider(): array
+    {
+        return [
+            'int columns are stored as int' => ['<column name="col" type="INTEGER"/>', 'int|null'],
+            'string columns are stored as string' => ['<column name="col" type="VARCHAR" size="10"/>', 'string|null'],
+            // a native array is the one array type which is not encoded
+            'native array columns are stored as array' => ['<column name="col" type="NATIVE_ARRAY" sqlType="TEXT[]"/>', 'array|null'],
+            'array columns are stored as string' => ['<column name="col" type="ARRAY"/>', 'string|null'],
+            'object columns are stored as stream' => ['<column name="col" type="OBJECT"/>', 'resource|null'],
+            'enum columns are stored as int' => ['<column name="col" type="ENUM" valueSet="a, b"/>', 'int|null'],
+            // SetColumnConverter::convertToInt() returns the bitmask as a string
+            'set columns are stored as string' => ['<column name="col" type="SET" valueSet="a, b"/>', 'string|null'],
+        ];
+    }
+
+    /**
+     * @dataProvider columnStorageTypeProvider
+     *
+     * @param string $columnXml
+     * @param string $expectedType
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('columnStorageTypeProvider')]
+    public function testColumnAttributeIsDocumentedWithItsStorageType(string $columnXml, string $expectedType)
+    {
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema($columnXml), 'addColumnAttributes');
+
+        $this->assertStringContainsString("@var $expectedType\n     */\n    protected \$col;", $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetColumnConvertedAttributeIsDocumented()
+    {
+        $columnXml = '<column name="col" type="SET" valueSet="a, b"/>';
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema($columnXml), 'addColumnAttributes');
+
+        $this->assertStringContainsString("@var array|null\n     */\n    protected \$col_converted;", $script);
+    }
+
+    /**
+     * Array default values are exported over several lines, which used to break out of the comment.
+     *
+     * @return void
+     */
+    public function testArrayDefaultValueCommentStaysOnASingleLine()
+    {
+        $columnXml = '<column name="col" type="NATIVE_ARRAY" sqlType="TEXT[]" defaultValue="{}"/>';
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema($columnXml), 'addColumnAttributes');
+
+        $this->assertStringContainsString('     * Note: this column has a database default value of: array ( )', $script);
+        foreach (explode("\n", $script) as $line) {
+            if ($line !== '' && !str_starts_with(ltrim($line), '*') && !str_starts_with(ltrim($line), '/*')) {
+                $this->assertStringNotContainsString('database default value', $line);
+            }
+        }
+    }
+
+    /**
+     * The attribute holds the value bitmask, which is not a primitive int, so the set branch has to
+     * be applied instead of the primitive one.
+     *
+     * @return void
+     */
+    public function testSetColumnHydrationResetsTheConvertedAttribute()
+    {
+        $columnXml = '<column name="col" type="SET" valueSet="a, b"/>';
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema($columnXml), 'addHydrate');
+
+        $this->assertStringContainsString('$this->col = $col;', $script);
+        $this->assertStringContainsString('$this->col_converted = null;', $script);
+        $this->assertStringNotContainsString('(int) $col', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCopyIsDocumentedWithStaticReturnTypeInsteadOfVarAnnotation()
+    {
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema(''), 'addCopy');
+
+        $this->assertStringContainsString('@return static Clone of current object', $script);
+        $this->assertStringContainsString('$copyObj = new $clazz();', $script);
+        // the annotation contradicted the type of `new $clazz()`, which is `$this`
+        $this->assertStringNotContainsString('$copyObj */', $script);
+        // copyInto() receives `$this`, so it cannot ask for the child class
+        $this->assertStringContainsString('@param static $copyObj', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testToStringFallbackDoesNotCastTheStringItGetsFromExportTo()
+    {
+        $script = $this->buildObjectScript($this->wrapColumnsInSchema(''), 'addPrimaryString');
+
+        $this->assertStringContainsString('return $this->exportTo(ItemTableMap::DEFAULT_STRING_FORMAT);', $script);
+        $this->assertStringNotContainsString('(string) $this->exportTo(', $script);
+    }
+
+    /**
+     * @return void
+     */
+    public function testResetPartialDocumentsItsParameter()
+    {
+        $schema = <<<'EOF'
+<database name="test">
+    <table name="item">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+    </table>
+    <table name="item_part">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        <column name="item_id" type="INTEGER"/>
+        <foreign-key foreignTable="item">
+            <reference local="item_id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+EOF;
+
+        $platform = new PgsqlPlatform();
+        $table = (new SchemaReader($platform))->parseString($schema)->getDatabase()->getTable('item');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform($platform);
+
+        $script = '';
+        $builder->addRefFKPartialToScript($script, $table->getReferrers()[0]);
+
+        $this->assertStringContainsString('@param bool $v', $script);
+    }
+
+    /**
+     * @param string $columnsXml
+     *
+     * @return string
+     */
+    private function wrapColumnsInSchema(string $columnsXml): string
+    {
+        return <<<EOF
+<database name="test">
+    <table name="item">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        $columnsXml
+    </table>
+</database>
+EOF;
+    }
+
+    /**
+     * @param string $schema
+     * @param string $scriptBuilderFunctionName
+     *
+     * @return string
+     */
+    private function buildObjectScript(string $schema, string $scriptBuilderFunctionName): string
+    {
+        $platform = new PgsqlPlatform();
+        $table = (new SchemaReader($platform))->parseString($schema)->getDatabase()->getTable('item');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform($platform);
+
+        return $builder->buildScript($scriptBuilderFunctionName);
+    }
+
+    /**
      * @return void
      */
     private function buildPkeyCriteriaBody(string $schema): string
@@ -2075,6 +2252,26 @@ EOF;
 
 class TestableObjectBuilder extends ObjectBuilder
 {
+    /**
+     * Call a (usually protected) script builder function by name and return the result.
+     *
+     * @param string $scriptBuilderFunctionName
+     *
+     * @return string
+     */
+    public function buildScript(string $scriptBuilderFunctionName): string
+    {
+        $script = '';
+        $this->$scriptBuilderFunctionName($script);
+
+        return $script;
+    }
+
+    public function addRefFKPartialToScript(string &$script, ForeignKey $foreignKey): void
+    {
+        $this->addRefFKPartial($script, $foreignKey);
+    }
+
     public function getDefaultValueString(Column $col, bool $acceptNull = true): string
     {
         return parent::getDefaultValueString($col, $acceptNull);

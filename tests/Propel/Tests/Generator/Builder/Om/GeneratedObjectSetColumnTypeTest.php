@@ -214,6 +214,37 @@ EOF;
     /**
      * @return void
      */
+    public function testSetterAcceptsNull()
+    {
+        $e = new ComplexColumnTypeEntitySet();
+        $e->setTags(['foo', 'baz']);
+        // reading the value first is what makes the setter compare it to the new one
+        $this->assertSame(['foo', 'baz'], $e->getTags());
+
+        $e->setTags(null);
+
+        $this->assertSame([], $e->getTags(), 'set columns can be reset with null');
+    }
+
+    /**
+     * Hydration has to drop the converted value, otherwise a recycled object serves the value of
+     * the row it was hydrated with before.
+     *
+     * @return void
+     */
+    public function testHydrationDropsTheConvertedValueOfThePreviousRow()
+    {
+        $e = new ComplexColumnTypeEntitySet();
+        $e->hydrate([1, 5, null, null, null]);
+        $this->assertSame(['foo', 'baz'], $e->getTags());
+
+        $e->hydrate([1, 2, null, null, null], 0, true);
+        $this->assertSame(['bar'], $e->getTags());
+    }
+
+    /**
+     * @return void
+     */
     public function testSetterThrowsExceptionOnUnknownValue()
     {
         $this->expectException(PropelException::class);

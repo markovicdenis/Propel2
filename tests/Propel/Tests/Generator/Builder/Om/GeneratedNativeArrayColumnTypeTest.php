@@ -83,4 +83,19 @@ XML);
         $this->assertStringContainsString("->setNativeArrayElementType('INTEGER')", $classes);
         $this->assertStringContainsString("->setNativeArrayElementType('VARCHAR(3)')", $classes);
     }
+
+    /**
+     * Unlike an ARRAY column, a native array is not stored in its encoded form.
+     *
+     * @return void
+     */
+    public function testGeneratedObjectStoresNativeArrayColumnsAsArray(): void
+    {
+        $classes = $this->buildClasses();
+
+        $this->assertStringContainsString("@var array|null\n     */\n    protected \$tags;", $classes);
+        $this->assertStringContainsString("@var array|null\n     */\n    protected \$scores;", $classes);
+        // an ARRAY column is stored as the encoded string, with the array in $legacy_currency_codes_unserialized
+        $this->assertStringContainsString("@var string|null\n     */\n    protected \$legacy_currency_codes;", $classes);
+    }
 }

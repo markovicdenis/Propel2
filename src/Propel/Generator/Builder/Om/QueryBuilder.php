@@ -149,7 +149,8 @@ class QueryBuilder extends AbstractOMBuilder
     protected function getColumnMagicPhpType(Column $column): string
     {
         if (!$column->isUidType()) {
-            return $column->getPhpType();
+            // object columns have no PHP type, they accept anything serializable
+            return $column->getPhpType() ?: 'mixed';
         }
 
         $this->declareClasses(

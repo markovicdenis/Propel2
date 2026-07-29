@@ -5,5 +5,6 @@
     "phpstan.memoryLimit": "2G",
     "php.stubs": ["all"],
     "php-cs-fixer.ignorePHPVersion": true,
-    "php-cs-fixer.allowRisky": true
+    "php-cs-fixer.allowRisky": true,
+    "phpunit.command": "\"${php}\" -d display_errors=on -d xdebug.mode=coverage -d xdebug.start_with_request=0 \"${phpunit}\" ${phpunitargs}"
 }

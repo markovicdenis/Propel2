@@ -303,4 +303,70 @@ XML;
         $this->assertStringNotContainsString('public function joinBook(', $authorClassBodyDefinition);
         $this->assertStringNotContainsString('public function useBookQuery(', $authorClassBodyDefinition);
     }
+
+    /**
+     * The query is the criteria it used to alias, so the closure can use $this directly.
+     *
+     * @return void
+     */
+    public function testDeleteUsesThisInsteadOfACriteriaAlias()
+    {
+        $deleteDefinition = TestableQueryBuilder::forTableFromXml(self::CASCADE_SCHEMA_XML, 'author')->buildScript('addDelete');
+
+        $this->assertStringNotContainsString('$criteria', $deleteDefinition);
+        $this->assertStringContainsString('return $con->transaction(function () use ($con) {', $deleteDefinition);
+        $this->assertStringContainsString('$this->setDbName(AuthorTableMap::DATABASE_NAME);', $deleteDefinition);
+        $this->assertStringContainsString('AuthorTableMap::removeInstanceFromPool($this);', $deleteDefinition);
+    }
+
+    /**
+     * @return void
+     */
+    public function testDeleteClonesThisForDeleteCascadeEmulation()
+    {
+        $deleteDefinition = TestableQueryBuilder::forTableFromXml(self::CASCADE_SCHEMA_XML, 'author')->buildScript('addDelete');
+
+        $this->assertStringContainsString('$c = clone $this;', $deleteDefinition);
+        $this->assertStringContainsString('$affectedRows += $c->doOnDeleteCascade($con);', $deleteDefinition);
+    }
+
+    /**
+     * Object columns have no PHP type, which used to end up in the magic method as `(|array<> $obj)`.
+     *
+     * @return void
+     */
+    public function testHeaderUsesValidTypeInMagicMethodsOfObjectColumns()
+    {
+        $schemaXml = <<<'XML'
+<database name="default" namespace="Example\Books" package="Books">
+    <table name="book">
+        <column name="id" type="integer" primaryKey="true"/>
+        <column name="payload" type="OBJECT"/>
+    </table>
+</database>
+XML;
+
+        $headerDefinition = TestableQueryBuilder::forTableFromXml($schemaXml, 'book')->buildScript('addClassOpen');
+
+        $this->assertStringContainsString('findByPayload(mixed|array<mixed> $payload)', $headerDefinition);
+        $this->assertStringNotContainsString('array<>', $headerDefinition);
+    }
+
+    /**
+     * @var string
+     */
+    private const CASCADE_SCHEMA_XML = <<<'XML'
+<database name="default" namespace="Example\Books" package="Books">
+    <table name="author">
+        <column name="id" type="integer" primaryKey="true"/>
+    </table>
+    <table name="book">
+        <column name="id" type="integer" primaryKey="true"/>
+        <column name="author_id" type="integer"/>
+        <foreign-key foreignTable="author" onDelete="cascade">
+            <reference local="author_id" foreign="id"/>
+        </foreign-key>
+    </table>
+</database>
+XML;
 }
