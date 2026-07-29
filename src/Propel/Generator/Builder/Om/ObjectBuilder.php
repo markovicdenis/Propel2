@@ -2088,7 +2088,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             && $column->getType() !== PropelTypes::PHP_ARRAY
         ) {
             $transformer = $column->getTransformer();
-            $script .= "
+            // The transformer runs before the value is converted, so $v still holds the declared
+            // type here. A mutator which does not document null cannot be called with null
+            // according to its doc type, while it can be in a dynamically built call.
+            $ignoreRedundantNullCheck = ($column->getPhpType() && !$this->isNullableInGeneratedObjectApi($column))
+                ? "
+        // @phpstan-ignore notIdentical.alwaysTrue (the doc type is not enforced when the setter is called dynamically)"
+                : '';
+            $script .= "$ignoreRedundantNullCheck
         if (\$v !== null) {
             \$v = $transformer(\$v);
         }

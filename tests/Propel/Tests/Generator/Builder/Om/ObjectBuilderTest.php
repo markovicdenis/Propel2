@@ -2054,6 +2054,61 @@ EOF;
     }
 
     /**
+     * The transformer runs before the value is converted, so the null check reads as redundant
+     * against the doc type of a required column.
+     *
+     * @return void
+     */
+    public function testTransformerOfRequiredMutatorIgnoresTheRedundantNullCheck()
+    {
+        $mutator = $this->buildMutator('req_text');
+
+        $this->assertStringContainsString(
+            "// @phpstan-ignore notIdentical.alwaysTrue"
+                . " (the doc type is not enforced when the setter is called dynamically)\n"
+                . '        if ($v !== null) {',
+            $mutator,
+        );
+        $this->assertStringContainsString('$v = strtoupper($v);', $mutator);
+    }
+
+    /**
+     * The null check is not redundant in the doc type of a nullable column, an ignore would be
+     * reported as unused there.
+     *
+     * @return void
+     */
+    public function testTransformerOfNullableMutatorKeepsTheNullCheckUnignored()
+    {
+        $mutator = $this->buildMutator('opt_text');
+
+        $this->assertStringContainsString('$v = strtoupper($v);', $mutator);
+        $this->assertStringNotContainsString('@phpstan-ignore', $mutator);
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return string
+     */
+    private function buildMutator(string $columnName): string
+    {
+        $schema = $this->wrapColumnsInSchema(
+            '<column name="req_text" type="VARCHAR" size="3" required="true" transformer="uppercase"/>'
+                . "\n        " . '<column name="opt_text" type="VARCHAR" size="3" transformer="uppercase"/>',
+        );
+
+        $platform = new PgsqlPlatform();
+        $table = (new SchemaReader($platform))->parseString($schema)->getDatabase()->getTable('item');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform($platform);
+
+        return $builder->buildScript('addDefaultMutator', $table->getColumn($columnName));
+    }
+
+    /**
      * A primary key is not non-null per se: a uid key without a fallback value stays null on an
      * unsaved object, so the accessor has to be documented the way its body behaves.
      *
@@ -2290,10 +2345,10 @@ class TestableObjectBuilder extends ObjectBuilder
      *
      * @return string
      */
-    public function buildScript(string $scriptBuilderFunctionName): string
+    public function buildScript(string $scriptBuilderFunctionName, ...$arguments): string
     {
         $script = '';
-        $this->$scriptBuilderFunctionName($script);
+        $this->$scriptBuilderFunctionName($script, ...$arguments);
 
         return $script;
     }
