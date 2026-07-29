@@ -21,25 +21,17 @@ trait ObjectBuilderTrait
     protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
     {
         if ($column->isNotNull()) {
-            return match ($column->getPhpType()) {
-                'int' => '0',
-                'float' => '0.0',
-                'bool' => 'false',
-                'string' => "''",
-                'array' => '[]',
-                default => match ($column->getType()) {
-                    'INTEGER', 'SMALLINT', 'TINYINT' => '0',
-                    'FLOAT', 'DOUBLE', 'REAL' => '0.0',
-                    'BOOLEAN' => 'false',
-                    'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
-                    'UID', 'UID_BINARY' => 'null',
-                    'ARRAY', 'NATIVE_ARRAY' => '[]',
-                    'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
-                    default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
-                },
+            return match($column->getType()) {
+                'INTEGER', 'SMALLINT', 'TINYINT' => '0',
+                'FLOAT', 'DOUBLE', 'REAL' => '0.0',
+                'BOOLEAN' => 'false',
+                'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
+                'UID', 'UID_BINARY' => 'null',
+                'ARRAY', 'NATIVE_ARRAY' => '[]',
+                'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
+                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
             };
         }
-
         return 'null';
     }
 
@@ -52,9 +44,20 @@ trait ObjectBuilderTrait
         }
     }
 
+    private function escapeValueForPhpCode(mixed $value, Column $col): string
+    {
+        return match($col->getType()) {
+            'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
+            'FLOAT', 'DOUBLE', 'REAL' => number_format((float)$value, 1),
+            'BOOLEAN' => $value === 'true' ? 'true' : 'false',
+            default => var_export($value, true),
+        };
+    }
+
     private function normalizedDefaultValueForColumn(Column $column): string
     {
-        return $this->getDefaultValueString($column);
+        $defaultValue = $column->getPhpDefaultValue();
+        return $this->escapeValueForPhpCode($defaultValue, $column);
     }
 
     protected function getUnsetValueForAccessor(Column $column): ?string
@@ -87,7 +90,9 @@ trait ObjectBuilderTrait
      * Returns the type-casted and stringified default value for the specified
      * Column. This only works for scalar default values currently.
      *
-     * @throws EngineException
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @throws \Propel\Generator\Exception\EngineException
      *
      * @return string
      */

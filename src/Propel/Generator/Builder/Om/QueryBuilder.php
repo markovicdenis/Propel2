@@ -127,7 +127,7 @@ class QueryBuilder extends AbstractOMBuilder
     }
 
     /**
-     * @param array<Column> $columns
+     * @param array<\Propel\Generator\Model\Column> $columns
      *
      * @return array<string, string>
      */
@@ -141,11 +141,15 @@ class QueryBuilder extends AbstractOMBuilder
         return $types;
     }
 
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string
+     */
     protected function getColumnMagicPhpType(Column $column): string
     {
         if (!$column->isUidType()) {
-            // object columns have no PHP type, they accept anything serializable
-            return $column->getPhpType() ?: 'mixed';
+            return $column->getPhpType();
         }
 
         $this->declareClasses(
@@ -155,6 +159,11 @@ class QueryBuilder extends AbstractOMBuilder
         return 'Uuid|string';
     }
 
+    /**
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string|null
+     */
     protected function getColumnFilterParameterType(Column $column): ?string
     {
         if (!$column->isUidType()) {
@@ -580,9 +589,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Propel uses the instance pool to skip the database if the object exists.
      * Go fast if the query is untouched.
      *";
-        // A composite key narrows the mixed key of the parent method to an array, which is kept
-        // for ease of use, so the resulting variance has to be ignored.
-        $ignoreNarrowedKeyType = '';
         if ($table->hasCompositePrimaryKey()) {
             $pks = $table->getPrimaryKey();
             $examplePk = array_slice([12, 34, 56, 78, 91], 0, count($pks));
@@ -592,10 +598,6 @@ class QueryBuilder extends AbstractOMBuilder
             }
             $pkDesc = 'array[' . implode(', ', $colNames) . ']';
             $pkType = 'array';
-            // has to be the last tag, the ignore is parsed to the end of the comment
-            $ignoreNarrowedKeyType = "
-     *
-     * @phpstan-ignore method.childParameterType (the array type of a composite key is kept for ease of use)";
             $script .= "
      * <code>
      * \$obj = \$c->findPk([" . implode(', ', $examplePk) . '], $con);';
@@ -612,7 +614,7 @@ class QueryBuilder extends AbstractOMBuilder
      * @param " . $pkType . " \$key Primary key to use for the query $pkDesc
      * @param ?ConnectionInterface \$con an optional connection object
      *
-     * @return $class|array|mixed the result, formatted by the current formatter$ignoreNarrowedKeyType
+     * @return $class|array|mixed the result, formatted by the current formatter
      */
     public function findPk(\$key, ?ConnectionInterface \$con = null)
     {";
@@ -1040,6 +1042,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByCol method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return void
      */
     protected function addFilterByCol(string &$script, Column $col): void
     {
@@ -1133,16 +1138,9 @@ class QueryBuilder extends AbstractOMBuilder
     {";
         if ($col->hasTransformer()) {
             $transformer = $col->getTransformer();
-            // The doc type of a text column does not allow null values, while the filter can be
-            // built programmatically, so the null check has to stay. Only text columns get the
-            // ignore, as the null check is not redundant in the doc type of the other columns,
-            // where PHPStan would report the unused ignore.
-            $ignoreRedundantNullCheck = $col->isTextType()
-                ? "\n                // @phpstan-ignore identical.alwaysFalse (filter values can be null when the query is built programmatically)"
-                : '';
             $script .= "
         if (is_array(\$$variableName)) {
-            \$$variableName = array_map($ignoreRedundantNullCheck
+            \$$variableName = array_map(
                 static fn (\$value) => \$value === null ? null : $transformer(\$value),
                 \$$variableName,
             );
@@ -1181,7 +1179,6 @@ class QueryBuilder extends AbstractOMBuilder
 
             return \$this;
         }
-        // @phpstan-ignore function.alreadyNarrowedType (the doc type is not enforced when the query is built programmatically)
         if (!is_array(\$$variableName)) {
             throw new PropelException('NATIVE_ARRAY filters require a PHP array.');
         }
@@ -1327,6 +1324,11 @@ class QueryBuilder extends AbstractOMBuilder
 
     /**
      * Adds the singular filter method for a native array column.
+     *
+     * @param string $script
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return void
      */
     protected function addFilterByNativeArrayCol(string &$script, Column $col): void
     {
@@ -1355,6 +1357,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the singular filterByCol method for a Set column.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return void
      */
     protected function addFilterByArrayCol(string &$script, Column $col): void
     {
@@ -1402,6 +1407,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the singular filterByCol method for an Array column.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Column $col
+     *
+     * @return void
      */
     protected function addFilterBySetCol(string &$script, Column $col): void
     {
@@ -1430,6 +1438,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByFk method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
+     *
+     * @return void
      */
     protected function addFilterByFk(string &$script, ForeignKey $fk): void
     {
@@ -1513,6 +1524,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByRefFk method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return void
      */
     protected function addFilterByRefFk(string &$script, ForeignKey $fk): void
     {
@@ -1540,7 +1554,7 @@ class QueryBuilder extends AbstractOMBuilder
         if ($objectName instanceof $fkPhpName) {
             \$this";
         foreach ($fk->getInverseMapping() as $mapping) {
-            /** @var Column $foreignColumn */
+            /** @var \Propel\Generator\Model\Column $foreignColumn */
             [$localValueOrColumn, $foreignColumn] = $mapping;
             $rightValue = "{$objectName}->get" . $foreignColumn->getPhpName() . '()';
 
@@ -1586,6 +1600,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the joinFk method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
+     *
+     * @return void
      */
     protected function addJoinFk(string &$script, ForeignKey $fk): void
     {
@@ -1600,6 +1617,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the joinRefFk method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return void
      */
     protected function addJoinRefFk(string &$script, ForeignKey $fk): void
     {
@@ -1614,6 +1634,12 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a joinRelated method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Table $fkTable
+     * @param string $queryClass
+     * @param string $relationName
+     * @param string $joinType
+     *
+     * @return void
      */
     protected function addJoinRelated(
         string &$script,
@@ -1664,6 +1690,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the useFkQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
+     *
+     * @return void
      */
     protected function addUseFkQuery(string &$script, ForeignKey $fk): void
     {
@@ -1683,6 +1712,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the useFkQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return void
      */
     protected function addUseRefFkQuery(string &$script, ForeignKey $fk): void
     {
@@ -1702,6 +1734,12 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useRelatedQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Table $fkTable
+     * @param string $queryClass
+     * @param string $relationName
+     * @param string $joinType
+     *
+     * @return void
      */
     protected function addUseRelatedQuery(string &$script, Table $fkTable, string $queryClass, string $relationName, string $joinType): void
     {
@@ -1731,7 +1769,7 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useExistsQuery and useNotExistsQuery to the object script.
      *
      * @param string $script The script will be modified in this method.
-     * @param Table $fkTable The target of the relation
+     * @param \Propel\Generator\Model\Table $fkTable The target of the relation
      * @param string $queryClass Query object class name that will be returned by the exists statement.
      * @param string $relationName Name of the relation
      *
@@ -1759,7 +1797,7 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useInQuery and useNotInQuery to the object script.
      *
      * @param string $script The script will be modified in this method.
-     * @param Table $fkTable The target of the relation
+     * @param \Propel\Generator\Model\Table $fkTable The target of the relation
      * @param string $queryClass Query object class name that will be returned by the IN statement.
      * @param string $relationName Name of the relation
      *
@@ -1783,6 +1821,12 @@ class QueryBuilder extends AbstractOMBuilder
         $script .= $template->render($vars);
     }
 
+    /**
+     * @param string $relationName
+     * @param \Propel\Generator\Model\Table $fkTable
+     *
+     * @return string
+     */
     protected function getRelationDescription(string $relationName, Table $fkTable): string
     {
         return ($relationName === $fkTable->getPhpName()) ?
@@ -1794,6 +1838,12 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a withRelatedQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
+     * @param \Propel\Generator\Model\Table $fkTable
+     * @param string $queryClass
+     * @param string $relationName
+     * @param string $joinType
+     *
+     * @return void
      */
     protected function addWithRelatedQuery(string &$script, Table $fkTable, string $queryClass, string $relationName, string $joinType): void
     {
@@ -1826,6 +1876,12 @@ class QueryBuilder extends AbstractOMBuilder
 ";
     }
 
+    /**
+     * @param string $script
+     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
+     *
+     * @return void
+     */
     protected function addFilterByCrossFK(string &$script, CrossForeignKeys $crossFKs): void
     {
         $relationName = $this->getRefFKPhpNameAffix($crossFKs->getIncomingForeignKey(), false);
@@ -2132,19 +2188,21 @@ class QueryBuilder extends AbstractOMBuilder
             \$con = Propel::getServiceContainer()->getWriteConnection(" . $this->getTableMapClass() . "::DATABASE_NAME);
         }
 
-        // Set the correct dbName
-        \$this->setDbName(" . $this->getTableMapClass() . "::DATABASE_NAME);
+        \$criteria = \$this;
 
-        // use transaction because this criteria could contain info
+        // Set the correct dbName
+        \$criteria->setDbName(" . $this->getTableMapClass() . "::DATABASE_NAME);
+
+        // use transaction because \$criteria could contain info
         // for more than one table or we could emulating ON DELETE CASCADE, etc.
-        return \$con->transaction(function () use (\$con) {
+        return \$con->transaction(function () use (\$con, \$criteria) {
             \$affectedRows = 0; // initialize var to track total num of affected rows
             ";
 
         if ($this->isDeleteCascadeEmulationNeeded()) {
             $script .= "
             // cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-            \$c = clone \$this;
+            \$c = clone \$criteria;
             \$affectedRows += \$c->doOnDeleteCascade(\$con);
             ";
         }
@@ -2152,13 +2210,13 @@ class QueryBuilder extends AbstractOMBuilder
         if ($this->isDeleteSetNullEmulationNeeded()) {
             $script .= "
             // cloning the Criteria in case it's modified by doSelect() or doSelectStmt()
-            \$c = clone \$this;
+            \$c = clone \$criteria;
             \$c->doOnDeleteSetNull(\$con);
             ";
         }
 
         $script .= "
-            {$this->getTableMapClassName()}::removeInstanceFromPool(\$this);
+            {$this->getTableMapClassName()}::removeInstanceFromPool(\$criteria);
         ";
 
         $script .= "

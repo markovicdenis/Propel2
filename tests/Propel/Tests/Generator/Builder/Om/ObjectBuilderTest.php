@@ -2054,6 +2054,92 @@ EOF;
     }
 
     /**
+     * The PHP type of a temporal column is `string`, while its value is held as an object which
+     * is null until the column is set, so an empty string is never the value of an unset column.
+     *
+     * @return void
+     */
+    public function testUnsetValueOfRequiredTemporalColumnIsNull()
+    {
+        $schema = $this->wrapColumnsInSchema(
+            '<column name="day" type="DATE" required="true"/>'
+                . "\n        " . '<column name="label" type="VARCHAR" size="5" required="true"/>',
+        );
+        $table = (new SchemaReader(new PgsqlPlatform()))->parseString($schema)->getDatabase()->getTable('item');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $this->assertSame('null', $builder->getDefaultValueForColumnPublic($table->getColumn('day')));
+        // a required column of an actual string type keeps its empty string
+        $this->assertSame("''", $builder->getDefaultValueForColumnPublic($table->getColumn('label')));
+    }
+
+    /**
+     * @return void
+     */
+    public function testIsPrimaryKeyNullComparesTemporalKeyAgainstNull()
+    {
+        $schema = <<<'EOF'
+<database name="test">
+    <table name="item">
+        <column name="user_id" type="INTEGER" primaryKey="true" required="true"/>
+        <column name="day" type="DATE" primaryKey="true" required="true"/>
+    </table>
+</database>
+EOF;
+
+        $script = $this->buildObjectScript($schema, 'addIsPrimaryKeyNull');
+
+        $this->assertStringContainsString('return (0 === $this->getUserId()) && (null === $this->getDay());', $script);
+        $this->assertStringNotContainsString("''", $script);
+    }
+
+    /**
+     * The accessor of a temporal key returns an object and its mutator takes anything a date can
+     * be built from, neither of them uses the PHP type of the column.
+     *
+     * @return void
+     */
+    public function testPrimaryKeyMethodsOfTemporalKeyDoNotUseThePhpTypeOfTheColumn()
+    {
+        $schema = <<<'EOF'
+<database name="test">
+    <table name="item">
+        <column name="day" type="DATE" primaryKey="true" required="true"/>
+    </table>
+</database>
+EOF;
+
+        $getter = $this->buildObjectScript($schema, 'addGetPrimaryKeySinglePK');
+        $setter = $this->buildObjectScript($schema, 'addSetPrimaryKeySinglePK');
+
+        $this->assertStringContainsString('@return DateTime|null', $getter);
+        $this->assertStringContainsString('@param string|integer|\DateTimeInterface|null $key Primary key.', $setter);
+        $this->assertStringContainsString('public function setPrimaryKey($key = null): void', $setter);
+    }
+
+    /**
+     * Setting a temporal column to null is how it is unset, which the mutator supports for
+     * required columns as well.
+     *
+     * @return void
+     */
+    public function testTemporalMutatorAcceptsNullForRequiredColumns()
+    {
+        $schema = $this->wrapColumnsInSchema('<column name="day" type="DATE" required="true"/>');
+        $table = (new SchemaReader(new PgsqlPlatform()))->parseString($schema)->getDatabase()->getTable('item');
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $comment = '';
+        $builder->addTemporalMutatorComment($comment, $table->getColumn('day'));
+
+        $this->assertStringContainsString('@param string|integer|\DateTimeInterface|null $v', $comment);
+    }
+
+    /**
      * The transformer runs before the value is converted, so the null check reads as redundant
      * against the doc type of a required column.
      *
@@ -2356,6 +2442,11 @@ class TestableObjectBuilder extends ObjectBuilder
     public function addRefFKPartialToScript(string &$script, ForeignKey $foreignKey): void
     {
         $this->addRefFKPartial($script, $foreignKey);
+    }
+
+    public function getDefaultValueForColumnPublic(Column $column): string
+    {
+        return $this->getDefaultValueForColumn($column);
     }
 
     public function getDefaultValueString(Column $col, bool $acceptNull = true): string
