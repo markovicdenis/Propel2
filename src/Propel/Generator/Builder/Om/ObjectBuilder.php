@@ -3444,9 +3444,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
 
         foreach ($this->getTable()->getColumns() as $num => $col) {
             if ($col->isTemporalType()) {
+                // The value is read into a variable before the check, so that static analysis cannot
+                // narrow it down to a date object and declare the check to be always true.
                 $script .= "
-        if (isset(\$result[\$keys[$num]]) && \$result[\$keys[$num]] instanceof \DateTimeInterface) {
-            \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
+        \$temporalValue = \$result[\$keys[$num]] ?? null;
+        if (\$temporalValue instanceof \DateTimeInterface) {
+            \$result[\$keys[$num]] = \$temporalValue->format('" . $this->getTemporalFormatter($col) . "');
         }
         ";
             }

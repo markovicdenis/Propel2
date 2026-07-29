@@ -1610,6 +1610,42 @@ class ObjectBuilderTest extends TestCase
     }
 
     /**
+     * The value has to be read into a variable before it is checked, or static analysis can narrow
+     * it down to a date object and report the check as always true.
+     *
+     * @return void
+     */
+    public function testToArrayChecksTemporalValuesThroughAVariable()
+    {
+        $database = new Database('test');
+
+        $table = new Table('event_idempotency');
+        $table->setNamespace('Model');
+        $database->addTable($table);
+
+        $eventId = new Column('event_id');
+        $eventId->setDomain(new Domain('VARCHAR'));
+        $eventId->setPrimaryKey(true);
+        $eventId->setNotNull(true);
+        $table->addColumn($eventId);
+
+        $appliedAt = new Column('applied_at');
+        $appliedAt->setDomain(new Domain('TIMESTAMP'));
+        $table->addColumn($appliedAt);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = $builder->buildScript('addToArray');
+
+        $this->assertStringContainsString('$temporalValue = $result[$keys[1]] ?? null;', $script);
+        $this->assertStringContainsString('if ($temporalValue instanceof \DateTimeInterface) {', $script);
+        $this->assertStringContainsString('$result[$keys[1]] = $temporalValue->format(', $script);
+        $this->assertStringNotContainsString('isset($result[$keys[1]]) && $result[$keys[1]] instanceof', $script);
+    }
+
+    /**
      * @return void
      */
     public function testSkipRefCodeAccessorFiltersByColumnsInsteadOfReverseRelation()
