@@ -580,6 +580,9 @@ class QueryBuilder extends AbstractOMBuilder
      * Propel uses the instance pool to skip the database if the object exists.
      * Go fast if the query is untouched.
      *";
+        // A composite key narrows the mixed key of the parent method to an array, which is kept
+        // for ease of use, so the resulting variance has to be ignored.
+        $ignoreNarrowedKeyType = '';
         if ($table->hasCompositePrimaryKey()) {
             $pks = $table->getPrimaryKey();
             $examplePk = array_slice([12, 34, 56, 78, 91], 0, count($pks));
@@ -589,6 +592,8 @@ class QueryBuilder extends AbstractOMBuilder
             }
             $pkDesc = 'array[' . implode(', ', $colNames) . ']';
             $pkType = 'array';
+            $ignoreNarrowedKeyType = "
+    // @phpstan-ignore method.childParameterType (the array type of a composite key is kept for ease of use)";
             $script .= "
      * <code>
      * \$obj = \$c->findPk([" . implode(', ', $examplePk) . '], $con);';
@@ -606,7 +611,7 @@ class QueryBuilder extends AbstractOMBuilder
      * @param ?ConnectionInterface \$con an optional connection object
      *
      * @return $class|array|mixed the result, formatted by the current formatter
-     */
+     */$ignoreNarrowedKeyType
     public function findPk(\$key, ?ConnectionInterface \$con = null)
     {";
         if (!$table->hasPrimaryKey()) {

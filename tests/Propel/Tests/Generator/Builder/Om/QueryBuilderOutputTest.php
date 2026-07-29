@@ -403,6 +403,57 @@ XML;
     }
 
     /**
+     * The key of a composite primary key is documented as an array, which narrows the mixed key
+     * of the parent method.
+     *
+     * @return void
+     */
+    public function testFindPkOfCompositeKeyIgnoresTheNarrowedKeyType()
+    {
+        $findPkDefinition = TestableQueryBuilder::forTableFromXml(self::COMPOSITE_KEY_SCHEMA_XML, 'composite')
+            ->buildScript('addFindPk');
+
+        $this->assertStringContainsString(
+            "     */\n"
+                . '    // @phpstan-ignore method.childParameterType'
+                . " (the array type of a composite key is kept for ease of use)\n"
+                . '    public function findPk($key, ?ConnectionInterface $con = null)',
+            $findPkDefinition,
+        );
+        $this->assertStringContainsString('@param array $key Primary key to use for the query array[$a_id, $b_id]', $findPkDefinition);
+    }
+
+    /**
+     * A single primary key keeps the mixed key of the parent method, an ignore would be reported
+     * as unused there.
+     *
+     * @return void
+     */
+    public function testFindPkOfSingleKeyKeepsTheKeyTypeUnignored()
+    {
+        $findPkDefinition = TestableQueryBuilder::forTableFromXml(self::COMPOSITE_KEY_SCHEMA_XML, 'single')
+            ->buildScript('addFindPk');
+
+        $this->assertStringContainsString('@param mixed $key Primary key to use for the query', $findPkDefinition);
+        $this->assertStringNotContainsString('@phpstan-ignore', $findPkDefinition);
+    }
+
+    /**
+     * @var string
+     */
+    private const COMPOSITE_KEY_SCHEMA_XML = <<<'XML'
+<database name="default" namespace="Example\Books" package="Books">
+    <table name="composite">
+        <column name="a_id" type="integer" primaryKey="true" required="true"/>
+        <column name="b_id" type="integer" primaryKey="true" required="true"/>
+    </table>
+    <table name="single">
+        <column name="id" type="integer" primaryKey="true"/>
+    </table>
+</database>
+XML;
+
+    /**
      * @param string $columnName
      *
      * @return string
