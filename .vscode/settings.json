@@ -4,6 +4,11 @@
     "phpstan.checkValidity": false,
     "phpstan.memoryLimit": "2G",
     "php.stubs": ["all"],
+    // 413 = "Use of unknown class". Test models are built at runtime by QuickBuilder,
+    // so there is nothing on disk for the IDE to resolve them against.
+    "php.problems.exclude": {
+        "tests/": [413]
+    },
     "php-cs-fixer.ignorePHPVersion": true,
     "php-cs-fixer.allowRisky": true,
     "phpunit.command": "\"${php}\" -d display_errors=on -d xdebug.mode=coverage -d xdebug.start_with_request=0 \"${phpunit}\" ${phpunitargs}"
