@@ -127,7 +127,7 @@ class QueryBuilder extends AbstractOMBuilder
     }
 
     /**
-     * @param array<\Propel\Generator\Model\Column> $columns
+     * @param array<Column> $columns
      *
      * @return array<string, string>
      */
@@ -141,11 +141,6 @@ class QueryBuilder extends AbstractOMBuilder
         return $types;
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
-     */
     protected function getColumnMagicPhpType(Column $column): string
     {
         if (!$column->isUidType()) {
@@ -160,11 +155,6 @@ class QueryBuilder extends AbstractOMBuilder
         return 'Uuid|string';
     }
 
-    /**
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string|null
-     */
     protected function getColumnFilterParameterType(Column $column): ?string
     {
         if (!$column->isUidType()) {
@@ -1043,9 +1033,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByCol method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @return void
      */
     protected function addFilterByCol(string &$script, Column $col): void
     {
@@ -1332,11 +1319,6 @@ class QueryBuilder extends AbstractOMBuilder
 
     /**
      * Adds the singular filter method for a native array column.
-     *
-     * @param string $script
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @return void
      */
     protected function addFilterByNativeArrayCol(string &$script, Column $col): void
     {
@@ -1365,9 +1347,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the singular filterByCol method for a Set column.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @return void
      */
     protected function addFilterByArrayCol(string &$script, Column $col): void
     {
@@ -1415,9 +1394,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the singular filterByCol method for an Array column.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Column $col
-     *
-     * @return void
      */
     protected function addFilterBySetCol(string &$script, Column $col): void
     {
@@ -1446,9 +1422,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByFk method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
-     *
-     * @return void
      */
     protected function addFilterByFk(string &$script, ForeignKey $fk): void
     {
@@ -1532,9 +1505,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the filterByRefFk method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return void
      */
     protected function addFilterByRefFk(string &$script, ForeignKey $fk): void
     {
@@ -1562,7 +1532,7 @@ class QueryBuilder extends AbstractOMBuilder
         if ($objectName instanceof $fkPhpName) {
             \$this";
         foreach ($fk->getInverseMapping() as $mapping) {
-            /** @var \Propel\Generator\Model\Column $foreignColumn */
+            /** @var Column $foreignColumn */
             [$localValueOrColumn, $foreignColumn] = $mapping;
             $rightValue = "{$objectName}->get" . $foreignColumn->getPhpName() . '()';
 
@@ -1608,9 +1578,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the joinFk method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
-     *
-     * @return void
      */
     protected function addJoinFk(string &$script, ForeignKey $fk): void
     {
@@ -1625,9 +1592,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the joinRefFk method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return void
      */
     protected function addJoinRefFk(string &$script, ForeignKey $fk): void
     {
@@ -1642,12 +1606,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a joinRelated method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Table $fkTable
-     * @param string $queryClass
-     * @param string $relationName
-     * @param string $joinType
-     *
-     * @return void
      */
     protected function addJoinRelated(
         string &$script,
@@ -1698,9 +1656,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the useFkQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk ForeignKey
-     *
-     * @return void
      */
     protected function addUseFkQuery(string &$script, ForeignKey $fk): void
     {
@@ -1720,9 +1675,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds the useFkQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\ForeignKey $fk
-     *
-     * @return void
      */
     protected function addUseRefFkQuery(string &$script, ForeignKey $fk): void
     {
@@ -1742,12 +1694,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useRelatedQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Table $fkTable
-     * @param string $queryClass
-     * @param string $relationName
-     * @param string $joinType
-     *
-     * @return void
      */
     protected function addUseRelatedQuery(string &$script, Table $fkTable, string $queryClass, string $relationName, string $joinType): void
     {
@@ -1777,7 +1723,7 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useExistsQuery and useNotExistsQuery to the object script.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Table $fkTable The target of the relation
+     * @param Table $fkTable The target of the relation
      * @param string $queryClass Query object class name that will be returned by the exists statement.
      * @param string $relationName Name of the relation
      *
@@ -1805,7 +1751,7 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a useInQuery and useNotInQuery to the object script.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Table $fkTable The target of the relation
+     * @param Table $fkTable The target of the relation
      * @param string $queryClass Query object class name that will be returned by the IN statement.
      * @param string $relationName Name of the relation
      *
@@ -1829,12 +1775,6 @@ class QueryBuilder extends AbstractOMBuilder
         $script .= $template->render($vars);
     }
 
-    /**
-     * @param string $relationName
-     * @param \Propel\Generator\Model\Table $fkTable
-     *
-     * @return string
-     */
     protected function getRelationDescription(string $relationName, Table $fkTable): string
     {
         return ($relationName === $fkTable->getPhpName()) ?
@@ -1846,12 +1786,6 @@ class QueryBuilder extends AbstractOMBuilder
      * Adds a withRelatedQuery method for this object.
      *
      * @param string $script The script will be modified in this method.
-     * @param \Propel\Generator\Model\Table $fkTable
-     * @param string $queryClass
-     * @param string $relationName
-     * @param string $joinType
-     *
-     * @return void
      */
     protected function addWithRelatedQuery(string &$script, Table $fkTable, string $queryClass, string $relationName, string $joinType): void
     {
@@ -1884,12 +1818,6 @@ class QueryBuilder extends AbstractOMBuilder
 ";
     }
 
-    /**
-     * @param string $script
-     * @param \Propel\Generator\Model\CrossForeignKeys $crossFKs
-     *
-     * @return void
-     */
     protected function addFilterByCrossFK(string &$script, CrossForeignKeys $crossFKs): void
     {
         $relationName = $this->getRefFKPhpNameAffix($crossFKs->getIncomingForeignKey(), false);
