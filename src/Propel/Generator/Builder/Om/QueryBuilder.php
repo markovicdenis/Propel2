@@ -1146,9 +1146,15 @@ class QueryBuilder extends AbstractOMBuilder
                 static fn (\$value) => \$value === null ? null : $transformer(\$value),
                 \$$variableName,
             );
-        } elseif (\$$variableName !== null) {
+        }";
+            // The filter of an array column takes an array or null, a scalar value would be
+            // rejected by the type guard below, so there is nothing to transform.
+            $filtersOnArray = $col->isNativeArrayType() || $col->getType() === PropelTypes::PHP_ARRAY;
+            if (!$filtersOnArray) {
+                $script .= " elseif (\$$variableName !== null) {
             \$$variableName = $transformer(\$$variableName);
         }";
+            }
         }
         if ($col->isNumericType() || $col->isTemporalType()) {
             $script .= "

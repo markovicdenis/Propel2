@@ -367,6 +367,8 @@ XML;
             $filterDefinition,
         );
         $this->assertStringContainsString('static fn ($value) => $value === null ? null : strtoupper($value),', $filterDefinition);
+        // a text column filter takes a scalar as well
+        $this->assertStringContainsString('} elseif ($label !== null) {', $filterDefinition);
     }
 
     /**
@@ -381,6 +383,18 @@ XML;
 
         $this->assertStringContainsString('static fn ($value) => $value === null ? null : strtolower($value),', $filterDefinition);
         $this->assertStringNotContainsString('@phpstan-ignore', $filterDefinition);
+    }
+
+    /**
+     * The filter of an array column takes an array or null, so transforming a scalar value is
+     * dead code.
+     *
+     * @return void
+     */
+    public function testTransformerOfArrayColumnDoesNotFallBackToAScalarValue()
+    {
+        $this->assertStringNotContainsString('} elseif ($tags !== null) {', $this->buildFilterByCol('tags'));
+        $this->assertStringNotContainsString('} elseif ($codes !== null) {', $this->buildFilterByCol('codes'));
     }
 
     /**
@@ -475,7 +489,7 @@ XML;
         <column name="id" type="integer" primaryKey="true"/>
         <column name="label" type="VARCHAR" size="10" transformer="uppercase"/>
         <column name="tags" type="ARRAY" transformer="lowercase"/>
-        <column name="codes" type="NATIVE_ARRAY" sqlType="TEXT[]"/>
+        <column name="codes" type="NATIVE_ARRAY" sqlType="TEXT[]" transformer="uppercase"/>
     </table>
 </database>
 XML;
