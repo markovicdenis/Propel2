@@ -1612,6 +1612,83 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testSkipRefCodeAccessorFiltersByColumnsInsteadOfReverseRelation()
+    {
+        $accessorScript = $this->buildAccessorScriptForRelationToNonPrimaryKeyColumn(true);
+
+        $this->assertStringContainsString('->filterByIsoCode($this->currency)', $accessorScript);
+        $this->assertStringNotContainsString('filterByBalanceTransaction(', $accessorScript);
+        $this->assertStringNotContainsString('addBalanceTransactions($this)', $accessorScript);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAccessorFiltersByReverseRelationIfRefCodeIsNotSkipped()
+    {
+        $accessorScript = $this->buildAccessorScriptForRelationToNonPrimaryKeyColumn(false);
+
+        $this->assertStringContainsString('->filterByBalanceTransaction($this)', $accessorScript);
+        $this->assertStringNotContainsString('->filterByIsoCode(', $accessorScript);
+    }
+
+    /**
+     * Builds the accessor of a relation pointing at a non-primary key column, which cannot be
+     * resolved by findPk().
+     *
+     * @param bool $skipRefCode
+     *
+     * @return string
+     */
+    protected function buildAccessorScriptForRelationToNonPrimaryKeyColumn(bool $skipRefCode): string
+    {
+        $database = new Database('test');
+
+        $currencyTypeTable = new Table('currency_type');
+        $currencyTypeTable->setNamespace('Model');
+        $database->addTable($currencyTypeTable);
+
+        $currencyTypeId = new Column('id');
+        $currencyTypeId->setDomain(new Domain('INTEGER'));
+        $currencyTypeId->setPrimaryKey(true);
+        $currencyTypeTable->addColumn($currencyTypeId);
+
+        $isoCode = new Column('iso_code');
+        $isoCode->setDomain(new Domain('VARCHAR'));
+        $isoCode->setNotNull(true);
+        $currencyTypeTable->addColumn($isoCode);
+
+        $balanceTransactionTable = new Table('balance_transaction');
+        $balanceTransactionTable->setNamespace('Model');
+        $database->addTable($balanceTransactionTable);
+
+        $balanceTransactionId = new Column('id');
+        $balanceTransactionId->setDomain(new Domain('INTEGER'));
+        $balanceTransactionId->setPrimaryKey(true);
+        $balanceTransactionTable->addColumn($balanceTransactionId);
+
+        $currency = new Column('currency');
+        $currency->setDomain(new Domain('VARCHAR'));
+        $balanceTransactionTable->addColumn($currency);
+
+        $balanceTransactionTable
+            ->addForeignKey(['foreignTable' => 'currency_type', 'skipRefCode' => $skipRefCode ? 'true' : 'false'])
+            ->addReference('currency', 'iso_code');
+        $balanceTransactionTable->setupReferrers(true);
+
+        $builder = new TestableObjectBuilder($balanceTransactionTable);
+        $builder->setGeneratorConfig(new QuickGeneratorConfig());
+        $builder->setPlatform(new MysqlPlatform());
+
+        $script = '';
+        $builder->addFKAccessorToScript($script, $balanceTransactionTable->getForeignKeys()[0]);
+
+        return $script;
+    }
+
+    /**
+     * @return void
+     */
     public function testSkipRefCodeSuppressesReverseObjectMethodsButKeepsForwardSetter()
     {
         $database = new Database('test');

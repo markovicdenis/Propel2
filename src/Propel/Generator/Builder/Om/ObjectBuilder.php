@@ -4839,17 +4839,26 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         if (\$this->$varName === null && ($conditional)) {
             " . $this->getAssertedCurrentChildObjectSnippet();
 
+        $columnFilterStatements = $fk->isSkipRefCode() ? $this->buildForeignColumnFilterStatements($fk) : '';
+
         if ($findPk) {
             $script .= "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()->findPk($localColumns, \$con);";
+        } elseif ($columnFilterStatements !== '') {
+            // The reverse relation filter is not generated for this relation, so filter by columns instead.
+            $script .= "
+            \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . '::create()' . $columnFilterStatements . "
+                ->findOne(\$con);";
         } else {
             $script .= "
             \$this->$varName = " . $this->getClassNameFromBuilder($fkQueryBuilder) . "::create()
-                ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this) // here
+                ->filterBy" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this)
                 ->findOne(\$con);";
         }
 
-        if ($fk->isLocalPrimaryKey()) {
+        if ($fk->isSkipRefCode()) {
+            // no reverse relation code is generated for this relation, so there is nothing to bind back
+        } elseif ($fk->isLocalPrimaryKey()) {
             $script .= "
             // Because this foreign key represents a one-to-one relationship, we will create a bi-directional association.
             \$this->{$varName}?->set" . $this->getRefFKPhpNameAffix($fk, false) . "(\$this);";
@@ -4867,6 +4876,34 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         return $script . "
         }
         ";
+    }
+
+    /**
+     * Builds the filter statements to load the object of a relation by column values, which allows
+     * loading the related object without the reverse relation filter on the foreign query (that
+     * filter is not generated for foreign keys declared with skipRefCode).
+     *
+     * References to literal values are not turned into filter statements, as they are conditions on
+     * the local columns, which are already asserted before the related object is loaded.
+     *
+     * @param \Propel\Generator\Model\ForeignKey $fk
+     *
+     * @return string Empty string if the relation cannot be resolved through column filters.
+     */
+    protected function buildForeignColumnFilterStatements(ForeignKey $fk): string
+    {
+        $statements = '';
+        foreach ($fk->getMapping() as $mapping) {
+            [$localColumn, $rightValueOrColumn] = $mapping;
+            if (!$rightValueOrColumn instanceof Column) {
+                continue;
+            }
+
+            $statements .= "
+                ->filterBy" . $rightValueOrColumn->getPhpName() . '($this->' . $localColumn->getLowercasedName() . ')';
+        }
+
+        return $statements;
     }
 
     /**
