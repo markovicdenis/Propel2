@@ -413,10 +413,11 @@ XML;
         $findPkDefinition = TestableQueryBuilder::forTableFromXml(self::COMPOSITE_KEY_SCHEMA_XML, 'composite')
             ->buildScript('addFindPk');
 
+        // the ignore has to be the last tag, it is parsed to the end of the comment
         $this->assertStringContainsString(
-            "     */\n"
-                . '    // @phpstan-ignore method.childParameterType'
+            '     * @phpstan-ignore method.childParameterType'
                 . " (the array type of a composite key is kept for ease of use)\n"
+                . "     */\n"
                 . '    public function findPk($key, ?ConnectionInterface $con = null)',
             $findPkDefinition,
         );

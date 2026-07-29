@@ -592,8 +592,10 @@ class QueryBuilder extends AbstractOMBuilder
             }
             $pkDesc = 'array[' . implode(', ', $colNames) . ']';
             $pkType = 'array';
+            // has to be the last tag, the ignore is parsed to the end of the comment
             $ignoreNarrowedKeyType = "
-    // @phpstan-ignore method.childParameterType (the array type of a composite key is kept for ease of use)";
+     *
+     * @phpstan-ignore method.childParameterType (the array type of a composite key is kept for ease of use)";
             $script .= "
      * <code>
      * \$obj = \$c->findPk([" . implode(', ', $examplePk) . '], $con);';
@@ -610,8 +612,8 @@ class QueryBuilder extends AbstractOMBuilder
      * @param " . $pkType . " \$key Primary key to use for the query $pkDesc
      * @param ?ConnectionInterface \$con an optional connection object
      *
-     * @return $class|array|mixed the result, formatted by the current formatter
-     */$ignoreNarrowedKeyType
+     * @return $class|array|mixed the result, formatted by the current formatter$ignoreNarrowedKeyType
+     */
     public function findPk(\$key, ?ConnectionInterface \$con = null)
     {";
         if (!$table->hasPrimaryKey()) {
