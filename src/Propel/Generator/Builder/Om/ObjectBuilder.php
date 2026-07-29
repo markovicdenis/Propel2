@@ -1638,7 +1638,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
 
-        $orNull = (!$column->isPrimaryKey() && $this->isNullableInGeneratedObjectApi($column)) ? '|null' : '';
+        // Mirrors addDefaultAccessorBody(): the accessor returns null unless it throws on an unset
+        // value or falls back to one. Primary keys are not non-null per se, an unsaved object of a
+        // table with a uid or temporal key holds null until the key is generated.
+        $returnsNull = $this->getNullGuardExceptionForAccessor($column) === null
+            && $this->getUnsetValueForAccessor($column) === null;
+        $orNull = $returnsNull ? '|null' : '';
 
         $script .= "
     /**

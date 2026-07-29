@@ -2054,6 +2054,37 @@ EOF;
     }
 
     /**
+     * A primary key is not non-null per se: a uid key without a fallback value stays null on an
+     * unsaved object, so the accessor has to be documented the way its body behaves.
+     *
+     * @return void
+     */
+    public function testPrimaryKeyAccessorWithoutUnsetValueIsDocumentedNullable()
+    {
+        $table = new Table('Transaction');
+
+        $uuid = new Column('uuid');
+        $uuid->setDomain(new Domain('UID'));
+        $uuid->setPrimaryKey(true);
+        $uuid->setNotNull(true);
+        $uuid->setDefaultValue(new ColumnDefaultValue('uuidv7()', ColumnDefaultValue::TYPE_EXPR));
+        $table->addColumn($uuid);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new PgsqlPlatform());
+
+        $comment = '';
+        $builder->addDefaultAccessorCommentToScript($comment, $uuid);
+
+        $body = '';
+        $builder->addDefaultAccessorBodyToScript($body, $uuid);
+
+        $this->assertStringContainsString('|null', $comment);
+        $this->assertStringContainsString('return $this->uuid;', $body);
+        $this->assertStringNotContainsString('??', $body);
+    }
+
+    /**
      * The attribute of a column does not always hold the value in the PHP type of the column,
      * some types are stored encoded and only converted in the accessor.
      *
