@@ -353,6 +353,62 @@ XML;
     }
 
     /**
+     * The doc type of a text column does not allow null, so the null check of the transformer
+     * reads as redundant, while the filter can be built programmatically.
+     *
+     * @return void
+     */
+    public function testTransformerOfTextColumnIgnoresTheRedundantNullCheck()
+    {
+        $filterDefinition = $this->buildFilterByCol('label');
+
+        $this->assertStringContainsString(
+            "\$label = array_map(\n                // @phpstan-ignore identical.alwaysFalse",
+            $filterDefinition,
+        );
+        $this->assertStringContainsString('static fn ($value) => $value === null ? null : strtoupper($value),', $filterDefinition);
+    }
+
+    /**
+     * The null check is not redundant in the doc type of an array column, an ignore would be
+     * reported as unused there.
+     *
+     * @return void
+     */
+    public function testTransformerOfArrayColumnKeepsTheNullCheckUnignored()
+    {
+        $filterDefinition = $this->buildFilterByCol('tags');
+
+        $this->assertStringContainsString('static fn ($value) => $value === null ? null : strtolower($value),', $filterDefinition);
+        $this->assertStringNotContainsString('@phpstan-ignore', $filterDefinition);
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return string
+     */
+    private function buildFilterByCol(string $columnName): string
+    {
+        $builder = TestableQueryBuilder::forTableFromXml(self::TRANSFORMER_SCHEMA_XML, 'item');
+
+        return $builder->buildScript('addFilterByCol', $builder->getTable()->getColumn($columnName));
+    }
+
+    /**
+     * @var string
+     */
+    private const TRANSFORMER_SCHEMA_XML = <<<'XML'
+<database name="default" namespace="Example\Books" package="Books">
+    <table name="item">
+        <column name="id" type="integer" primaryKey="true"/>
+        <column name="label" type="VARCHAR" size="10" transformer="uppercase"/>
+        <column name="tags" type="ARRAY" transformer="lowercase"/>
+    </table>
+</database>
+XML;
+
+    /**
      * @var string
      */
     private const CASCADE_SCHEMA_XML = <<<'XML'

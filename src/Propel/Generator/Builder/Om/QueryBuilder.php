@@ -1139,9 +1139,16 @@ class QueryBuilder extends AbstractOMBuilder
     {";
         if ($col->hasTransformer()) {
             $transformer = $col->getTransformer();
+            // The doc type of a text column does not allow null values, while the filter can be
+            // built programmatically, so the null check has to stay. Only text columns get the
+            // ignore, as the null check is not redundant in the doc type of the other columns,
+            // where PHPStan would report the unused ignore.
+            $ignoreRedundantNullCheck = $col->isTextType()
+                ? "\n                // @phpstan-ignore identical.alwaysFalse (filter values can be null when the query is built programmatically)"
+                : '';
             $script .= "
         if (is_array(\$$variableName)) {
-            \$$variableName = array_map(
+            \$$variableName = array_map($ignoreRedundantNullCheck
                 static fn (\$value) => \$value === null ? null : $transformer(\$value),
                 \$$variableName,
             );

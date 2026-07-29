@@ -42,13 +42,14 @@ class TestableQueryBuilder extends QueryBuilder
      * Call a (usually protected) script builder function by name and return the result.
      *
      * @param string $scriptBuilderFunctionName
+     * @param mixed ...$arguments Arguments passed to the function after the script.
      *
      * @return string
      */
-    public function buildScript(string $scriptBuilderFunctionName): string
+    public function buildScript(string $scriptBuilderFunctionName, ...$arguments): string
     {
         $script = '';
-        $this->$scriptBuilderFunctionName($script);
+        $this->$scriptBuilderFunctionName($script, ...$arguments);
 
         return $script;
     }
