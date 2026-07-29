@@ -499,14 +499,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     protected function addColumnAttributeComment(string &$script, Column $column): void
     {
-        if ($column->isTemporalType()) {
-            $cptype = $this->getDateTimeClass($column);
-        } else {
-            $cptype = $column->getPhpType();
-            if ($cptype === 'array') {
-                $cptype = 'string';
-            }
-        }
+        $cptype = $this->getColumnStorageType($column);
         $clo = $column->getLowercasedName();
 
         // Temporal values remain nullable in-memory even for required columns until they are hydrated or set.
@@ -521,13 +514,42 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                 $script .= "
      * Note: this column has a database default value of: (expression) " . $column->getDefaultValue()->getValue();
             } else {
+                // array default values are exported over several lines, which would break out of the comment
+                $defaultValueString = (string)preg_replace('/\s+/', ' ', $this->getDefaultValueString($column));
                 $script .= "
-     * Note: this column has a database default value of: " . $this->getDefaultValueString($column);
+     * Note: this column has a database default value of: " . $defaultValueString;
             }
         }
         $script .= "
      * @var $cptype{$orNull}
      */";
+    }
+
+    /**
+     * Returns the PHP type of the attribute which stores the value of the given column.
+     *
+     * This is not necessarily the PHP type of the column, as values of some column types are
+     * stored in their encoded form and only converted when accessed through the getter.
+     *
+     * @param \Propel\Generator\Model\Column $column
+     *
+     * @return string
+     */
+    protected function getColumnStorageType(Column $column): string
+    {
+        if ($column->isTemporalType()) {
+            return $this->getDateTimeClass($column);
+        }
+
+        return match ($column->getType()) {
+            // stored as a stream resource, the object is kept in $col_unserialized
+            PropelTypes::OBJECT => 'resource',
+            // stored as '| value | value |', the array is kept in $col_unserialized
+            PropelTypes::PHP_ARRAY => 'string',
+            // stored as the decimal representation of the value bitmask, the array is kept in $col_converted
+            PropelTypes::SET => 'string',
+            default => $column->getPhpType(),
+        };
     }
 
     /**
@@ -628,6 +650,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName() . '_converted';
         $script .= "
+    /**
+     * The converted \$" . $column->getLowercasedName() . " value - i.e. the value set as an array.
+     * This is necessary to avoid repeated conversions at runtime.
+     * @var array|null
+     */
     protected \$" . $clo . ";
 ";
     }
@@ -1611,7 +1638,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $clo = $column->getLowercasedName();
 
-        $orNull = (!$column->isPrimaryKey() && $this->isNullableInGeneratedObjectApi($column)) ? '|null' : '';
+        // Mirrors addDefaultAccessorBody(): the accessor returns null unless it throws on an unset
+        // value or falls back to one. Primary keys are not non-null per se, an unsaved object of a
+        // table with a uid or temporal key holds null until the key is generated.
+        $returnsNull = $this->getNullGuardExceptionForAccessor($column) === null
+            && $this->getUnsetValueForAccessor($column) === null;
+        $orNull = $returnsNull ? '|null' : '';
 
         $script .= "
     /**
@@ -1990,6 +2022,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $type = $column->getPhpType();
         if ($type && $this->isNullableInGeneratedObjectApi($column)) {
             $type .= '|null';
+        } elseif (!$type) {
+            // object columns have no PHP type, they accept anything serializable
+            $type = 'mixed';
         }
 
         $script .= "
@@ -2053,7 +2088,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
             && $column->getType() !== PropelTypes::PHP_ARRAY
         ) {
             $transformer = $column->getTransformer();
-            $script .= "
+            // The transformer runs before the value is converted, so $v still holds the declared
+            // type here. A mutator which does not document null cannot be called with null
+            // according to its doc type, while it can be in a dynamically built call.
+            $ignoreRedundantNullCheck = ($column->getPhpType() && !$this->isNullableInGeneratedObjectApi($column))
+                ? "
+        // @phpstan-ignore notIdentical.alwaysTrue (the doc type is not enforced when the setter is called dynamically)"
+                : '';
+            $script .= "$ignoreRedundantNullCheck
         if (\$v !== null) {
             \$v = $transformer(\$v);
         }
@@ -2251,13 +2293,12 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     public function addTemporalMutatorComment(string &$script, Column $col): void
     {
         $clo = $col->getLowercasedName();
-        $orNull = $col->isNotNull() ? '' : '|null';
 
         $script .= "
     /**
      * Sets the value of [$clo] column.
      * " . $col->getDescription() . "
-     * @param string|integer|\DateTimeInterface{$orNull} \$v string, integer (timestamp), or \DateTimeInterface value.
+     * @param string|integer|\DateTimeInterface|null \$v string, integer (timestamp), or \DateTimeInterface value.
      *               Empty strings are treated as NULL.
      * @return \$this The current object (for fluent API support)
      */";
@@ -2467,10 +2508,11 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $script .= "
         if (\$v !== null) {
             \$valueSet = " . $this->getTableMapClassName() . '::getValueSet(' . $this->getColumnConstant($col) . ");
-            if (!in_array(\$v, \$valueSet)) {
+            \$valueKey = array_search(\$v, \$valueSet);
+            if (\$valueKey === false) {
                 throw new PropelException(sprintf('Value \"%s\" is not accepted in this enumerated column', \$v));
             }
-            \$v = array_search(\$v, \$valueSet);
+            \$v = (int)\$valueKey;
         }
 
         if (\$this->$clo !== \$v) {
@@ -2529,7 +2571,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         );
 
         $script .= "
-        if (\$this->$cloConverted === null || count(array_diff(\$this->$cloConverted, \$v)) > 0 || count(array_diff(\$v, \$this->$cloConverted)) > 0) {
+        \$valueArray = \$v ?? [];
+        if (\$this->$cloConverted === null || count(array_diff(\$this->$cloConverted, \$valueArray)) > 0 || count(array_diff(\$valueArray, \$this->$cloConverted)) > 0) {
             \$valueSet = " . $this->getTableMapClassName() . '::getValueSet(' . $this->getColumnConstant($col) . ");
             try {
                 \$v = SetColumnConverter::convertToInt(\$v, \$valueSet);
@@ -2984,6 +3027,13 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     $elementType = var_export($col->getNativeArrayElementType(), true);
                     $script .= "
             \$this->$clo = PgsqlArrayCodec::decode(\$col, $elementType);";
+                } elseif ($col->isSetType()) {
+                    // has to be checked before isPhpPrimitiveType(), as the PHP type of a set column
+                    // is `int`, while the attribute holds the value bitmask as a string.
+                    $cloConverted = $clo . '_converted';
+                    $script .= "
+            \$this->$clo = \$col;
+            \$this->$cloConverted = null;";
                 } elseif ($col->isPhpPrimitiveType()) {
                     $script .= "
             \$this->$clo = (null !== \$col) ? (" . $col->getPhpType() . ') $col : null;';
@@ -2995,11 +3045,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
                     $script .= "
             \$this->$clo = \$col;
             \$this->$cloUnserialized = null;";
-                } elseif ($col->isSetType()) {
-                    $cloConverted = $clo . '_converted';
-                    $script .= "
-            \$this->$clo = \$col;
-            \$this->$cloConverted = null;";
                 } elseif ($col->isUidBinaryType()) {
                     $script .= "
             if (is_resource(\$col)) {
@@ -4218,7 +4263,10 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     {
         $table = $this->getTable();
         $pkeys = $table->getPrimaryKey();
-        $cptype = $pkeys[0]->getPhpType();
+        // the accessor of a temporal column returns an object, not the PHP type of the column
+        $cptype = $pkeys[0]->isTemporalType()
+            ? $this->getDateTimeClass($pkeys[0])
+            : $pkeys[0]->getPhpType();
         if ($this->isNullableInGeneratedObjectApi($pkeys[0])) {
             $cptype .= '|null';
         }
@@ -4322,13 +4370,21 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         $pkeys = $this->getTable()->getPrimaryKey();
         $col = $pkeys[0];
         $clo = $col->getLowercasedName();
-        $ctype = $col->getPhpType();
-        $docType = $ctype;
         $unsetValue = $this->getPrimaryKeyUnsetValue($col);
         $defaultValue = ' = ' . $unsetValue;
+
+        if ($col->isTemporalType()) {
+            // the temporal mutator takes anything it can build a date from and is not type hinted
+            $docType = 'string|integer|\DateTimeInterface';
+            $ctype = '';
+        } else {
+            $docType = $col->getPhpType();
+            $ctype = $docType . ' ';
+        }
+
         if ($unsetValue === 'null') {
             $docType .= '|null';
-            $ctype = "?$ctype";
+            $ctype = $ctype === '' ? '' : "?$ctype";
         }
 
         $script .= "
@@ -4338,7 +4394,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * @param $docType \$key Primary key.
      * @return void
      */
-    public function setPrimaryKey($ctype \$key$defaultValue): void
+    public function setPrimaryKey($ctype\$key$defaultValue): void
     {
         \$this->set" . $col->getPhpName() . "(\$key);
     }
@@ -5893,6 +5949,8 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     /**
      * Reset is the $collName collection loaded partially.
      *
+     * @param bool \$v
+     *
      * @return void
      */
     public function resetPartial{$relCol}(\$v = true): void
@@ -6929,8 +6987,9 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($table->getPrimaryKey() as $column) {
-            if ($this->fixPrimaryKeyDefaultValues ?? true) {
-                $defaultValue = $this->getDefaultValueForColumn($column);
+            $defaultValue = $this->getDefaultValueForColumn($column);
+            // resetting null to null is a no-op
+            if (($this->fixPrimaryKeyDefaultValues ?? true) && $defaultValue !== 'null') {
                 $script .= "
             if (\$this->{$column->getLowercasedName()} === $defaultValue) {
                 \$this->{$column->getLowercasedName()} = null;
@@ -7703,7 +7762,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopy(string &$script): void
     {
         $this->addCopyInto($script);
-        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7715,7 +7773,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * objects.
      *
      * @param bool \$deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-     * @return " . $this->getObjectClassName(true) . " Clone of current object.
+     * @return static Clone of current object (an instance of " . $this->getObjectClassName(true) . ").
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function copy(bool \$deepCopy = false)
@@ -7723,7 +7781,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // we use get_class(), because this might be a subclass
         \$clazz = get_class(\$this);
 
-        /** @var " . $currentClassName . " \$copyObj */
         " . $this->buildObjectInstanceCreationCode('$copyObj', '$clazz') . "
         \$this->copyInto(\$copyObj, \$deepCopy);
 
@@ -7743,7 +7800,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopyInto(string &$script): void
     {
         $table = $this->getTable();
-        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7752,7 +7808,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If desired, this method can also make copies of all associated (fkey referrers)
      * objects.
      *
-     * @param $currentClassName \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
+     * @param static \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
      * @param bool \$deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
      * @param bool \$makeNew Whether to reset autoincrement PKs and make the object new.
      * @throws \Propel\Runtime\Exception\PropelException
@@ -8030,7 +8086,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function __toString()
     {
-        return (string) \$this->exportTo(" . $this->getTableMapClassName() . "::DEFAULT_STRING_FORMAT);
+        return \$this->exportTo(" . $this->getTableMapClassName() . "::DEFAULT_STRING_FORMAT);
     }
 ";
     }

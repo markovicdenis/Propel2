@@ -21,17 +21,32 @@ trait ObjectBuilderTrait
     protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
     {
         if ($column->isNotNull()) {
-            return match($column->getType()) {
-                'INTEGER', 'SMALLINT', 'TINYINT' => '0',
-                'FLOAT', 'DOUBLE', 'REAL' => '0.0',
-                'BOOLEAN' => 'false',
-                'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
-                'UID', 'UID_BINARY' => 'null',
-                'ARRAY', 'NATIVE_ARRAY' => '[]',
-                'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
-                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
+            // The PHP type of a temporal column is `string`, while its value is held as an object
+            // which stays null until the column is hydrated or set. Without this the match below
+            // would resolve it to an empty string and its arm for temporal types stay unreachable.
+            if ($column->isTemporalType()) {
+                return 'null';
+            }
+
+            return match ($column->getPhpType()) {
+                'int' => '0',
+                'float' => '0.0',
+                'bool' => 'false',
+                'string' => "''",
+                'array' => '[]',
+                default => match ($column->getType()) {
+                    'INTEGER', 'SMALLINT', 'TINYINT' => '0',
+                    'FLOAT', 'DOUBLE', 'REAL' => '0.0',
+                    'BOOLEAN' => 'false',
+                    'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
+                    'UID', 'UID_BINARY' => 'null',
+                    'ARRAY', 'NATIVE_ARRAY' => '[]',
+                    'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
+                    default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
+                },
             };
         }
+
         return 'null';
     }
 
@@ -44,20 +59,9 @@ trait ObjectBuilderTrait
         }
     }
 
-    private function escapeValueForPhpCode(mixed $value, Column $col): string
-    {
-        return match($col->getType()) {
-            'INTEGER', 'SMALLINT', 'TINYINT' => (string)(int)$value,
-            'FLOAT', 'DOUBLE', 'REAL' => number_format((float)$value, 1),
-            'BOOLEAN' => $value === 'true' ? 'true' : 'false',
-            default => var_export($value, true),
-        };
-    }
-
     private function normalizedDefaultValueForColumn(Column $column): string
     {
-        $defaultValue = $column->getPhpDefaultValue();
-        return $this->escapeValueForPhpCode($defaultValue, $column);
+        return $this->getDefaultValueString($column);
     }
 
     protected function getUnsetValueForAccessor(Column $column): ?string
@@ -90,9 +94,7 @@ trait ObjectBuilderTrait
      * Returns the type-casted and stringified default value for the specified
      * Column. This only works for scalar default values currently.
      *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @throws \Propel\Generator\Exception\EngineException
+     * @throws EngineException
      *
      * @return string
      */
