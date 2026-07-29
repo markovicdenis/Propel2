@@ -3443,9 +3443,14 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($this->getTable()->getColumns() as $num => $col) {
-            if ($col->isTemporalType()) {
+            if ($col->isTemporalType() && $col->isNotNull()) {
                 $script .= "
-        /** @phpstan-ignore-next-line instanceof.alwaysTrue */
+        if (isset(\$result[\$keys[$num]])) {
+            \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
+        }
+        ";
+            } elseif ($col->isTemporalType()) {
+                $script .= "
         if (isset(\$result[\$keys[$num]]) && \$result[\$keys[$num]] instanceof \DateTimeInterface) {
             \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
         }
@@ -4885,8 +4890,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *
      * References to literal values are not turned into filter statements, as they are conditions on
      * the local columns, which are already asserted before the related object is loaded.
-     *
-     * @param \Propel\Generator\Model\ForeignKey $fk
      *
      * @return string Empty string if the relation cannot be resolved through column filters.
      */
