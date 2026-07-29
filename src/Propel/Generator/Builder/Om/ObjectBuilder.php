@@ -530,10 +530,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      *
      * This is not necessarily the PHP type of the column, as values of some column types are
      * stored in their encoded form and only converted when accessed through the getter.
-     *
-     * @param \Propel\Generator\Model\Column $column
-     *
-     * @return string
      */
     protected function getColumnStorageType(Column $column): string
     {
@@ -3449,6 +3445,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         foreach ($this->getTable()->getColumns() as $num => $col) {
             if ($col->isTemporalType()) {
                 $script .= "
+        /** @phpstan-ignore-next-line instanceof.alwaysTrue */
         if (isset(\$result[\$keys[$num]]) && \$result[\$keys[$num]] instanceof \DateTimeInterface) {
             \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
         }
