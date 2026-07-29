@@ -786,6 +786,40 @@ class ObjectBuilderTest extends TestCase
     /**
      * @return void
      */
+    public function testRequiredBigintAccessorUsesCustomIntPhpTypeForUnsetValue()
+    {
+        $database = new Database('test');
+        $table = new Table('BalanceTransaction');
+        $database->addTable($table);
+
+        $id = new Column('id');
+        $table->addColumn($id);
+        $id->loadMapping([
+            'name' => 'id',
+            'type' => 'BIGINT',
+            'phpType' => 'int',
+            'required' => true,
+            'autoIncrement' => true,
+        ]);
+
+        $builder = new TestableObjectBuilder($table);
+        $builder->setPlatform(new MysqlPlatform());
+
+        $comment = '';
+        $builder->addDefaultAccessorCommentToScript($comment, $id);
+
+        $body = '';
+        $builder->addDefaultAccessorBodyToScript($body, $id);
+
+        $this->assertStringContainsString('* @return int', $comment);
+        $this->assertStringNotContainsString('* @return int|null', $comment);
+        $this->assertStringContainsString('return $this->id ?? 0;', $body);
+        $this->assertStringNotContainsString('return $this->id ?? \'\';', $body);
+    }
+
+    /**
+     * @return void
+     */
     public function testIsPrimaryKeyNullUsesDirectGetterForSinglePrimaryKey()
     {
         $table = new Table('BalanceTransaction');

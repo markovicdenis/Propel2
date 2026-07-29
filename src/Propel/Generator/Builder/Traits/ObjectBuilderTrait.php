@@ -21,17 +21,25 @@ trait ObjectBuilderTrait
     protected function getDefaultValueForColumn(Column $column, bool $acceptNull = true): string
     {
         if ($column->isNotNull()) {
-            return match($column->getType()) {
-                'INTEGER', 'SMALLINT', 'TINYINT' => '0',
-                'FLOAT', 'DOUBLE', 'REAL' => '0.0',
-                'BOOLEAN' => 'false',
-                'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
-                'UID', 'UID_BINARY' => 'null',
-                'ARRAY', 'NATIVE_ARRAY' => '[]',
-                'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
-                default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
+            return match ($column->getPhpType()) {
+                'int' => '0',
+                'float' => '0.0',
+                'bool' => 'false',
+                'string' => "''",
+                'array' => '[]',
+                default => match ($column->getType()) {
+                    'INTEGER', 'SMALLINT', 'TINYINT' => '0',
+                    'FLOAT', 'DOUBLE', 'REAL' => '0.0',
+                    'BOOLEAN' => 'false',
+                    'VARCHAR', 'CHAR', 'LONGVARCHAR', 'CLOB', 'TEXT', 'BIGINT' => "''",
+                    'UID', 'UID_BINARY' => 'null',
+                    'ARRAY', 'NATIVE_ARRAY' => '[]',
+                    'DATE', 'DATETIME', 'TIME', 'TIMESTAMP' => 'null',
+                    default => throw new EngineException('Cannot get default value for ' . $column->getFullyQualifiedName() . ' ' . $column->getType()),
+                },
             };
         }
+
         return 'null';
     }
 
