@@ -7703,7 +7703,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopy(string &$script): void
     {
         $this->addCopyInto($script);
-        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7715,7 +7714,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * objects.
      *
      * @param bool \$deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
-     * @return " . $this->getObjectClassName(true) . " Clone of current object.
+     * @return static Clone of current object (an instance of " . $this->getObjectClassName(true) . ").
      * @throws \Propel\Runtime\Exception\PropelException
      */
     public function copy(bool \$deepCopy = false)
@@ -7723,7 +7722,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         // we use get_class(), because this might be a subclass
         \$clazz = get_class(\$this);
 
-        /** @var " . $currentClassName . " \$copyObj */
         " . $this->buildObjectInstanceCreationCode('$copyObj', '$clazz') . "
         \$this->copyInto(\$copyObj, \$deepCopy);
 
@@ -7743,7 +7741,6 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
     protected function addCopyInto(string &$script): void
     {
         $table = $this->getTable();
-        $currentClassName = $this->getClassNameFromTable($this->getTable());
 
         $script .= "
     /**
@@ -7752,7 +7749,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      * If desired, this method can also make copies of all associated (fkey referrers)
      * objects.
      *
-     * @param $currentClassName \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
+     * @param static \$copyObj An object of " . $this->getObjectClassName(true) . " (or compatible) type.
      * @param bool \$deepCopy Whether to also copy all rows that refer (by fkey) to the current row.
      * @param bool \$makeNew Whether to reset autoincrement PKs and make the object new.
      * @throws \Propel\Runtime\Exception\PropelException
@@ -8030,7 +8027,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
      */
     public function __toString()
     {
-        return (string) \$this->exportTo(" . $this->getTableMapClassName() . "::DEFAULT_STRING_FORMAT);
+        return \$this->exportTo(" . $this->getTableMapClassName() . "::DEFAULT_STRING_FORMAT);
     }
 ";
     }
