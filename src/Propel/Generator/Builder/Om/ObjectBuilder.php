@@ -3443,13 +3443,7 @@ abstract class " . $this->getUnqualifiedClassName() . $parentClass . ' implement
         }
 
         foreach ($this->getTable()->getColumns() as $num => $col) {
-            if ($col->isTemporalType() && $col->isNotNull()) {
-                $script .= "
-        if (isset(\$result[\$keys[$num]])) {
-            \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
-        }
-        ";
-            } elseif ($col->isTemporalType()) {
+            if ($col->isTemporalType()) {
                 $script .= "
         if (isset(\$result[\$keys[$num]]) && \$result[\$keys[$num]] instanceof \DateTimeInterface) {
             \$result[\$keys[$num]] = \$result[\$keys[$num]]->format('" . $this->getTemporalFormatter($col) . "');
