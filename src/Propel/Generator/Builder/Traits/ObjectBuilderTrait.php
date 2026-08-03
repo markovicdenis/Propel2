@@ -66,6 +66,16 @@ trait ObjectBuilderTrait
 
     protected function getUnsetValueForAccessor(Column $column): ?string
     {
+        $unsetValue = $this->resolveUnsetValueForAccessor($column);
+
+        // Null is no value to fall back to. Types which hold their value as an object, like uid and
+        // temporal columns, have no empty value to stand in for an unset one, so their accessor
+        // returns null until the column is hydrated or set, even when the column is required.
+        return $unsetValue === 'null' ? null : $unsetValue;
+    }
+
+    private function resolveUnsetValueForAccessor(Column $column): ?string
+    {
         if ($column->hasDefaultValue()) {
             if ($column->getDefaultValue() !== null && $column->getDefaultValue()->isExpression()) {
                 return null;

@@ -244,7 +244,9 @@ class SqlPredicateNormalizer
     {
         $result = (string)preg_replace_callback(
             '/(\'(?:[^\']|\'\')*\'|"(?:[^"]|"")*")|([^\'"]+)/',
-            static fn (array $match): string => isset($match[2]) && $match[2] !== '' ? $map($match[2]) : $match[0],
+            // The second group only takes part in the match for an unquoted part, and matches at
+            // least one character, while quoted parts are kept as they are.
+            static fn (array $match): string => isset($match[2]) ? $map($match[2]) : $match[0],
             $predicate,
         );
 

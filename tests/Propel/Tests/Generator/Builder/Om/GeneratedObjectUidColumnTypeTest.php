@@ -67,4 +67,31 @@ EOF;
         $this->assertTrue($reloaded->getUidBinary()->equals($uidBinary));
         $this->assertTrue($reloaded->getUid()->equals($uid));
     }
+
+    /**
+     * A uid column has no empty value to stand in for an unset one, so its accessor returns null
+     * until the column is hydrated or set, even when the column is required. The generated api has
+     * to say so, or it promises a value it cannot deliver.
+     *
+     * @return void
+     */
+    public function testRequiredUidColumnIsNullableInTheGeneratedApi(): void
+    {
+        $builder = new QuickBuilder();
+        $builder->setSchema(<<<'EOF'
+<database name="required_uid_type_test">
+    <table name="required_uid_entity">
+        <column name="id" primaryKey="true" type="INTEGER" autoIncrement="true"/>
+        <column name="required_uid" type="UID_BINARY" required="true"/>
+    </table>
+</database>
+EOF);
+
+        $classes = $builder->getClasses();
+
+        $this->assertStringContainsString('@return \\Symfony\\Component\\Uid\\UuidV7|null', $classes);
+        $this->assertStringContainsString('@param \\Symfony\\Component\\Uid\\UuidV7|null $v New value', $classes);
+        $this->assertStringContainsString('return $this->required_uid;', $classes);
+        $this->assertStringNotContainsString('return $this->required_uid ?? null;', $classes);
+    }
 }
