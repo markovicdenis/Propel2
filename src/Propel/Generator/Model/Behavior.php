@@ -12,6 +12,7 @@ use InvalidArgumentException;
 use Propel\Common\Util\PathTrait;
 use Propel\Generator\Builder\Util\PropelTemplate;
 use Propel\Generator\Exception\LogicException;
+use Propel\Generator\Platform\PlatformInterface;
 use ReflectionObject;
 
 use function dirname;
@@ -178,9 +179,7 @@ class Behavior extends MappingModel
     /**
      * Returns the table this behavior is applied to
      *
-     * @throws \Propel\Generator\Exception\LogicException
-     *
-     * @return \Propel\Generator\Model\Table
+     * @throws LogicException
      */
     public function getTableOrFail(): Table
     {
@@ -354,6 +353,31 @@ class Behavior extends MappingModel
     }
 
     /**
+     * Returns table-level constraint clauses this behavior contributes to `CREATE TABLE`.
+     *
+     * The DDL pipeline is otherwise closed to behaviors: platforms build `CREATE TABLE`
+     * purely from the model, so a behavior needing a constraint the model cannot express —
+     * a CHECK, an EXCLUDE, a deferrable constraint — previously had no way to emit one and
+     * had to be hand-written in a migration.
+     *
+     * Each returned string is spliced into the parenthesised body of `CREATE TABLE`, after
+     * the columns, primary key and unique constraints, so it must be a complete table
+     * constraint clause and must not carry a trailing comma:
+     *
+     *     return [sprintf('CONSTRAINT %s CHECK (%s)', $platform->quoteIdentifier($name), $expr)];
+     *
+     * Implementations own the quoting of their identifiers via `$platform`, and the
+     * portability of whatever SQL they emit — the platform does not inspect or rewrite it.
+     * Return an empty array (the default) to contribute nothing.
+     *
+     * @return array<string>
+     */
+    public function getTableConstraints(PlatformInterface $platform): array
+    {
+        return [];
+    }
+
+    /**
      * Sets whether the table has been modified.
      *
      * @param bool $modified
@@ -444,7 +468,7 @@ class Behavior extends MappingModel
     }
 
     /**
-     * @throws \Propel\Generator\Exception\LogicException
+     * @throws LogicException
      *
      * @return void
      */

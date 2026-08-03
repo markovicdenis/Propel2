@@ -8,6 +8,7 @@
 
 namespace Propel\Runtime\ActiveRecord;
 
+use Propel\Common\Util\PgsqlArrayCodec;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Runtime\Parser\AbstractParser;
@@ -23,10 +24,13 @@ use function array_key_exists;
 use function count;
 use function crc32;
 use function get_class;
+use function is_array;
 use function is_object;
+use function is_string;
 use function method_exists;
 use function serialize;
 use function sprintf;
+use function trim;
 use function is_scalar;
 
 trait ActiveRecordCommonTrait
@@ -103,10 +107,44 @@ trait ActiveRecordCommonTrait
             'float', 'double' => (float)$value,
             'string' => (string)$value,
             'bool', 'boolean' => (bool)$value,
+            'array' => $this->convertValueToArrayType($value, $isNullable),
             UuidV7::class => $value instanceof UuidV7 ? $value : UuidV7::fromString($value instanceof Uuid ? $value->toRfc4122() : (string)$value),
             Uuid::class => $value instanceof Uuid ? $value : Uuid::fromString((string)$value),
             default => $value,
         };
+    }
+
+    /**
+     * Convert a value to an array column value.
+     *
+     * Array columns are stored as PHP arrays, so the database representation of an array is
+     * converted back, the same way a hydrated value is. Values that are neither arrays nor strings
+     * are left untouched, so that the column type validation of the adapter can report them.
+     *
+     * Malformed array literals are reported by the codec.
+     *
+     * @param mixed $value
+     * @param bool $isNullable Whether the column is nullable
+     *
+     * @return mixed
+     */
+    protected function convertValueToArrayType($value, bool $isNullable)
+    {
+        if (is_array($value) || !is_string($value)) {
+            return $value;
+        }
+
+        $value = trim($value);
+        if ($value === '') {
+            return $isNullable ? null : [];
+        }
+
+        // Anything that is not an array literal is left to the adapter to report.
+        if ($value[0] !== '{' && $value[0] !== '[') {
+            return $value;
+        }
+
+        return PgsqlArrayCodec::decode($value);
     }
 
     /**
@@ -341,7 +379,7 @@ trait ActiveRecordCommonTrait
      *
      * @param string $name The virtual column name.
      *
-     * @throws \Propel\Runtime\Exception\PropelException
+     * @throws PropelException
      *
      * @return mixed
      */
@@ -408,7 +446,7 @@ trait ActiveRecordCommonTrait
     /**
      * Export the current object properties to a string, using a given parser format.
      *
-     * @param \Propel\Runtime\Parser\AbstractParser|string $parser An AbstractParser instance, or a format name.
+     * @param AbstractParser|string $parser An AbstractParser instance, or a format name.
      * @param bool $includeLazyLoadColumns Whether to include lazy loaded columns.
      * @param string $keyType One of the class type constants TableMap::TYPE_PHPNAME, TableMap::TYPE_CAMELNAME, TableMap::TYPE_COLNAME, TableMap::TYPE_FIELDNAME, TableMap::TYPE_NUM.
      *

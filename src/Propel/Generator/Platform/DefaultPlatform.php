@@ -386,6 +386,10 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
             $lines[] = $this->getUniqueDDL($unique);
         }
 
+        foreach ($this->getBehaviorTableConstraintsDDL($table) as $constraint) {
+            $lines[] = $constraint;
+        }
+
         $sep = ",
     ";
 
@@ -402,6 +406,32 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
             $this->quoteIdentifier($table->getName()),
             implode($sep, $lines),
         );
+    }
+
+    /**
+     * Collects the table-level constraint clauses contributed by the table's behaviors.
+     *
+     * This is the only point at which a behavior can reach the DDL pipeline; everything else
+     * in `CREATE TABLE` is derived from the model. See `Behavior::getTableConstraints()`.
+     *
+     * @return array<string>
+     */
+    protected function getBehaviorTableConstraintsDDL(Table $table): array
+    {
+        $constraints = [];
+
+        foreach ($table->getBehaviors() as $behavior) {
+            foreach ($behavior->getTableConstraints($this) as $constraint) {
+                $constraint = trim($constraint);
+                if ($constraint === '') {
+                    continue;
+                }
+
+                $constraints[] = rtrim($constraint, ',');
+            }
+        }
+
+        return $constraints;
     }
 
     /**

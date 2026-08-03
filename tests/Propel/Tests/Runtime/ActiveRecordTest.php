@@ -11,6 +11,7 @@ namespace Propel\Tests\Runtime\ActiveRecord;
 require_once __DIR__ . '/ActiveRecordTestClasses.php';
 
 use DateTime;
+use InvalidArgumentException;
 use Propel\Runtime\Exception\PropelException;
 use Propel\Runtime\Map\TableMap;
 use Propel\Tests\TestCase;
@@ -164,6 +165,40 @@ class ActiveRecordTest extends TestCase
         $this->assertNull($record->convertValueToPhpTypeTestValue(null, 'float', true));
         $this->assertNull($record->convertValueToPhpTypeTestValue(null, 'bool', true));
         $this->assertSame('raw', $record->convertValueToPhpTypeTestValue('raw', 'App\\ValueObject', false));
+    }
+
+    /**
+     * @return void
+     */
+    public function testConvertValueToPhpTypeReadsArrayColumnValues()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->assertSame(['a', 'b'], $record->convertValueToPhpTypeTestValue(['a', 'b'], 'array', true));
+        $this->assertSame([], $record->convertValueToPhpTypeTestValue('{}', 'array', true));
+        $this->assertSame(['a', 'b'], $record->convertValueToPhpTypeTestValue('{a,b}', 'array', true));
+        $this->assertSame(['a', 'b'], $record->convertValueToPhpTypeTestValue('[1:2]={a,b}', 'array', true));
+
+        // Empty values are read as no value at all, or as an empty array if the column is required.
+        $this->assertNull($record->convertValueToPhpTypeTestValue('', 'array', true));
+        $this->assertNull($record->convertValueToPhpTypeTestValue('   ', 'array', true));
+        $this->assertSame([], $record->convertValueToPhpTypeTestValue('', 'array', false));
+
+        // Values that are no array representation at all are left to the adapter to report.
+        $this->assertSame('raw', $record->convertValueToPhpTypeTestValue('raw', 'array', true));
+        $this->assertSame(7, $record->convertValueToPhpTypeTestValue(7, 'array', true));
+    }
+
+    /**
+     * @return void
+     */
+    public function testConvertValueToPhpTypeRejectsMalformedArrayLiterals()
+    {
+        $record = new TestableActiveRecord();
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $record->convertValueToPhpTypeTestValue('{a,b', 'array', true);
     }
 
     /**

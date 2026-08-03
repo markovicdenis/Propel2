@@ -396,6 +396,10 @@ COMMIT;
             $lines[] = $this->getUniqueDDL($unique);
         }
 
+        foreach ($this->getBehaviorTableConstraintsDDL($table) as $constraint) {
+            $lines[] = $constraint;
+        }
+
         $sep = ",
     ";
         $pattern = "
