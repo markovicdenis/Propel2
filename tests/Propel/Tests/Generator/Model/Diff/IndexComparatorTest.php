@@ -91,6 +91,26 @@ class IndexComparatorTest extends TestCase
     }
 
     /**
+     * A database rewrites the where clause of a partial index, so the clause of the schema and the
+     * clause read back from the database describe the same condition in a different way.
+     *
+     * @return void
+     */
+    public function testCompareWhereAsWrittenByTheDatabase()
+    {
+        $c1 = new Column('status');
+        $i1 = new Index('status_index');
+        $i1->addColumn($c1);
+        $i1->setWhere("status::text = ANY (ARRAY['pending'::character varying, 'accepted'::character varying]::text[])");
+        $c2 = new Column('status');
+        $i2 = new Index('status_index');
+        $i2->addColumn($c2);
+        $i2->setWhere("status IN ('pending', 'accepted')");
+
+        $this->assertFalse(IndexComparator::computeDiff($i1, $i2));
+    }
+
+    /**
      * @return void
      */
     public function testCompareDifferentColumns()

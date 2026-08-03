@@ -9,6 +9,7 @@
 namespace Propel\Generator\Model\Diff;
 
 use Propel\Generator\Model\Index;
+use Propel\Generator\Util\SqlPredicateNormalizer;
 
 use function count;
 
@@ -21,12 +22,6 @@ class IndexComparator
 {
     /**
      * Computes the difference between two index objects.
-     *
-     * @param \Propel\Generator\Model\Index $fromIndex
-     * @param \Propel\Generator\Model\Index $toIndex
-     * @param bool $caseInsensitive
-     *
-     * @return bool
      */
     public static function computeDiff(Index $fromIndex, Index $toIndex, bool $caseInsensitive = false): bool
     {
@@ -64,6 +59,6 @@ class IndexComparator
             return true;
         }
 
-        return $fromIndex->getWhere() !== $toIndex->getWhere();
+        return !SqlPredicateNormalizer::areEqual($fromIndex->getWhere(), $toIndex->getWhere());
     }
 }
