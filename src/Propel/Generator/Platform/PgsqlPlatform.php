@@ -913,9 +913,30 @@ DROP SEQUENCE %s CASCADE;
      *
      * @return bool
      */
+    /**
+     * Recognises both the spellings Propel emits and the ones PostgreSQL reports back.
+     *
+     * This list is load-bearing rather than cosmetic: getUsingCast() falls through to
+     * `USING NULL` for any pair it does not classify, and `ALTER COLUMN ... USING NULL`
+     * silently nulls every value in the column — which then fails against a NOT NULL
+     * constraint, or worse, succeeds and destroys the data where the column is nullable.
+     *
+     * `INT8` (BIGINT) and `FLOAT8`/`FLOAT4` (DOUBLE/REAL) were missing while their
+     * siblings `INT4` and `INT2` were present, so every BIGINT column that a diff touched
+     * produced a data-destroying migration.
+     *
+     * @param string $type
+     *
+     * @return bool
+     */
     public function isNumber(string $type): bool
     {
-        $numbers = ['INTEGER', 'INT4', 'INT2', 'NUMBER', 'NUMERIC', 'SMALLINT', 'BIGINT', 'DECIMAL', 'REAL', 'DOUBLE PRECISION', 'SERIAL', 'BIGSERIAL'];
+        $numbers = [
+            'INTEGER', 'INT', 'INT2', 'INT4', 'INT8',
+            'SMALLINT', 'BIGINT', 'NUMBER', 'NUMERIC', 'DECIMAL',
+            'REAL', 'FLOAT', 'FLOAT4', 'FLOAT8', 'DOUBLE', 'DOUBLE PRECISION',
+            'SERIAL', 'SERIAL4', 'SERIAL8', 'BIGSERIAL', 'SMALLSERIAL', 'MONEY',
+        ];
 
         return in_array(strtoupper($type), $numbers, true);
     }
