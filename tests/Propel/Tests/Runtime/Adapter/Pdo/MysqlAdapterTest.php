@@ -11,6 +11,7 @@ namespace Propel\Tests\Runtime\Adapter\Pdo;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
+use Propel\Runtime\Adapter\NullOrdering;
 use Propel\Runtime\Adapter\Pdo\MysqlAdapter;
 use Propel\Runtime\Propel;
 use Propel\Runtime\ServiceContainer\StandardServiceContainer;
@@ -38,6 +39,25 @@ class MysqlAdapterTest extends TestCaseFixtures
         $query->setDbName(BookTableMap::DATABASE_NAME);
 
         return $query->createSelectSql($params);
+    }
+
+    /**
+     * MySQL sorts NULL as the smallest value and has no NULLS FIRST/LAST clause, so a
+     * null ordering setting shared with other connections must not reach its SQL.
+     *
+     * @return void
+     */
+    public function testOrderByNeverSpellsOutNullOrdering(): void
+    {
+        MysqlAdapter::setDefaultNullOrdering(NullOrdering::NullsLargest);
+
+        try {
+            $sql = $this->createMysqlSql(BookQuery::create()->orderByPrice(Criteria::DESC));
+        } finally {
+            MysqlAdapter::setDefaultNullOrdering(NullOrdering::Native);
+        }
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC', $sql);
     }
 
     /**

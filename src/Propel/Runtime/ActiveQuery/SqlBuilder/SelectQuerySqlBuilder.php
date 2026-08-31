@@ -357,14 +357,15 @@ class SelectQuerySqlBuilder extends AbstractSqlQueryBuilder
             }
 
             $column = ($tableName) ? $this->dbMap->getTable($tableName)->getColumn($columnName) : null;
+            $nullOrdering = $this->adapter->getNullOrderingSuffix($direction, $column);
             if ($this->criteria->isIgnoreCase() && $column && $column->isText()) {
                 $ignoreCaseColumn = $this->adapter->ignoreCaseInOrderBy("$tableAlias.$columnAlias");
                 $this->criteria->replaceNames($ignoreCaseColumn);
-                $orderByClause[] = $ignoreCaseColumn . $direction;
+                $orderByClause[] = $ignoreCaseColumn . $direction . $nullOrdering;
                 $additionalSelectStatements[] = ', ' . $ignoreCaseColumn;
             } else {
                 $this->criteria->replaceNames($orderByColumn);
-                $orderByClause[] = $orderByColumn;
+                $orderByClause[] = $orderByColumn . $nullOrdering;
             }
         }
 

@@ -162,5 +162,19 @@ interface SqlAdapterInterface extends AdapterInterface
 
     public function resolveAggregateOrderBy(string $clause, Criteria $criteria, SqlAdapterInterface $adapter): ?string;
 
+    /**
+     * Returns the explicit null ordering to append to an entry of an ORDER BY clause,
+     * according to the null ordering configured on the adapter.
+     *
+     * Returns an empty string if the adapter uses the requested ordering natively,
+     * cannot express it, or if the ordered column cannot produce NULL values.
+     *
+     * @param string $direction The direction of the clause entry, e.g. ' DESC'. Empty means ascending.
+     * @param \Propel\Runtime\Map\ColumnMap|null $column The ordered column, if it could be resolved.
+     *
+     * @return string An empty string, ' NULLS FIRST' or ' NULLS LAST'.
+     */
+    public function getNullOrderingSuffix(string $direction, ?ColumnMap $column): string;
+
     public function getQuoteCharacter(): string;
 }

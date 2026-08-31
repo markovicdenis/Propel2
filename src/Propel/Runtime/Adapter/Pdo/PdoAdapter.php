@@ -14,6 +14,7 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\Exception\AdapterException;
+use Propel\Runtime\Adapter\NullOrdering;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Adapter\Traits\StrictGroupByTrait;
 use Propel\Runtime\Connection\ConnectionInterface;
@@ -37,6 +38,7 @@ use function preg_replace;
 use function rewind;
 use function sprintf;
 use function str_replace;
+use function stripos;
 use function strlen;
 use function strpos;
 use function strrpos;
@@ -59,6 +61,119 @@ abstract class PdoAdapter implements SqlAdapterInterface
      * @var bool
      */
     protected const SUPPORTS_ALIASES_IN_DELETE = true;
+
+    /**
+     * Indicates if the database system understands an explicit NULLS FIRST/NULLS LAST
+     * clause in ORDER BY. Adapters that do not cannot change their null ordering.
+     *
+     * @see PdoAdapter::getNullOrderingSuffix()
+     *
+     * @var bool
+     */
+    protected const SUPPORTS_NULL_ORDERING_CLAUSE = false;
+
+    /**
+     * Where the database system places NULL values in an ORDER BY clause when no
+     * explicit null ordering is given. Most systems sort them as the smallest value,
+     * PostgreSQL and Oracle as the largest.
+     *
+     * @var \Propel\Runtime\Adapter\NullOrdering
+     */
+    protected const NATIVE_NULL_ORDERING = NullOrdering::NullsSmallest;
+
+    /**
+     * Null ordering used by adapters without an explicit setting of their own.
+     *
+     * @var \Propel\Runtime\Adapter\NullOrdering
+     */
+    protected static NullOrdering $defaultNullOrdering = NullOrdering::Native;
+
+    /**
+     * Null ordering used by this adapter, takes precedence over the default when set.
+     *
+     * @var \Propel\Runtime\Adapter\NullOrdering|null
+     */
+    protected ?NullOrdering $nullOrdering = null;
+
+    /**
+     * Sets the null ordering used by all adapters that have no setting of their own.
+     *
+     * Adapters that cannot express the requested ordering, or that use it natively,
+     * are unaffected, so the same setting can be applied to every connection of an
+     * application to make ordering portable across database systems.
+     *
+     * @param \Propel\Runtime\Adapter\NullOrdering $nullOrdering
+     *
+     * @return void
+     */
+    public static function setDefaultNullOrdering(NullOrdering $nullOrdering): void
+    {
+        self::$defaultNullOrdering = $nullOrdering;
+    }
+
+    /**
+     * Returns the null ordering used by adapters without a setting of their own.
+     *
+     * @return \Propel\Runtime\Adapter\NullOrdering
+     */
+    public static function getDefaultNullOrdering(): NullOrdering
+    {
+        return self::$defaultNullOrdering;
+    }
+
+    /**
+     * Sets the null ordering used by this adapter, null to use the default.
+     *
+     * @param \Propel\Runtime\Adapter\NullOrdering|null $nullOrdering
+     *
+     * @return $this
+     */
+    public function setNullOrdering(?NullOrdering $nullOrdering)
+    {
+        $this->nullOrdering = $nullOrdering;
+
+        return $this;
+    }
+
+    /**
+     * Returns the null ordering used by this adapter.
+     *
+     * @return \Propel\Runtime\Adapter\NullOrdering
+     */
+    public function getNullOrdering(): NullOrdering
+    {
+        return $this->nullOrdering ?? self::$defaultNullOrdering;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getNullOrderingSuffix(string $direction, ?ColumnMap $column): string
+    {
+        $nullOrdering = $this->getNullOrdering();
+        if (
+            $nullOrdering === NullOrdering::Native
+            || $nullOrdering === static::NATIVE_NULL_ORDERING
+            || !static::SUPPORTS_NULL_ORDERING_CLAUSE
+        ) {
+            return '';
+        }
+
+        // A column that cannot be NULL orders the same with or without the clause, and
+        // without a column map its nullability is unknown. Leaving the clause off in both
+        // cases is not just a shortcut: an explicit null ordering cannot be satisfied by
+        // an ordinary index, so emitting it where it changes nothing would turn cheap
+        // index scans into sorts. Note that a NOT NULL column can still produce NULLs as
+        // the result of an outer join, which keeps the native ordering here.
+        if ($column === null || $column->isNotNull()) {
+            return '';
+        }
+
+        $isDescending = stripos($direction, Criteria::DESC) !== false;
+        $nullsFirst = $nullOrdering === NullOrdering::NullsSmallest ? !$isDescending : $isDescending;
+
+        return $nullsFirst ? ' NULLS FIRST' : ' NULLS LAST';
+    }
 
     /**
      * Build database connection

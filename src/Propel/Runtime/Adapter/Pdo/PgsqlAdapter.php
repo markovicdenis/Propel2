@@ -13,6 +13,7 @@ use Propel\Common\Util\PgsqlArrayCodec;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\AdapterInterface;
+use Propel\Runtime\Adapter\NullOrdering;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
@@ -50,6 +51,22 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      * @var bool
      */
     protected const SUPPORTS_ALIASES_IN_DELETE = false;
+
+    /**
+     * @see PdoAdapter::SUPPORTS_NULL_ORDERING_CLAUSE
+     *
+     * @var bool
+     */
+    protected const SUPPORTS_NULL_ORDERING_CLAUSE = true;
+
+    /**
+     * PostgreSQL sorts NULL as larger than any other value.
+     *
+     * @see PdoAdapter::NATIVE_NULL_ORDERING
+     *
+     * @var \Propel\Runtime\Adapter\NullOrdering
+     */
+    protected const NATIVE_NULL_ORDERING = NullOrdering::NullsLargest;
 
     /**
      * Returns SQL which concatenates the second string to the first.

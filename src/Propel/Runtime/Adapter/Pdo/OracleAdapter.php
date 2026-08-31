@@ -12,6 +12,7 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\Lock;
 use Propel\Runtime\Adapter\AdapterInterface;
+use Propel\Runtime\Adapter\NullOrdering;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
@@ -36,6 +37,22 @@ use function strlen;
  */
 class OracleAdapter extends PdoAdapter implements SqlAdapterInterface
 {
+    /**
+     * @see PdoAdapter::SUPPORTS_NULL_ORDERING_CLAUSE
+     *
+     * @var bool
+     */
+    protected const SUPPORTS_NULL_ORDERING_CLAUSE = true;
+
+    /**
+     * Oracle sorts NULL as larger than any other value.
+     *
+     * @see PdoAdapter::NATIVE_NULL_ORDERING
+     *
+     * @var \Propel\Runtime\Adapter\NullOrdering
+     */
+    protected const NATIVE_NULL_ORDERING = NullOrdering::NullsLargest;
+
     /**
      * This method is called after a connection was created to run necessary
      * post-initialization queries or code.

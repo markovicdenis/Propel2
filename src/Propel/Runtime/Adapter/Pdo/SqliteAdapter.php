@@ -23,6 +23,16 @@ use function sprintf;
 class SqliteAdapter extends PdoAdapter implements SqlAdapterInterface
 {
     /**
+     * SQLite understands NULLS FIRST/NULLS LAST since version 3.30 (2019). It sorts
+     * NULL as the smallest value, which is the default of the parent adapter.
+     *
+     * @see PdoAdapter::SUPPORTS_NULL_ORDERING_CLAUSE
+     *
+     * @var bool
+     */
+    protected const SUPPORTS_NULL_ORDERING_CLAUSE = true;
+
+    /**
      * For SQLite this method has no effect, since SQLite doesn't support specifying a character
      * set (or, another way to look at it, it doesn't require a single character set per DB).
      *

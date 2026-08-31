@@ -14,6 +14,7 @@ use Propel\Generator\Model\PropelTypes;
 use Propel\Runtime\ActiveQuery\AggregationConfig;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\ActiveQuery\ModelCriteria;
+use Propel\Runtime\Adapter\NullOrdering;
 use Propel\Runtime\Adapter\Pdo\PgsqlAdapter;
 use Propel\Runtime\Connection\ConnectionInterface;
 use Propel\Runtime\Connection\StatementInterface;
@@ -285,6 +286,143 @@ class PgsqlAdapterTest extends TestCaseFixtures
             $this->assertStringContainsString("ANY_VALUE(grouped_value.$name)", $sql);
             $this->assertStringNotContainsString("MAX(grouped_value.$name)", $sql);
         }
+    }
+
+    /**
+     * Builds the SQL of a query against the bookstore database map, using a PostgreSQL
+     * adapter with the given null ordering.
+     *
+     * @param \Propel\Runtime\ActiveQuery\Criteria $query
+     * @param \Propel\Runtime\Adapter\NullOrdering|null $nullOrdering
+     *
+     * @return string
+     */
+    protected function createBookstorePgsqlSql(Criteria $query, ?NullOrdering $nullOrdering = null): string
+    {
+        $params = [];
+        $adapter = (new PgsqlAdapter())->setNullOrdering($nullOrdering);
+        $serviceContainer = Propel::getServiceContainer();
+        if ($serviceContainer instanceof StandardServiceContainer) {
+            $serviceContainer->setAdapter(BookTableMap::DATABASE_NAME, $adapter);
+        }
+        $query->setDbName(BookTableMap::DATABASE_NAME);
+
+        return $query->createSelectSql($params);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByUsesNativeNullOrderingByDefault(): void
+    {
+        $sql = $this->createBookstorePgsqlSql(BookQuery::create()->orderByPrice(Criteria::DESC));
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByAppendsNullsLastToDescendingOrderOfNullableColumn(): void
+    {
+        $sql = $this->createBookstorePgsqlSql(
+            BookQuery::create()->orderByPrice(Criteria::DESC),
+            NullOrdering::NullsSmallest,
+        );
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC NULLS LAST', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByAppendsNullsFirstToAscendingOrderOfNullableColumn(): void
+    {
+        $sql = $this->createBookstorePgsqlSql(
+            BookQuery::create()->orderByPrice(Criteria::ASC),
+            NullOrdering::NullsSmallest,
+        );
+
+        $this->assertStringEndsWith('ORDER BY book.price ASC NULLS FIRST', $sql);
+    }
+
+    /**
+     * A NOT NULL column orders the same either way, so it keeps the ordering that
+     * indexes can satisfy.
+     *
+     * @return void
+     */
+    public function testOrderByLeavesNotNullColumnsAlone(): void
+    {
+        $sql = $this->createBookstorePgsqlSql(
+            BookQuery::create()->orderByTitle(Criteria::DESC),
+            NullOrdering::NullsSmallest,
+        );
+
+        $this->assertStringEndsWith('ORDER BY book.title DESC', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByDoesNotSpellOutTheNullOrderingOfPostgres(): void
+    {
+        $sql = $this->createBookstorePgsqlSql(
+            BookQuery::create()->orderByPrice(Criteria::DESC),
+            NullOrdering::NullsLargest,
+        );
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByAppliesNullOrderingToEveryClauseEntry(): void
+    {
+        $query = BookQuery::create()
+            ->orderByPrice(Criteria::DESC)
+            ->orderByTitle(Criteria::ASC)
+            ->orderById(Criteria::DESC);
+
+        $sql = $this->createBookstorePgsqlSql($query, NullOrdering::NullsSmallest);
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC NULLS LAST,book.title ASC,book.id DESC', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testOrderByUsesDefaultNullOrderingWhenAdapterHasNoSetting(): void
+    {
+        PgsqlAdapter::setDefaultNullOrdering(NullOrdering::NullsSmallest);
+
+        try {
+            $sql = $this->createBookstorePgsqlSql(BookQuery::create()->orderByPrice(Criteria::DESC));
+        } finally {
+            PgsqlAdapter::setDefaultNullOrdering(NullOrdering::Native);
+        }
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC NULLS LAST', $sql);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAdapterNullOrderingOverridesDefault(): void
+    {
+        PgsqlAdapter::setDefaultNullOrdering(NullOrdering::NullsSmallest);
+
+        try {
+            $sql = $this->createBookstorePgsqlSql(
+                BookQuery::create()->orderByPrice(Criteria::DESC),
+                NullOrdering::Native,
+            );
+        } finally {
+            PgsqlAdapter::setDefaultNullOrdering(NullOrdering::Native);
+        }
+
+        $this->assertStringEndsWith('ORDER BY book.price DESC', $sql);
     }
 
     /**

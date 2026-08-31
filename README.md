@@ -35,6 +35,7 @@ Read the [Propel documentation](http://propelorm.org/documentation/01-installati
 - [Array types guide](docs/ArrayTypes.md)
 - [Column transformers guide](docs/ColumnTransformers.md)
 - [Schema reference](docs/Schema.md)
+- [Null ordering guide](docs/NullOrdering.md)
 
 ## Contribute
 
