@@ -776,6 +776,7 @@
                     'index' (default): no DB PRIMARY KEY constraint; a plain index is emitted on the model primary-key columns (keeps a single-column UUID model key; uniqueness is not DB-enforced).
                     'composite': a PRIMARY KEY that includes the model PK columns plus any missing partition-key columns (DB-enforced, standard PostgreSQL).
                     'global': a GLOBAL UNIQUE INDEX on the model PK columns (Postgres Pro Enterprise only).
+                    'none': no DB PRIMARY KEY constraint and no index; the primary key exists in the model only (append-only tables never looked up by it).
                 </xs:documentation>
             </xs:annotation>
             <xs:simpleType>
@@ -783,6 +784,7 @@
                     <xs:enumeration value="index"/>
                     <xs:enumeration value="composite"/>
                     <xs:enumeration value="global"/>
+                    <xs:enumeration value="none"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:attribute>

@@ -116,7 +116,7 @@ The `table` element is the main schema building block.
   [allowPkInsert="true|false"]
   [partitionBy="RANGE|LIST|HASH"]
   [partitionKey="/column,list/"]
-  [partitionPkMode="{index}|composite|global"]
+  [partitionPkMode="{index}|composite|global|none"]
 >
   <column>
   ...
@@ -155,7 +155,7 @@ Only `name` is required. The `idMethod`, `package`, `schema`, `namespace`, `phpN
 - `allowPkInsert`: allows explicit primary key insertion even when `idMethod="native"`.
 - `partitionBy`: declares the table as a PostgreSQL partitioned table using the given strategy (`RANGE`, `LIST`, or `HASH`). Requires `partitionKey`. See [Partitioned Tables](#partitioned-tables-postgresql).
 - `partitionKey`: comma-separated list of the partition-key columns, e.g. `created_at`. Only meaningful together with `partitionBy`.
-- `partitionPkMode`: how the physical primary key is emitted for a partitioned table. One of `index` (default), `composite`, or `global`. See [Partitioned Tables](#partitioned-tables-postgresql).
+- `partitionPkMode`: how the physical primary key is emitted for a partitioned table. One of `index` (default), `composite`, `global`, or `none`. See [Partitioned Tables](#partitioned-tables-postgresql).
 
 Example:
 
@@ -201,12 +201,14 @@ ERROR: unique constraint on partitioned table must include all partitioning colu
 | `index` *(default)* | no `PRIMARY KEY`; a plain `CREATE INDEX` on the model PK columns | single column | no — relies on UUID uniqueness |
 | `composite` | `PRIMARY KEY (<model pk> + <missing partition-key columns>)` | single column | yes, on the composite tuple |
 | `global` | `CREATE UNIQUE INDEX ... GLOBAL` on the model PK columns | single column | yes — **Postgres Pro Enterprise only** |
+| `none` | nothing: no `PRIMARY KEY` and no index | single column | no |
 
 Notes:
 
 - `composite` emits the composite constraint at the DDL level only; it does **not** mark the partition-key column(s) as model primary keys, so the generated `findPk($id)` stays single-column. If you want the ORM itself to treat the key as composite, mark the extra column with `primaryKey="true"` and Propel handles it natively — `partitionPkMode` is then not needed.
 - `global` uses the `GLOBAL` unique-index syntax, which exists only in [Postgres Pro Enterprise](https://postgrespro.com/docs/enterprise/current/pgpro-gbtree). Community PostgreSQL (including 18) rejects it with a syntax error.
-- In `index` and `global` mode there is no standard primary-key constraint, so **no foreign key from another table can reference the partitioned table** (PostgreSQL requires a unique constraint containing the partition key as the target). This is usually fine for append-only event/log tables; switch to `composite` if you need inbound foreign keys.
+- `none` suits append-only tables (logs, archives) that are written but never looked up, updated or deleted by their key: an index there only costs writes and space. `findPk()` still works, by scanning.
+- In `index`, `global` and `none` mode there is no standard primary-key constraint, so **no foreign key from another table can reference the partitioned table** (PostgreSQL requires a unique constraint containing the partition key as the target). This is usually fine for append-only event/log tables; switch to `composite` if you need inbound foreign keys.
 - Propel generates only the partitioned **parent** table. Creating the individual child partitions (e.g. one per month) is left to your migration process or a tool such as [`pg_partman`](https://github.com/pgpartman/pg_partman).
 
 ### `column` element

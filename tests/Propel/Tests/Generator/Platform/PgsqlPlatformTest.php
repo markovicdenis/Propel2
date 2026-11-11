@@ -665,6 +665,68 @@ EOF;
     }
 
     /**
+     * `none` mode: no PRIMARY KEY and no index; the key exists in the model only.
+     *
+     * @return void
+     */
+    public function testGetAddTableDDLPartitionedNoneMode()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="none">
+        <column name="id" primaryKey="true" type="INTEGER"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $table = $this->getTableFromSchema($schema, 'event');
+        $expected = <<<EOF
+
+CREATE TABLE "event"
+(
+    "id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP NOT NULL
+) PARTITION BY RANGE ("created_at");
+
+EOF;
+        $this->assertEquals($expected, $this->getPlatform()->getAddTableDDL($table));
+        $this->assertSame(Table::PARTITION_PK_NONE, $table->getPartitionPkMode());
+        $this->assertNull($table->getPartitionPrimaryKeyIndex());
+        $this->assertSame(['id'], array_map(static fn (Column $column) => $column->getName(), $table->getPrimaryKey()), 'the model keeps its key');
+    }
+
+    /**
+     * Switching a table to `none` drops the index `index` mode made, and adds no PRIMARY KEY.
+     *
+     * @return void
+     */
+    public function testNoneModeDropsTheOldPartitionIndexAndAddsNoPrimaryKey()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="none">
+        <column name="id" primaryKey="true" type="INTEGER"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $model = $this->getTableFromSchema($schema, 'event');
+
+        $withOldIndex = new TableComparator();
+        $withOldIndex->setFromTable($this->partitionedTableFromDatabase($model, 'event_pk_idx'));
+        $withOldIndex->setToTable($model);
+        $this->assertSame(1, $withOldIndex->compareIndices());
+        $this->assertSame(['event_pk_idx'], array_keys($withOldIndex->getTableDiff()->getRemovedIndices()));
+        $this->assertSame(0, $withOldIndex->comparePrimaryKeys(), 'no PRIMARY KEY is added');
+
+        $clean = new TableComparator();
+        $clean->setFromTable($this->partitionedTableFromDatabase($model, null));
+        $clean->setToTable($model);
+        $this->assertSame(0, $clean->compareIndices());
+        $this->assertSame(0, $clean->comparePrimaryKeys());
+    }
+
+    /**
      * A table read back from a database has no partitionBy, so its mode is unknown: it implies no
      * index, and only the ones the database reported are compared.
      *

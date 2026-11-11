@@ -188,12 +188,20 @@ class Table extends ScopedMappingModel implements IdMethod
      *                                 columns (DB-enforced, standard PostgreSQL).
      *  - self::PARTITION_PK_GLOBAL    a GLOBAL UNIQUE INDEX on the model PK
      *                                 columns (Postgres Pro Enterprise only).
+     *  - self::PARTITION_PK_NONE      no DB PRIMARY KEY and no index: the key
+     *                                 exists in the model only (append-only
+     *                                 tables never looked up by it).
      */
     public const PARTITION_PK_INDEX = 'index';
 
     public const PARTITION_PK_COMPOSITE = 'composite';
 
     public const PARTITION_PK_GLOBAL = 'global';
+
+    /**
+     * @var string No PRIMARY KEY and no index on a partitioned table: the key exists in the model only.
+     */
+    public const PARTITION_PK_NONE = 'none';
 
     /**
      * Partition strategy (RANGE, LIST or HASH); null when the table is not partitioned.
@@ -2240,8 +2248,8 @@ class Table extends ScopedMappingModel implements IdMethod
      * both on the model's primary-key columns.
      *
      * Null when the table makes no such index: not partitioned, `composite` mode (a real PRIMARY
-     * KEY), no primary key, or a table read back from a database (no partitionBy), whose mode is
-     * unknown and whose indexes are the ones the database reported.
+     * KEY), `none` mode, no primary key, or a table read back from a database (no partitionBy),
+     * whose mode is unknown and whose indexes are the ones the database reported.
      *
      * It is not in getIndices(): the platform creates it with the table (PgsqlPlatform), and the
      * migration diff compares it like any other index (TableComparator::compareIndices), so a

@@ -382,6 +382,7 @@ COMMIT;
                 if ($table->getPartitionPkMode() === Table::PARTITION_PK_COMPOSITE) {
                     $lines[] = $this->getPartitionedPrimaryKeyDDL($table);
                 }
+                // For PARTITION_PK_NONE nothing is emitted for the primary key.
                 // For PARTITION_PK_INDEX and PARTITION_PK_GLOBAL the primary key is
                 // emitted as a separate (unique) index statement after CREATE TABLE.
             } else {

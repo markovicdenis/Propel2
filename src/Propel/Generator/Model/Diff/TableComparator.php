@@ -252,7 +252,7 @@ class TableComparator
 
         $mode = strtolower($table->getPartitionPkMode());
 
-        return in_array($mode, [Table::PARTITION_PK_INDEX, Table::PARTITION_PK_GLOBAL], true);
+        return in_array($mode, [Table::PARTITION_PK_INDEX, Table::PARTITION_PK_GLOBAL, Table::PARTITION_PK_NONE], true);
     }
 
     /**

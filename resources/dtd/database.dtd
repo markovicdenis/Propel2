@@ -71,7 +71,7 @@ PHP class or method name.
   defaultStringFormat CDATA #IMPLIED
   partitionBy (RANGE|LIST|HASH|range|list|hash) #IMPLIED
   partitionKey CDATA #IMPLIED
-  partitionPkMode (index|composite|global) "index"
+  partitionPkMode (index|composite|global|none) "index"
 >
 
 <!ELEMENT id-method-parameter EMPTY>
