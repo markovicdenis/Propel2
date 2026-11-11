@@ -2235,6 +2235,43 @@ class Table extends ScopedMappingModel implements IdMethod
     }
 
     /**
+     * The index a partitioned table's primary key becomes (see partitionPkMode): a plain index
+     * "<table>_pk_idx" in `index` mode, a GLOBAL unique index "<table>_pk_uidx" in `global` mode,
+     * both on the model's primary-key columns.
+     *
+     * Null when the table makes no such index: not partitioned, `composite` mode (a real PRIMARY
+     * KEY), no primary key, or a table read back from a database (no partitionBy), whose mode is
+     * unknown and whose indexes are the ones the database reported.
+     *
+     * It is not in getIndices(): the platform creates it with the table (PgsqlPlatform), and the
+     * migration diff compares it like any other index (TableComparator::compareIndices), so a
+     * database that has it is not told to drop it.
+     *
+     * @return \Propel\Generator\Model\Index|null
+     */
+    public function getPartitionPrimaryKeyIndex(): ?Index
+    {
+        if (!$this->isPartitioned || $this->partitionBy === null || !$this->hasPrimaryKey()) {
+            return null;
+        }
+        $index = match ($this->partitionPkMode) {
+            self::PARTITION_PK_INDEX => new Index($this->getCommonName() . '_pk_idx'),
+            self::PARTITION_PK_GLOBAL => new Unique($this->getCommonName() . '_pk_uidx'),
+            default => null,
+        };
+        if ($index === null) {
+            return null;
+        }
+        $index->setTable($this);
+        foreach ($this->getPrimaryKey() as $column) {
+            // By name, as <index-column> does: a column's size is not an index prefix here.
+            $index->addColumn(['name' => $column->getName()]);
+        }
+
+        return $index;
+    }
+
+    /**
      * Returns the partition-key columns as declared in the schema.
      *
      * @throws EngineException When a declared partition-key column does not exist.

@@ -256,6 +256,33 @@ class TableComparator
     }
 
     /**
+     * A table's indices and unique indices as the database has them: with the index a partitioned
+     * table's primary key becomes (Table::getPartitionPrimaryKeyIndex()), which the platform
+     * creates with the table but the model does not list. Without it, a database that has
+     * "<table>_pk_idx" was told to drop it, and one that lacks it was never told to create it.
+     *
+     * @return array<\Propel\Generator\Model\Index>
+     */
+    protected function comparedIndices(Table $table, bool $caseInsensitive): array
+    {
+        $indices = array_merge($table->getIndices(), $table->getUnices());
+        $partitionIndex = $table->getPartitionPrimaryKeyIndex();
+        if ($partitionIndex === null) {
+            return $indices;
+        }
+        $name = $caseInsensitive ? strtolower($partitionIndex->getName()) : $partitionIndex->getName();
+        foreach ($indices as $index) {
+            if (($caseInsensitive ? strtolower($index->getName()) : $index->getName()) === $name) {
+                // Declared in the schema as well: that declaration is the one compared.
+                return $indices;
+            }
+        }
+        $indices[] = $partitionIndex;
+
+        return $indices;
+    }
+
+    /**
      * Returns the number of differences.
      *
      * Compare the indices and unique indices of the fromTable and the toTable,
@@ -268,8 +295,8 @@ class TableComparator
     public function compareIndices(bool $caseInsensitive = false): int
     {
         $indexDifferences = 0;
-        $fromTableIndices = array_merge($this->getFromTable()->getIndices(), $this->getFromTable()->getUnices());
-        $toTableIndices = array_merge($this->getToTable()->getIndices(), $this->getToTable()->getUnices());
+        $fromTableIndices = $this->comparedIndices($this->getFromTable(), $caseInsensitive);
+        $toTableIndices = $this->comparedIndices($this->getToTable(), $caseInsensitive);
 
         foreach ($fromTableIndices as $fromTableIndexPos => $fromTableIndex) {
             foreach ($toTableIndices as $toTableIndexPos => $toTableIndex) {

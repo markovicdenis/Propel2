@@ -481,34 +481,45 @@ COMMENT ON TABLE %s IS %s;
      *                         (Postgres Pro Enterprise).
      *
      * Returns an empty string for non-partitioned tables, composite mode, or
-     * tables without a model primary key.
+     * tables without a model primary key (Table::getPartitionPrimaryKeyIndex()).
      */
     protected function getPartitionKeyIndexDDL(Table $table): string
     {
-        if (!$table->isPartitioned() || !$table->hasPrimaryKey()) {
-            return '';
-        }
+        $index = $table->getPartitionPrimaryKeyIndex();
 
-        $mode = $table->getPartitionPkMode();
-        if ($mode === Table::PARTITION_PK_INDEX) {
-            return sprintf(
-                "\nCREATE INDEX %s ON %s (%s);\n",
-                $this->quoteIdentifier($table->getCommonName() . '_pk_idx'),
-                $this->quoteIdentifier($table->getName()),
-                $this->getColumnListDDL($table->getPrimaryKey()),
-            );
-        }
+        return $index !== null ? $this->getPartitionPrimaryKeyIndexDDL($index) : '';
+    }
 
-        if ($mode === Table::PARTITION_PK_GLOBAL) {
-            return sprintf(
-                "\nCREATE UNIQUE INDEX %s ON %s (%s) GLOBAL;\n",
-                $this->quoteIdentifier($table->getCommonName() . '_pk_uidx'),
-                $this->quoteIdentifier($table->getName()),
-                $this->getColumnListDDL($table->getPrimaryKey()),
-            );
-        }
+    /**
+     * The CREATE statement of a partitioned table's primary-key index, at table creation and
+     * when a migration adds it (getAddIndexDDL): GLOBAL for the unique one of `global` mode.
+     *
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @return string
+     */
+    protected function getPartitionPrimaryKeyIndexDDL(Index $index): string
+    {
+        return sprintf(
+            $index->isUnique() ? "\nCREATE UNIQUE INDEX %s ON %s (%s) GLOBAL;\n" : "\nCREATE INDEX %s ON %s (%s);\n",
+            $this->quoteIdentifier($index->getName()),
+            $this->quoteIdentifier($index->getTable()->getName()),
+            $this->getColumnListDDL($index->getColumnObjects()),
+        );
+    }
 
-        return '';
+    /**
+     * Whether $index is its table's partition primary-key index (Table::getPartitionPrimaryKeyIndex()).
+     *
+     * @param \Propel\Generator\Model\Index $index
+     *
+     * @return bool
+     */
+    protected function isPartitionPrimaryKeyIndex(Index $index): bool
+    {
+        $table = $index->getTable();
+
+        return $table !== null && $table->getPartitionPrimaryKeyIndex()?->getName() === $index->getName();
     }
 
     protected function getAddColumnsComments(Table $table): string
@@ -1114,6 +1125,9 @@ ALTER TABLE %s DROP CONSTRAINT %s;
 
     public function getAddIndexDDL(Index $index): string
     {
+        if ($this->isPartitionPrimaryKeyIndex($index)) {
+            return $this->getPartitionPrimaryKeyIndexDDL($index);
+        }
         if (
             !$index->isUnique()
             || $index->hasWhere()

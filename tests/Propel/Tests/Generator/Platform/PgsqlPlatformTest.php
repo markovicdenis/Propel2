@@ -13,6 +13,7 @@ use Propel\Generator\Exception\EngineException;
 use Propel\Generator\Model\Column;
 use Propel\Generator\Model\ColumnDefaultValue;
 use Propel\Generator\Model\Database;
+use Propel\Generator\Model\Diff\TableComparator;
 use Propel\Generator\Model\IdMethod;
 use Propel\Generator\Model\IdMethodParameter;
 use Propel\Generator\Model\Index;
@@ -562,6 +563,122 @@ EOF;
         $columns = $table->getPartitionKeyColumns();
         $this->assertCount(1, $columns);
         $this->assertSame('created_at', $columns[0]->getName());
+    }
+
+    /**
+     * The table as the database reports it after the platform created $model: partitioned, no
+     * PRIMARY KEY in `index` mode, and the index named $indexName when given.
+     *
+     * @param \Propel\Generator\Model\Table $model
+     * @param string|null $indexName
+     *
+     * @return \Propel\Generator\Model\Table
+     */
+    private function partitionedTableFromDatabase(Table $model, ?string $indexName): Table
+    {
+        $table = new Table($model->getName());
+        $table->isPartitioned = true;
+        foreach ($model->getColumns() as $modelColumn) {
+            $column = new Column($modelColumn->getName());
+            $column->getDomain()->copy($modelColumn->getDomain());
+            $table->addColumn($column);
+        }
+        if ($indexName !== null) {
+            // `global` mode's index is unique, as the database reports it.
+            $index = str_ends_with($indexName, '_pk_uidx') ? new Unique($indexName) : new Index($indexName);
+            $index->setTable($table);
+            $index->addColumn(['name' => 'id']);
+            $table->addIndex($index);
+        }
+
+        return $table;
+    }
+
+    /**
+     * @return array<string, array{string, string, string}>
+     */
+    public static function providerForPartitionPrimaryKeyIndexModes(): array
+    {
+        return [
+            'index' => ['index', 'event_pk_idx', "\nCREATE INDEX \"event_pk_idx\" ON \"event\" (\"id\");\n"],
+            'global' => ['global', 'event_pk_uidx', "\nCREATE UNIQUE INDEX \"event_pk_uidx\" ON \"event\" (\"id\") GLOBAL;\n"],
+        ];
+    }
+
+    /**
+     * The migration diff agrees with what getAddTableDDL() created: a database with the partition
+     * primary-key index is not told to drop it, and one without it is told to create it, with
+     * the same statement the table got.
+     *
+     * @return void
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('providerForPartitionPrimaryKeyIndexModes')]
+    public function testMigrationDiffKeepsThePartitionPrimaryKeyIndex(string $mode, string $indexName, string $createIndex)
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="$mode">
+        <column name="id" primaryKey="true" type="INTEGER"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $model = $this->getTableFromSchema($schema, 'event');
+        $this->assertStringContainsString(trim($createIndex), $this->getPlatform()->getAddTableDDL($model));
+
+        $existing = new TableComparator();
+        $existing->setFromTable($this->partitionedTableFromDatabase($model, $indexName));
+        $existing->setToTable($model);
+        $this->assertSame(0, $existing->compareIndices(), 'the index the table was created with is not dropped');
+
+        $missing = new TableComparator();
+        $missing->setFromTable($this->partitionedTableFromDatabase($model, null));
+        $missing->setToTable($model);
+        $this->assertSame(1, $missing->compareIndices());
+        $added = $missing->getTableDiff()->getAddedIndices();
+        $this->assertSame([$indexName], array_keys($added));
+        $this->assertSame($createIndex, $this->getPlatform()->getAddIndexDDL($added[$indexName]));
+    }
+
+    /**
+     * Composite mode keeps a real PRIMARY KEY: no extra index is implied, and none is compared.
+     *
+     * @return void
+     */
+    public function testCompositePartitionModeImpliesNoIndex()
+    {
+        $schema = <<<EOF
+<database name="test" identifierQuoting="true">
+    <table name="event" partitionBy="RANGE" partitionKey="created_at" partitionPkMode="composite">
+        <column name="id" primaryKey="true" type="INTEGER"/>
+        <column name="created_at" type="TIMESTAMP" required="true"/>
+    </table>
+</database>
+EOF;
+        $model = $this->getTableFromSchema($schema, 'event');
+        $this->assertNull($model->getPartitionPrimaryKeyIndex());
+
+        $comparator = new TableComparator();
+        $comparator->setFromTable($this->partitionedTableFromDatabase($model, null));
+        $comparator->setToTable($model);
+        $this->assertSame(0, $comparator->compareIndices());
+    }
+
+    /**
+     * A table read back from a database has no partitionBy, so its mode is unknown: it implies no
+     * index, and only the ones the database reported are compared.
+     *
+     * @return void
+     */
+    public function testATableReadFromTheDatabaseImpliesNoPartitionIndex()
+    {
+        $table = new Table('event');
+        $table->isPartitioned = true;
+        $column = new Column('id');
+        $column->setPrimaryKey(true);
+        $table->addColumn($column);
+
+        $this->assertNull($table->getPartitionPrimaryKeyIndex());
     }
 
     /**
